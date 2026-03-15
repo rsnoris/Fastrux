@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>News &amp; Media — Fastrux Logistics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -323,9 +324,12 @@
 
       <!-- Featured article -->
       <div class="featured-article">
-        <div style="background:linear-gradient(135deg,#0b6fff22,#0950c722);min-height:360px;display:flex;align-items:center;justify-content:center;">
-          <iconify-icon icon="lucide:newspaper" style="font-size:80px;color:var(--primary);opacity:.4"></iconify-icon>
-        </div>
+        <img
+          src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?w=1200&q=80"
+          alt="Fastrux 4 millionth shipment milestone celebration"
+          class="featured-img"
+          loading="eager"
+        />
         <div class="featured-body">
           <span class="article-cat">Company News</span>
           <h2>Fastrux Delivers Its 4 Millionth Shipment, Marking Two Decades of Global Logistics Excellence</h2>
@@ -492,15 +496,15 @@
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
     const ARTICLES = [
-      { cat:'sustainability', date:'Mar 5, 2026',  read:'4 min', title:'Fastrux Launches Carbon-Offset Programme for All Ocean Freight Routes', excerpt:'Customers can now automatically offset the full carbon footprint of every ocean shipment at checkout, as Fastrux accelerates its 2035 net-zero pledge.' },
-      { cat:'technology',     date:'Feb 28, 2026', read:'6 min', title:'Introducing Live Map: Real-Time Vessel Tracking for Every Ocean Shipment', excerpt:'Our new Live Map feature gives shippers a Google Maps-style view of their ocean cargo — updated every 15 minutes using AIS vessel data.' },
-      { cat:'industry',       date:'Feb 20, 2026', read:'7 min', title:'Red Sea Disruptions: What Shippers Need to Know in 2026', excerpt:'Ongoing security concerns in the Red Sea corridor continue to push transit times higher. Here is how Fastrux is routing cargo to minimise delays.' },
-      { cat:'press',          date:'Feb 14, 2026', read:'2 min', title:'Fastrux Named Top 10 Freight Forwarder by Logistics Leaders Magazine', excerpt:'For the third consecutive year, Fastrux has been recognised among the world\'s top 10 freight forwarders by Logistics Leaders Magazine.' },
-      { cat:'company',        date:'Feb 3, 2026',  read:'3 min', title:'Fastrux Opens New Singapore Hub to Serve Growing Asia-Pacific Demand', excerpt:'A state-of-the-art 80,000 sq ft regional hub at Singapore\'s Tuas Port strengthens our Asia-Pacific network with 24/7 cross-dock capability.' },
-      { cat:'technology',     date:'Jan 22, 2026', read:'5 min', title:'AI-Powered Demand Forecasting Cuts Customer Warehouse Costs by 18%', excerpt:'Early pilots of our AI forecasting tool have helped clients reduce safety stock by an average of 18%, freeing up critical working capital.' },
-      { cat:'sustainability',  date:'Jan 10, 2026', read:'4 min', title:'Fastrux Partners with GreenCargo to Deploy 40 Electric Delivery Vans', excerpt:'As part of our last-mile electrification initiative, 40 zero-emission delivery vans will begin operating across New York and Los Angeles.' },
-      { cat:'industry',       date:'Dec 18, 2025', read:'8 min', title:'2026 Freight Market Outlook: Rates, Capacity, and Key Trends to Watch', excerpt:'Our annual market outlook covers container rates, air freight capacity, and the macro trends every supply chain manager should plan for in 2026.' },
-      { cat:'company',        date:'Dec 5, 2025',  read:'3 min', title:'Fastrux Celebrates 20 Years with Free Tracking for All Customers', excerpt:'To mark two decades in business, we\'re unlocking premium real-time tracking at no extra cost for all customers — permanently.' },
+      { cat:'sustainability', date:'Mar 5, 2026',  read:'4 min', title:'Fastrux Launches Carbon-Offset Programme for All Ocean Freight Routes', excerpt:'Customers can now automatically offset the full carbon footprint of every ocean shipment at checkout, as Fastrux accelerates its 2035 net-zero pledge.', img:'https://images.unsplash.com/photo-1497436072909-60f360e1d4b1?w=600&q=80' },
+      { cat:'technology',     date:'Feb 28, 2026', read:'6 min', title:'Introducing Live Map: Real-Time Vessel Tracking for Every Ocean Shipment', excerpt:'Our new Live Map feature gives shippers a Google Maps-style view of their ocean cargo — updated every 15 minutes using AIS vessel data.', img:'https://images.unsplash.com/photo-1512756290469-ec264b7fbf87?w=600&q=80' },
+      { cat:'industry',       date:'Feb 20, 2026', read:'7 min', title:'Red Sea Disruptions: What Shippers Need to Know in 2026', excerpt:'Ongoing security concerns in the Red Sea corridor continue to push transit times higher. Here is how Fastrux is routing cargo to minimise delays.', img:'https://images.unsplash.com/photo-1547978996-2b4daa81c6a6?w=600&q=80' },
+      { cat:'press',          date:'Feb 14, 2026', read:'2 min', title:'Fastrux Named Top 10 Freight Forwarder by Logistics Leaders Magazine', excerpt:'For the third consecutive year, Fastrux has been recognised among the world\'s top 10 freight forwarders by Logistics Leaders Magazine.', img:'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=600&q=80' },
+      { cat:'company',        date:'Feb 3, 2026',  read:'3 min', title:'Fastrux Opens New Singapore Hub to Serve Growing Asia-Pacific Demand', excerpt:'A state-of-the-art 80,000 sq ft regional hub at Singapore\'s Tuas Port strengthens our Asia-Pacific network with 24/7 cross-dock capability.', img:'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=600&q=80' },
+      { cat:'technology',     date:'Jan 22, 2026', read:'5 min', title:'AI-Powered Demand Forecasting Cuts Customer Warehouse Costs by 18%', excerpt:'Early pilots of our AI forecasting tool have helped clients reduce safety stock by an average of 18%, freeing up critical working capital.', img:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=600&q=80' },
+      { cat:'sustainability',  date:'Jan 10, 2026', read:'4 min', title:'Fastrux Partners with GreenCargo to Deploy 40 Electric Delivery Vans', excerpt:'As part of our last-mile electrification initiative, 40 zero-emission delivery vans will begin operating across New York and Los Angeles.', img:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80' },
+      { cat:'industry',       date:'Dec 18, 2025', read:'8 min', title:'2026 Freight Market Outlook: Rates, Capacity, and Key Trends to Watch', excerpt:'Our annual market outlook covers container rates, air freight capacity, and the macro trends every supply chain manager should plan for in 2026.', img:'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=600&q=80' },
+      { cat:'company',        date:'Dec 5, 2025',  read:'3 min', title:'Fastrux Celebrates 20 Years with Free Tracking for All Customers', excerpt:'To mark two decades in business, we\'re unlocking premium real-time tracking at no extra cost for all customers — permanently.', img:'https://images.unsplash.com/photo-1567446537708-ac4aa75c9c28?w=600&q=80' },
     ];
 
     const CAT_LABELS = {
@@ -513,8 +517,8 @@
       const list = cat === 'all' ? ARTICLES : ARTICLES.filter(a => a.cat === cat);
       grid.innerHTML = list.map(a => `
         <article class="news-card">
-          <div class="news-card-thumb" style="background:var(--secondary);height:200px;display:flex;align-items:center;justify-content:center;">
-            <iconify-icon icon="lucide:file-text" style="font-size:40px;color:var(--primary);opacity:.35"></iconify-icon>
+          <div class="news-card-thumb">
+            <img src="${a.img}" alt="${a.title}" loading="lazy" style="width:100%;height:100%;object-fit:cover;" />
           </div>
           <div class="news-card-body">
             <span class="article-cat">${CAT_LABELS[a.cat]}</span>
