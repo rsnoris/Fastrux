@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ocean Freight — Fastrux Logistics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../shared.css" />
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    .service-intro-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+    }
+    .service-intro-grid img {
+      width: 100%;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 20px 48px rgba(0,0,0,.1);
+    }
+    .service-intro-content h2 { font-size: 34px; font-weight: 700; margin-bottom: 20px; line-height: 1.25; }
+    .service-intro-content p  { color: var(--muted-foreground); margin-bottom: 16px; font-size: 16px; line-height: 1.75; }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .feature-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+    }
+    .feature-icon {
+      width: 52px; height: 52px;
+      background: var(--secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+    .feature-card h3 { font-size: 17px; font-weight: 600; margin-bottom: 10px; }
+    .feature-card p  { font-size: 14px; color: var(--muted-foreground); line-height: 1.65; }
+
+    .routes-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .routes-table th {
+      background: var(--secondary);
+      padding: 16px 24px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--foreground);
+    }
+    .routes-table td {
+      padding: 16px 24px;
+      font-size: 14px;
+      border-top: 1px solid var(--border);
+      color: var(--foreground);
+    }
+    .routes-table tr:hover td { background: var(--secondary); }
+    .transit-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--secondary);
+      color: var(--primary);
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .process-steps {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 0;
+      position: relative;
+    }
+    .process-steps::before {
+      content:'';
+      position: absolute;
+      top: 28px; left: 10%; right: 10%;
+      height: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .step-item { text-align: center; position: relative; z-index: 1; }
+    .step-num {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-size: 18px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      border: 4px solid var(--background);
+      box-shadow: 0 0 0 2px var(--primary);
+    }
+    .step-item h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+    .step-item p  { font-size: 13px; color: var(--muted-foreground); }
+
+    @media (max-width: 1024px) {
+      .features-grid { grid-template-columns: repeat(2,1fr); }
+      .process-steps { grid-template-columns: repeat(3,1fr); gap: 24px; }
+      .process-steps::before { display: none; }
+    }
+    @media (max-width: 768px) {
+      .service-intro-grid { grid-template-columns: 1fr; }
+      .features-grid      { grid-template-columns: 1fr; }
+      .process-steps      { grid-template-columns: repeat(2,1fr); }
+    }
+    @media (max-width: 480px) {
+      .process-steps { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="container header-content">
+      <a href="../index.html" class="logo">
+        <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
+        Fastrux
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="../index.html">Home</a>
+        <a class="nav-link active" href="../index.html#services">Services</a>
+        <a class="nav-link" href="../track.html">Tracking</a>
+        <a class="nav-link" href="../about.html">About Us</a>
+        <a class="nav-link" href="../contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <a class="nav-link" href="../login.html">Login</a>
+        <a class="btn btn-primary" href="../quote.html">Get a Quote</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <nav class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="../index.html">Home</a>
+    <a class="nav-link active" href="../index.html#services">Services</a>
+    <a class="nav-link" href="../track.html">Tracking</a>
+    <a class="nav-link" href="../about.html">About Us</a>
+    <a class="nav-link" href="../contact.html">Contact</a>
+    <div class="header-actions" style="margin-top:8px;">
+      <a class="btn btn-outline" href="../login.html">Login</a>
+      <a class="btn btn-primary" href="../quote.html">Get a Quote</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="page-hero">
+    <div class="container">
+      <div style="display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;background:rgba(255,255,255,.15);border-radius:var(--radius-lg);margin-bottom:20px;">
+        <iconify-icon icon="lucide:ship" style="font-size:36px"></iconify-icon>
+      </div>
+      <h1>Ocean Freight</h1>
+      <p>Cost-effective maritime transport solutions for large-volume cargo across every major global shipping lane.</p>
+    </div>
+  </div>
+
+  <!-- ── BREADCRUMB ── -->
+  <div style="background:var(--card);border-bottom:1px solid var(--border);padding:12px 0;">
+    <div class="container">
+      <nav style="font-size:13px;color:var(--muted-foreground);display:flex;gap:8px;align-items:center;">
+        <a href="../index.html" style="color:var(--primary);">Home</a>
+        <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
+        <a href="../index.html#services" style="color:var(--primary);">Services</a>
+        <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
+        <span>Ocean Freight</span>
+      </nav>
+    </div>
+  </div>
+
+  <!-- ── INTRO ── -->
+  <section class="section">
+    <div class="container service-intro-grid">
+      <div class="service-intro-content">
+        <h2>Reliable Ocean Freight for Any Volume, Any Destination</h2>
+        <p>Whether you're moving a single container or a full fleet of vessels, Fastrux's ocean freight division delivers cost-efficient, dependable maritime transportation on every major trade lane — Asia-Pacific, Trans-Atlantic, Trans-Pacific, and beyond.</p>
+        <p>We offer Full Container Load (FCL) and Less-than-Container Load (LCL) options, giving businesses of all sizes access to the world's most economical long-haul freight mode. Our dedicated ocean freight managers handle every step from booking to port clearance.</p>
+        <div style="display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;">
+          <a class="btn btn-primary" href="../quote.html">Get Ocean Freight Quote</a>
+          <a class="btn btn-outline" href="../contact.html">Speak to a Specialist</a>
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,var(--secondary),#c7dcff);border-radius:var(--radius-xl);min-height:380px;display:flex;align-items:center;justify-content:center;">
+        <iconify-icon icon="lucide:ship" style="font-size:120px;color:var(--primary);opacity:.25"></iconify-icon>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FEATURES ── -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">What's Included</h2>
+      <p class="section-subtitle">Every Fastrux ocean freight booking comes with a full suite of services as standard.</p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:box" style="font-size:24px"></iconify-icon></div>
+          <h3>FCL &amp; LCL Options</h3>
+          <p>Full Container Load for high-volume shipments, or consolidate with other cargo in a Less-than-Container Load to save on smaller consignments.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:map-pin" style="font-size:24px"></iconify-icon></div>
+          <h3>Real-Time Vessel Tracking</h3>
+          <p>Monitor your container's exact location 24/7 using our live tracking dashboard with AIS vessel data updated every 15 minutes.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:file-check" style="font-size:24px"></iconify-icon></div>
+          <h3>Customs &amp; Documentation</h3>
+          <p>Our licensed customs brokers handle bills of lading, certificates of origin, import/export declarations, and all port paperwork.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:shield-check" style="font-size:24px"></iconify-icon></div>
+          <h3>Cargo Insurance</h3>
+          <p>Comprehensive marine cargo insurance with competitive rates. Coverage from port of origin through to final delivery destination.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:thermometer" style="font-size:24px"></iconify-icon></div>
+          <h3>Reefer &amp; Hazmat</h3>
+          <p>Refrigerated containers for temperature-sensitive cargo, plus specialist handling for hazardous materials in full regulatory compliance.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><iconify-icon icon="lucide:headphones" style="font-size:24px"></iconify-icon></div>
+          <h3>Dedicated Account Manager</h3>
+          <p>One point of contact who knows your business, your cargo, and your lanes — available by phone, email, or live chat.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── KEY ROUTES ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Key Trade Lanes</h2>
+      <p class="section-subtitle">We serve every major global shipping corridor with competitive rates and reliable transit times.</p>
+      <div style="overflow-x:auto;">
+        <table class="routes-table">
+          <thead>
+            <tr>
+              <th>Origin</th>
+              <th>Destination</th>
+              <th>FCL Transit</th>
+              <th>LCL Transit</th>
+              <th>Frequency</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Shanghai, CN</td><td>Los Angeles, US</td><td><span class="transit-badge">14–16 days</span></td><td><span class="transit-badge">18–22 days</span></td><td>Daily sailings</td></tr>
+            <tr><td>Rotterdam, NL</td><td>New York, US</td><td><span class="transit-badge">10–12 days</span></td><td><span class="transit-badge">14–18 days</span></td><td>3× weekly</td></tr>
+            <tr><td>Singapore, SG</td><td>Hamburg, DE</td><td><span class="transit-badge">20–24 days</span></td><td><span class="transit-badge">24–30 days</span></td><td>Weekly</td></tr>
+            <tr><td>Dubai, AE</td><td>New York, US</td><td><span class="transit-badge">22–26 days</span></td><td><span class="transit-badge">26–32 days</span></td><td>Weekly</td></tr>
+            <tr><td>São Paulo, BR</td><td>Rotterdam, NL</td><td><span class="transit-badge">12–15 days</span></td><td><span class="transit-badge">16–20 days</span></td><td>2× weekly</td></tr>
+            <tr><td>Sydney, AU</td><td>Los Angeles, US</td><td><span class="transit-badge">18–21 days</span></td><td><span class="transit-badge">22–26 days</span></td><td>Weekly</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── HOW IT WORKS ── -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-subtitle">From quote to delivery in five straightforward steps.</p>
+      <div class="process-steps">
+        <div class="step-item">
+          <div class="step-num">1</div>
+          <h4>Request a Quote</h4>
+          <p>Tell us your origin, destination, cargo type, and volume.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">2</div>
+          <h4>Confirm Booking</h4>
+          <p>Accept your rate and we secure container space on your behalf.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">3</div>
+          <h4>Cargo Collection</h4>
+          <p>We arrange door pickup or you deliver to our container yard.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">4</div>
+          <h4>In Transit</h4>
+          <p>Track your vessel live. We handle any port issues in real time.</p>
+        </div>
+        <div class="step-item">
+          <div class="step-num">5</div>
+          <h4>Delivery</h4>
+          <p>Customs cleared and cargo delivered to your door or warehouse.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="section" style="text-align:center;">
+    <div class="container" style="max-width:580px;">
+      <h2 class="section-title">Ready to ship by sea?</h2>
+      <p class="section-subtitle" style="margin-bottom:32px;">Get a competitive ocean freight quote in under 60 seconds.</p>
+      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
+        <a class="btn btn-primary" href="../quote.html" style="padding:14px 32px;font-size:16px;">Get a Free Quote</a>
+        <a class="btn btn-outline" href="../contact.html" style="padding:14px 32px;font-size:16px;">Contact a Specialist</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── OTHER SERVICES ── -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Explore Other Services</h2>
+      <p class="section-subtitle">Need a different solution? We've got you covered.</p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;">
+        <a href="air-freight.html" class="card" style="display:flex;gap:16px;align-items:center;text-decoration:none;">
+          <div style="width:48px;height:48px;min-width:48px;background:var(--secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+            <iconify-icon icon="lucide:plane" style="font-size:24px"></iconify-icon>
+          </div>
+          <div><h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--foreground);">Air Freight</h3><p style="font-size:13px;color:var(--muted-foreground);">Express delivery for time-critical cargo.</p></div>
+        </a>
+        <a href="ground-transport.html" class="card" style="display:flex;gap:16px;align-items:center;text-decoration:none;">
+          <div style="width:48px;height:48px;min-width:48px;background:var(--secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+            <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
+          </div>
+          <div><h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--foreground);">Ground Transport</h3><p style="font-size:13px;color:var(--muted-foreground);">Regional and national road freight.</p></div>
+        </a>
+        <a href="warehousing.html" class="card" style="display:flex;gap:16px;align-items:center;text-decoration:none;">
+          <div style="width:48px;height:48px;min-width:48px;background:var(--secondary);border-radius:var(--radius-md);display:flex;align-items:center;justify-content:center;color:var(--primary);">
+            <iconify-icon icon="lucide:package-check" style="font-size:24px"></iconify-icon>
+          </div>
+          <div><h3 style="font-size:16px;font-weight:600;margin-bottom:4px;color:var(--foreground);">Warehousing</h3><p style="font-size:13px;color:var(--muted-foreground);">Secure storage and fulfilment.</p></div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="../index.html" class="logo">
+            <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
+            Fastrux
+          </a>
+          <p>Delivering excellence in logistics and supply chain management worldwide. Your trusted partner for seamless transportation.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Services</h4>
+          <div class="footer-links">
+            <a href="ocean-freight.html">Ocean Freight</a>
+            <a href="air-freight.html">Air Freight</a>
+            <a href="ground-transport.html">Ground Transport</a>
+            <a href="warehousing.html">Warehousing</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <div class="footer-links">
+            <a href="../about.html">About Us</a>
+            <a href="../careers.html">Careers</a>
+            <a href="../news.html">News &amp; Media</a>
+            <a href="../contact.html">Contact</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-links">
+            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon> 123 Logistics Way, NY 10001</div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+15551234567">+1 (555) 123-4567</a></div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 Fastrux Logistics. All rights reserved.</div>
+        <div class="social-links">
+          <a href="https://facebook.com"  target="_blank" rel="noopener" aria-label="Facebook"><iconify-icon icon="lucide:facebook"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://twitter.com"   target="_blank" rel="noopener" aria-label="Twitter"><iconify-icon icon="lucide:twitter"   style="font-size:20px"></iconify-icon></a>
+          <a href="https://linkedin.com"  target="_blank" rel="noopener" aria-label="LinkedIn"><iconify-icon icon="lucide:linkedin"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="lucide:instagram" style="font-size:20px"></iconify-icon></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const ham = document.getElementById('hamburger');
+    const mob = document.getElementById('mobileMenu');
+    ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+  </script>
+</body>
+</html>
