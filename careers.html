@@ -93,6 +93,30 @@
     .job-card .btn { white-space: nowrap; }
     .no-jobs { text-align: center; padding: 48px 0; color: var(--muted-foreground); }
 
+    /* State + role filters */
+    .job-filters { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-bottom: 40px; }
+    .state-select {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-family: var(--font-family-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--foreground);
+      outline: none;
+      transition: border-color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 32px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+    }
+    .state-select:focus { border-color: var(--primary); }
+    .dept-filters { margin-bottom: 0; }
+
     @media (max-width: 768px) {
       .perks-grid { grid-template-columns: 1fr; }
       .job-card   { flex-direction: column; align-items: flex-start; }
@@ -186,16 +210,68 @@
   <!-- ── JOB LISTINGS ── -->
   <section class="section section-alt">
     <div class="container">
-      <h2 class="section-title">Open Positions</h2>
-      <p class="section-subtitle">We're growing fast. Find the role that's right for you.</p>
+      <h2 class="section-title">Driver, Owner &amp; Operator Positions</h2>
+      <p class="section-subtitle">We operate in all 50 states. Find a driving or owner-operator opportunity near you.</p>
 
-      <div class="dept-filters" id="deptFilters">
-        <button class="dept-btn active" data-dept="all">All Departments</button>
-        <button class="dept-btn" data-dept="engineering">Engineering</button>
-        <button class="dept-btn" data-dept="operations">Operations</button>
-        <button class="dept-btn" data-dept="sales">Sales</button>
-        <button class="dept-btn" data-dept="finance">Finance</button>
-        <button class="dept-btn" data-dept="hr">People &amp; HR</button>
+      <div class="job-filters">
+        <select id="stateFilter" class="state-select" aria-label="Filter by state">
+          <option value="all">All States</option>
+          <option value="alabama">Alabama</option>
+          <option value="alaska">Alaska</option>
+          <option value="arizona">Arizona</option>
+          <option value="arkansas">Arkansas</option>
+          <option value="california">California</option>
+          <option value="colorado">Colorado</option>
+          <option value="connecticut">Connecticut</option>
+          <option value="delaware">Delaware</option>
+          <option value="florida">Florida</option>
+          <option value="georgia">Georgia</option>
+          <option value="hawaii">Hawaii</option>
+          <option value="idaho">Idaho</option>
+          <option value="illinois">Illinois</option>
+          <option value="indiana">Indiana</option>
+          <option value="iowa">Iowa</option>
+          <option value="kansas">Kansas</option>
+          <option value="kentucky">Kentucky</option>
+          <option value="louisiana">Louisiana</option>
+          <option value="maine">Maine</option>
+          <option value="maryland">Maryland</option>
+          <option value="massachusetts">Massachusetts</option>
+          <option value="michigan">Michigan</option>
+          <option value="minnesota">Minnesota</option>
+          <option value="mississippi">Mississippi</option>
+          <option value="missouri">Missouri</option>
+          <option value="montana">Montana</option>
+          <option value="nebraska">Nebraska</option>
+          <option value="nevada">Nevada</option>
+          <option value="new-hampshire">New Hampshire</option>
+          <option value="new-jersey">New Jersey</option>
+          <option value="new-mexico">New Mexico</option>
+          <option value="new-york">New York</option>
+          <option value="north-carolina">North Carolina</option>
+          <option value="north-dakota">North Dakota</option>
+          <option value="ohio">Ohio</option>
+          <option value="oklahoma">Oklahoma</option>
+          <option value="oregon">Oregon</option>
+          <option value="pennsylvania">Pennsylvania</option>
+          <option value="rhode-island">Rhode Island</option>
+          <option value="south-carolina">South Carolina</option>
+          <option value="south-dakota">South Dakota</option>
+          <option value="tennessee">Tennessee</option>
+          <option value="texas">Texas</option>
+          <option value="utah">Utah</option>
+          <option value="vermont">Vermont</option>
+          <option value="virginia">Virginia</option>
+          <option value="washington">Washington</option>
+          <option value="west-virginia">West Virginia</option>
+          <option value="wisconsin">Wisconsin</option>
+          <option value="wyoming">Wyoming</option>
+        </select>
+        <div class="dept-filters" id="roleFilters">
+          <button class="dept-btn active" data-role="all">All Roles</button>
+          <button class="dept-btn" data-role="Driver">Driver</button>
+          <button class="dept-btn" data-role="Owner &amp; Operator">Owner &amp; Operator</button>
+        </div>
       </div>
 
       <div class="jobs-list" id="jobsList"></div>
@@ -270,49 +346,105 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
-    const JOBS = [
-      { title: 'Senior Software Engineer — Tracking Platform', dept: 'engineering', location: 'New York / Remote', type: 'Full-time', level: 'Senior' },
-      { title: 'Frontend Engineer (React)', dept: 'engineering', location: 'Remote', type: 'Full-time', level: 'Mid' },
-      { title: 'DevOps Engineer', dept: 'engineering', location: 'New York', type: 'Full-time', level: 'Senior' },
-      { title: 'Ocean Freight Operations Manager', dept: 'operations', location: 'Los Angeles', type: 'Full-time', level: 'Manager' },
-      { title: 'Air Freight Coordinator', dept: 'operations', location: 'Miami', type: 'Full-time', level: 'Mid' },
-      { title: 'Warehouse Supervisor', dept: 'operations', location: 'Chicago', type: 'Full-time', level: 'Mid' },
-      { title: 'Enterprise Account Executive', dept: 'sales', location: 'New York / Remote', type: 'Full-time', level: 'Senior' },
-      { title: 'Sales Development Representative', dept: 'sales', location: 'Remote', type: 'Full-time', level: 'Junior' },
-      { title: 'Financial Controller', dept: 'finance', location: 'New York', type: 'Full-time', level: 'Senior' },
-      { title: 'Talent Acquisition Specialist', dept: 'hr', location: 'Remote', type: 'Full-time', level: 'Mid' },
+    const STATES = [
+      { key: 'alabama',       name: 'Alabama' },
+      { key: 'alaska',        name: 'Alaska' },
+      { key: 'arizona',       name: 'Arizona' },
+      { key: 'arkansas',      name: 'Arkansas' },
+      { key: 'california',    name: 'California' },
+      { key: 'colorado',      name: 'Colorado' },
+      { key: 'connecticut',   name: 'Connecticut' },
+      { key: 'delaware',      name: 'Delaware' },
+      { key: 'florida',       name: 'Florida' },
+      { key: 'georgia',       name: 'Georgia' },
+      { key: 'hawaii',        name: 'Hawaii' },
+      { key: 'idaho',         name: 'Idaho' },
+      { key: 'illinois',      name: 'Illinois' },
+      { key: 'indiana',       name: 'Indiana' },
+      { key: 'iowa',          name: 'Iowa' },
+      { key: 'kansas',        name: 'Kansas' },
+      { key: 'kentucky',      name: 'Kentucky' },
+      { key: 'louisiana',     name: 'Louisiana' },
+      { key: 'maine',         name: 'Maine' },
+      { key: 'maryland',      name: 'Maryland' },
+      { key: 'massachusetts', name: 'Massachusetts' },
+      { key: 'michigan',      name: 'Michigan' },
+      { key: 'minnesota',     name: 'Minnesota' },
+      { key: 'mississippi',   name: 'Mississippi' },
+      { key: 'missouri',      name: 'Missouri' },
+      { key: 'montana',       name: 'Montana' },
+      { key: 'nebraska',      name: 'Nebraska' },
+      { key: 'nevada',        name: 'Nevada' },
+      { key: 'new-hampshire', name: 'New Hampshire' },
+      { key: 'new-jersey',    name: 'New Jersey' },
+      { key: 'new-mexico',    name: 'New Mexico' },
+      { key: 'new-york',      name: 'New York' },
+      { key: 'north-carolina', name: 'North Carolina' },
+      { key: 'north-dakota',  name: 'North Dakota' },
+      { key: 'ohio',          name: 'Ohio' },
+      { key: 'oklahoma',      name: 'Oklahoma' },
+      { key: 'oregon',        name: 'Oregon' },
+      { key: 'pennsylvania',  name: 'Pennsylvania' },
+      { key: 'rhode-island',  name: 'Rhode Island' },
+      { key: 'south-carolina', name: 'South Carolina' },
+      { key: 'south-dakota',  name: 'South Dakota' },
+      { key: 'tennessee',     name: 'Tennessee' },
+      { key: 'texas',         name: 'Texas' },
+      { key: 'utah',          name: 'Utah' },
+      { key: 'vermont',       name: 'Vermont' },
+      { key: 'virginia',      name: 'Virginia' },
+      { key: 'washington',    name: 'Washington' },
+      { key: 'west-virginia', name: 'West Virginia' },
+      { key: 'wisconsin',     name: 'Wisconsin' },
+      { key: 'wyoming',       name: 'Wyoming' },
     ];
 
-    function renderJobs(dept) {
+    const JOBS = STATES.flatMap(s => [
+      { title: 'Driver',             state: s.key, location: s.name, type: 'Full-time',              role: 'Driver' },
+      { title: 'Owner & Operator',   state: s.key, location: s.name, type: 'Independent Contractor', role: 'Owner & Operator' },
+    ]);
+
+    let currentState = 'all';
+    let currentRole  = 'all';
+
+    function renderJobs() {
       const list = document.getElementById('jobsList');
-      const filtered = dept === 'all' ? JOBS : JOBS.filter(j => j.dept === dept);
+      let filtered = JOBS;
+      if (currentState !== 'all') filtered = filtered.filter(j => j.state === currentState);
+      if (currentRole  !== 'all') filtered = filtered.filter(j => j.role  === currentRole);
       if (!filtered.length) {
-        list.innerHTML = '<div class="no-jobs"><iconify-icon icon="lucide:search-x" style="font-size:40px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto"></iconify-icon>No open roles in this department right now.</div>';
+        list.innerHTML = '<div class="no-jobs"><iconify-icon icon="lucide:search-x" style="font-size:40px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto"></iconify-icon>No open roles matching your selection right now.</div>';
         return;
       }
       list.innerHTML = filtered.map(j => `
         <div class="job-card">
           <div>
-            <div class="job-title">${j.title}</div>
+            <div class="job-title">${j.title} — ${j.location}</div>
             <div class="job-meta">
               <span class="job-tag"><iconify-icon icon="lucide:map-pin" style="font-size:14px"></iconify-icon>${j.location}</span>
               <span class="job-tag"><iconify-icon icon="lucide:briefcase" style="font-size:14px"></iconify-icon>${j.type}</span>
-              <span class="job-badge">${j.level}</span>
+              <span class="job-badge">${j.role}</span>
             </div>
           </div>
-          <a class="btn btn-outline" href="contact.html">Apply Now</a>
+          <a class="btn btn-outline" href="driver-onboarding.html">Apply Now</a>
         </div>`).join('');
     }
 
-    document.getElementById('deptFilters').addEventListener('click', e => {
-      const btn = e.target.closest('.dept-btn');
-      if (!btn) return;
-      document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      renderJobs(btn.dataset.dept);
+    document.getElementById('stateFilter').addEventListener('change', e => {
+      currentState = e.target.value;
+      renderJobs();
     });
 
-    renderJobs('all');
+    document.getElementById('roleFilters').addEventListener('click', e => {
+      const btn = e.target.closest('.dept-btn');
+      if (!btn) return;
+      document.querySelectorAll('#roleFilters .dept-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentRole = btn.dataset.role;
+      renderJobs();
+    });
+
+    renderJobs();
   </script>
 </body>
 </html>
