@@ -358,6 +358,10 @@
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
+        <a href="offers-tracking.html" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+          <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
+          Offers Tracking
+        </a>
         <a href="driver-onboarding.html" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:plus" style="font-size:15px;margin-right:6px"></iconify-icon>
           New Application
@@ -772,6 +776,25 @@
             <div class="detail-item"><label>Current Status</label><p><span class="badge ${(d.status||'pending')==='approved'?'badge-approved':(d.status==='rejected'?'badge-rejected':'badge-pending')}">${capitalize(d.status||'pending')}</span></p></div>
           </div>
         </div>
+
+        <div class="detail-section" style="margin-bottom:0;margin-top:16px;">
+          <div class="detail-section-title">
+            <iconify-icon icon="lucide:send"></iconify-icon>
+            Telegram Notifications
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item" style="grid-column:span 2;">
+              <label>Telegram Chat ID</label>
+              <input type="text" id="telegramChatIdInput" value="${escHtml(d.telegram_chat_id||'')}"
+                placeholder="e.g. 123456789 — get via @userinfobot"
+                style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-family:var(--font-family-body);font-size:14px;background:var(--input);" />
+              <p style="font-size:12px;color:var(--muted-foreground);margin-top:4px;">
+                The driver's Telegram numeric chat ID. The driver can get it by messaging
+                <a href="https://t.me/userinfobot" target="_blank" rel="noopener" style="color:var(--primary);">@userinfobot</a> on Telegram.
+              </p>
+            </div>
+          </div>
+        </div>
       `;
 
       document.getElementById('statusSelect').value = d.status || 'pending';
@@ -799,6 +822,8 @@
         fd.append('action', 'update_status');
         fd.append('driver_id', activeDriverId);
         fd.append('status', newStatus);
+        const chatIdInput = document.getElementById('telegramChatIdInput');
+        if (chatIdInput) fd.append('telegram_chat_id', chatIdInput.value.trim());
         const res  = await fetch('dashboard_data.php', { method: 'POST', body: fd });
         const data = await res.json();
         if (data.success) {

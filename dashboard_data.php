@@ -130,6 +130,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (($d['id'] ?? '') === $driverId) {
             $d['status']     = $status;
             $d['updated_at'] = date('Y-m-d H:i:s');
+            // Optionally update telegram_chat_id when provided
+            if (isset($_POST['telegram_chat_id'])) {
+                $d['telegram_chat_id'] = htmlspecialchars(
+                    strip_tags(trim($_POST['telegram_chat_id'])),
+                    ENT_QUOTES,
+                    'UTF-8'
+                );
+            }
             $found = true;
             break;
         }
