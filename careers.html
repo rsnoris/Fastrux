@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Careers — Fastrux Logistics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    .perks-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+    .perk-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px 28px;
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+    }
+    .perk-icon {
+      width: 44px; height: 44px; min-width: 44px;
+      background: var(--secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
+    }
+    .perk-card h4 { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .perk-card p  { font-size: 14px; color: var(--muted-foreground); }
+
+    /* Filter tabs */
+    .dept-filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 40px;
+    }
+    .dept-btn {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-family: var(--font-family-body);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      color: var(--foreground);
+      transition: all .2s;
+    }
+    .dept-btn.active,
+    .dept-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Job listings */
+    .jobs-list { display: flex; flex-direction: column; gap: 16px; }
+    .job-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      transition: box-shadow .2s, transform .2s;
+    }
+    .job-card:hover { box-shadow: 0 6px 24px rgba(11,111,255,.1); transform: translateY(-1px); }
+    .job-title  { font-size: 17px; font-weight: 600; margin-bottom: 6px; }
+    .job-meta   { display: flex; gap: 16px; flex-wrap: wrap; }
+    .job-tag    {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 13px; color: var(--muted-foreground);
+    }
+    .job-badge  {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      background: var(--secondary);
+      color: var(--primary);
+    }
+    .job-card .btn { white-space: nowrap; }
+    .no-jobs { text-align: center; padding: 48px 0; color: var(--muted-foreground); }
+
+    @media (max-width: 768px) {
+      .perks-grid { grid-template-columns: 1fr; }
+      .job-card   { flex-direction: column; align-items: flex-start; }
+    }
+    @media (max-width: 640px) {
+      .perks-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
+        Fastrux
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="index.html#services">Services</a>
+        <a class="nav-link" href="track.html">Tracking</a>
+        <a class="nav-link" href="about.html">About Us</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+      </nav>
+      <div class="header-actions">
+        <a class="nav-link" href="login.html">Login</a>
+        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <nav class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="index.html#services">Services</a>
+    <a class="nav-link" href="track.html">Tracking</a>
+    <a class="nav-link" href="about.html">About Us</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+    <div class="header-actions" style="margin-top:8px;">
+      <a class="btn btn-outline" href="login.html">Login</a>
+      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>Careers at Fastrux</h1>
+      <p>Join 3,400+ logistics professionals moving the world's cargo. Build your career where it matters.</p>
+    </div>
+  </div>
+
+  <!-- ── PERKS ── -->
+  <section class="section">
+    <div class="container">
+      <h2 class="section-title">Why work with us?</h2>
+      <p class="section-subtitle">We offer more than just a job — we offer a career with purpose, growth, and great benefits.</p>
+      <div class="perks-grid">
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:heart-pulse" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Health &amp; Wellness</h4><p>Comprehensive medical, dental, and vision coverage for you and your family.</p></div>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:graduation-cap" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Learning Budget</h4><p>$2,000 annual budget for courses, certifications, and conferences.</p></div>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:globe" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Remote-Friendly</h4><p>Hybrid and fully remote roles available across many of our departments.</p></div>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:trending-up" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Growth Paths</h4><p>Structured career ladders with internal mobility across 12+ departments.</p></div>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:wallet" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Competitive Pay</h4><p>Market-leading salaries, annual reviews, performance bonuses, and equity options.</p></div>
+        </div>
+        <div class="perk-card">
+          <div class="perk-icon"><iconify-icon icon="lucide:sun" style="font-size:22px"></iconify-icon></div>
+          <div><h4>Generous PTO</h4><p>25 days paid leave, 10 public holidays, and a mandatory recharge week each year.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── JOB LISTINGS ── -->
+  <section class="section section-alt">
+    <div class="container">
+      <h2 class="section-title">Open Positions</h2>
+      <p class="section-subtitle">We're growing fast. Find the role that's right for you.</p>
+
+      <div class="dept-filters" id="deptFilters">
+        <button class="dept-btn active" data-dept="all">All Departments</button>
+        <button class="dept-btn" data-dept="engineering">Engineering</button>
+        <button class="dept-btn" data-dept="operations">Operations</button>
+        <button class="dept-btn" data-dept="sales">Sales</button>
+        <button class="dept-btn" data-dept="finance">Finance</button>
+        <button class="dept-btn" data-dept="hr">People &amp; HR</button>
+      </div>
+
+      <div class="jobs-list" id="jobsList"></div>
+    </div>
+  </section>
+
+  <!-- ── CTA ── -->
+  <section class="section" style="text-align:center;">
+    <div class="container" style="max-width:560px;">
+      <h2 class="section-title">Don't see a fit?</h2>
+      <p class="section-subtitle" style="margin-bottom:32px;">We're always on the lookout for great people. Send us your CV and we'll keep you in mind for future openings.</p>
+      <a class="btn btn-primary" href="mailto:careers@fastrux.com" style="padding:14px 32px;font-size:16px;">
+        Send Open Application
+        <iconify-icon icon="lucide:send" style="font-size:16px;margin-left:8px"></iconify-icon>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="logo">
+            <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
+            Fastrux
+          </a>
+          <p>Delivering excellence in logistics and supply chain management worldwide. Your trusted partner for seamless transportation.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Services</h4>
+          <div class="footer-links">
+            <a href="services/ocean-freight.html">Ocean Freight</a>
+            <a href="services/air-freight.html">Air Freight</a>
+            <a href="services/ground-transport.html">Ground Transport</a>
+            <a href="services/warehousing.html">Warehousing</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <a href="careers.html">Careers</a>
+            <a href="news.html">News &amp; Media</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-links">
+            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon> 123 Logistics Way, NY 10001</div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+15551234567">+1 (555) 123-4567</a></div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 Fastrux Logistics. All rights reserved.</div>
+        <div class="social-links">
+          <a href="https://facebook.com"  target="_blank" rel="noopener" aria-label="Facebook"><iconify-icon icon="lucide:facebook"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://twitter.com"   target="_blank" rel="noopener" aria-label="Twitter"><iconify-icon icon="lucide:twitter"   style="font-size:20px"></iconify-icon></a>
+          <a href="https://linkedin.com"  target="_blank" rel="noopener" aria-label="LinkedIn"><iconify-icon icon="lucide:linkedin"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="lucide:instagram" style="font-size:20px"></iconify-icon></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const ham = document.getElementById('hamburger');
+    const mob = document.getElementById('mobileMenu');
+    ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+
+    const JOBS = [
+      { title: 'Senior Software Engineer — Tracking Platform', dept: 'engineering', location: 'New York / Remote', type: 'Full-time', level: 'Senior' },
+      { title: 'Frontend Engineer (React)', dept: 'engineering', location: 'Remote', type: 'Full-time', level: 'Mid' },
+      { title: 'DevOps Engineer', dept: 'engineering', location: 'New York', type: 'Full-time', level: 'Senior' },
+      { title: 'Ocean Freight Operations Manager', dept: 'operations', location: 'Los Angeles', type: 'Full-time', level: 'Manager' },
+      { title: 'Air Freight Coordinator', dept: 'operations', location: 'Miami', type: 'Full-time', level: 'Mid' },
+      { title: 'Warehouse Supervisor', dept: 'operations', location: 'Chicago', type: 'Full-time', level: 'Mid' },
+      { title: 'Enterprise Account Executive', dept: 'sales', location: 'New York / Remote', type: 'Full-time', level: 'Senior' },
+      { title: 'Sales Development Representative', dept: 'sales', location: 'Remote', type: 'Full-time', level: 'Junior' },
+      { title: 'Financial Controller', dept: 'finance', location: 'New York', type: 'Full-time', level: 'Senior' },
+      { title: 'Talent Acquisition Specialist', dept: 'hr', location: 'Remote', type: 'Full-time', level: 'Mid' },
+    ];
+
+    function renderJobs(dept) {
+      const list = document.getElementById('jobsList');
+      const filtered = dept === 'all' ? JOBS : JOBS.filter(j => j.dept === dept);
+      if (!filtered.length) {
+        list.innerHTML = '<div class="no-jobs"><iconify-icon icon="lucide:search-x" style="font-size:40px;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto"></iconify-icon>No open roles in this department right now.</div>';
+        return;
+      }
+      list.innerHTML = filtered.map(j => `
+        <div class="job-card">
+          <div>
+            <div class="job-title">${j.title}</div>
+            <div class="job-meta">
+              <span class="job-tag"><iconify-icon icon="lucide:map-pin" style="font-size:14px"></iconify-icon>${j.location}</span>
+              <span class="job-tag"><iconify-icon icon="lucide:briefcase" style="font-size:14px"></iconify-icon>${j.type}</span>
+              <span class="job-badge">${j.level}</span>
+            </div>
+          </div>
+          <a class="btn btn-outline" href="contact.html">Apply Now</a>
+        </div>`).join('');
+    }
+
+    document.getElementById('deptFilters').addEventListener('click', e => {
+      const btn = e.target.closest('.dept-btn');
+      if (!btn) return;
+      document.querySelectorAll('.dept-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderJobs(btn.dataset.dept);
+    });
+
+    renderJobs('all');
+  </script>
+</body>
+</html>
