@@ -1,0 +1,344 @@
+<?php
+/**
+ * offers_tracking_data.php — Offers Tracking Board API
+ *
+ * Handles driver location updates, load request management,
+ * driver–load matching, and Telegram offer notifications.
+ */
+
+header('Content-Type: application/json');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+// ── Constants ────────────────────────────────────────────────────
+define('DATA_DIR',       __DIR__ . '/data/');
+define('DRIVERS_JSON',   DATA_DIR . 'driver_submissions.json');
+define('LOCATIONS_JSON', DATA_DIR . 'driver_locations.json');
+define('LOADS_JSON',     DATA_DIR . 'load_requests.json');
+define('TELEGRAM_CFG',   DATA_DIR . 'telegram_config.json');
+
+// ── Helpers ──────────────────────────────────────────────────────
+function respond(bool $ok, string $msg = '', array $extra = []): void
+{
+    echo json_encode(array_merge(['success' => $ok, 'message' => $msg], $extra));
+    exit;
+}
+
+function clean(string $s): string
+{
+    return htmlspecialchars(strip_tags(trim($s)), ENT_QUOTES, 'UTF-8');
+}
+
+function readJson(string $file): array
+{
+    if (!file_exists($file)) {
+        return [];
+    }
+    $raw  = file_get_contents($file);
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function writeJson(string $file, array $data): void
+{
+    if (!is_dir(DATA_DIR)) {
+        mkdir(DATA_DIR, 0755, true);
+    }
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+// ── GET endpoints ────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $action = $_GET['action'] ?? '';
+
+    switch ($action) {
+
+        // Return all drivers merged with their latest location data
+        case 'get_drivers':
+            $drivers   = readJson(DRIVERS_JSON);
+            $locations = readJson(LOCATIONS_JSON);
+
+            $result = array_map(function (array $d) use ($locations): array {
+                $loc = $locations[$d['id']] ?? null;
+                return [
+                    'id'               => $d['id'],
+                    'name'             => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')),
+                    'phone'            => $d['phone']           ?? '',
+                    'email'            => $d['email']           ?? '',
+                    'van_reg'          => $d['van_reg']         ?? '',
+                    'van_type'         => $d['van_type']        ?? '',
+                    'payload_kg'       => $d['payload_kg']      ?? null,
+                    'volume_m3'        => $d['volume_m3']       ?? null,
+                    'tail_lift'        => $d['tail_lift']       ?? 'no',
+                    'operating_areas'  => $d['operating_areas'] ?? '',
+                    'driver_status'    => $d['status']          ?? 'pending',
+                    'telegram_chat_id' => $d['telegram_chat_id'] ?? '',
+                    'lat'              => $loc['lat']        ?? null,
+                    'lng'              => $loc['lng']        ?? null,
+                    'location_status'  => $loc['status']     ?? 'offline',
+                    'location_updated' => $loc['updated_at'] ?? null,
+                ];
+            }, $drivers);
+
+            respond(true, '', ['drivers' => $result]);
+
+        // Return all load requests (newest first)
+        case 'get_loads':
+            $loads = readJson(LOADS_JSON);
+            respond(true, '', ['loads' => array_reverse($loads)]);
+
+        // Return masked Telegram bot-token status
+        case 'get_telegram_config':
+            $cfg = readJson(TELEGRAM_CFG);
+            $masked = '';
+            if (!empty($cfg['bot_token'])) {
+                $parts  = explode(':', $cfg['bot_token'], 2);
+                $masked = ($parts[0] ?? '') . ':***' . substr($parts[1] ?? '', -4);
+            }
+            respond(true, '', [
+                'configured'   => !empty($cfg['bot_token']),
+                'masked_token' => $masked,
+            ]);
+
+        default:
+            respond(false, 'Unknown action');
+    }
+}
+
+// ── POST endpoints ───────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $postAction = $_POST['action'] ?? '';
+
+    switch ($postAction) {
+
+        // Update a driver's GPS coordinates and availability status
+        case 'update_location':
+            $driverId = clean($_POST['driver_id'] ?? '');
+            $lat      = filter_var($_POST['lat'] ?? '', FILTER_VALIDATE_FLOAT);
+            $lng      = filter_var($_POST['lng'] ?? '', FILTER_VALIDATE_FLOAT);
+            $status   = in_array($_POST['status'] ?? '', ['available', 'busy', 'offline'], true)
+                        ? $_POST['status'] : 'available';
+
+            if (!$driverId)            respond(false, 'driver_id is required');
+            if ($lat === false || $lng === false) respond(false, 'Valid lat and lng are required');
+
+            $locations              = readJson(LOCATIONS_JSON);
+            $locations[$driverId]   = [
+                'lat'        => $lat,
+                'lng'        => $lng,
+                'status'     => $status,
+                'updated_at' => date('Y-m-d H:i:s'),
+            ];
+            writeJson(LOCATIONS_JSON, $locations);
+            respond(true, 'Location updated');
+
+        // Create a new load request
+        case 'add_load':
+            $required = ['pickup_address', 'delivery_address', 'cargo_description', 'scheduled_date'];
+            foreach ($required as $field) {
+                if (empty(trim($_POST[$field] ?? ''))) {
+                    respond(false, "Field '$field' is required");
+                }
+            }
+
+            $pickupLat  = filter_var($_POST['pickup_lat']  ?? '', FILTER_VALIDATE_FLOAT);
+            $pickupLng  = filter_var($_POST['pickup_lng']  ?? '', FILTER_VALIDATE_FLOAT);
+            $delivLat   = filter_var($_POST['delivery_lat'] ?? '', FILTER_VALIDATE_FLOAT);
+            $delivLng   = filter_var($_POST['delivery_lng'] ?? '', FILTER_VALIDATE_FLOAT);
+            $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
+            $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
+
+            $id   = 'LOAD-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+            $load = [
+                'id'                 => $id,
+                'created_at'         => date('Y-m-d H:i:s'),
+                'status'             => 'open',
+                'pickup_address'     => clean($_POST['pickup_address']),
+                'pickup_lat'         => ($pickupLat !== false) ? $pickupLat : null,
+                'pickup_lng'         => ($pickupLng !== false) ? $pickupLng : null,
+                'delivery_address'   => clean($_POST['delivery_address']),
+                'delivery_lat'       => ($delivLat  !== false) ? $delivLat  : null,
+                'delivery_lng'       => ($delivLng  !== false) ? $delivLng  : null,
+                'cargo_description'  => clean($_POST['cargo_description']),
+                'weight_kg'          => ($weightKg  !== false) ? $weightKg  : null,
+                'volume_m3'          => ($volumeM3  !== false) ? $volumeM3  : null,
+                'requires_tail_lift' => ($_POST['requires_tail_lift'] ?? 'no') === 'yes',
+                'scheduled_date'     => clean($_POST['scheduled_date']),
+                'contact_name'       => clean($_POST['contact_name']  ?? ''),
+                'contact_phone'      => clean($_POST['contact_phone'] ?? ''),
+                'notes'              => clean($_POST['notes']          ?? ''),
+                'assigned_driver_id' => null,
+                'telegram_sent_at'   => null,
+            ];
+
+            $loads   = readJson(LOADS_JSON);
+            $loads[] = $load;
+            writeJson(LOADS_JSON, $loads);
+            respond(true, 'Load request created', ['load' => $load]);
+
+        // Update the status of an existing load
+        case 'update_load_status':
+            $loadId  = clean($_POST['load_id'] ?? '');
+            $status  = clean($_POST['status']  ?? '');
+            $allowed = ['open', 'matched', 'in_transit', 'completed', 'cancelled'];
+
+            if (!$loadId)               respond(false, 'load_id is required');
+            if (!in_array($status, $allowed, true)) respond(false, 'Invalid status');
+
+            $loads = readJson(LOADS_JSON);
+            $found = false;
+            foreach ($loads as &$load) {
+                if ($load['id'] === $loadId) {
+                    $load['status'] = $status;
+                    $found = true;
+                    break;
+                }
+            }
+            unset($load);
+
+            if (!$found) respond(false, 'Load not found');
+            writeJson(LOADS_JSON, $loads);
+            respond(true, 'Load status updated');
+
+        // Assign a driver to a load and send Telegram notification
+        case 'assign_driver':
+            $loadId   = clean($_POST['load_id']   ?? '');
+            $driverId = clean($_POST['driver_id'] ?? '');
+
+            if (!$loadId || !$driverId) respond(false, 'load_id and driver_id are required');
+
+            $loads   = readJson(LOADS_JSON);
+            $drivers = readJson(DRIVERS_JSON);
+
+            $load     = null;
+            $driver   = null;
+            $loadIdx  = -1;
+
+            foreach ($loads as $i => $l) {
+                if ($l['id'] === $loadId) {
+                    $load    = $l;
+                    $loadIdx = $i;
+                    break;
+                }
+            }
+            foreach ($drivers as $d) {
+                if ($d['id'] === $driverId) {
+                    $driver = $d;
+                    break;
+                }
+            }
+
+            if ($load    === null) respond(false, 'Load not found');
+            if ($driver  === null) respond(false, 'Driver not found');
+
+            $telegramSent  = false;
+            $telegramError = '';
+
+            // Attempt Telegram notification
+            $cfg      = readJson(TELEGRAM_CFG);
+            $chatId   = $driver['telegram_chat_id'] ?? '';
+            $botToken = $cfg['bot_token']            ?? '';
+
+            if ($chatId && $botToken) {
+                $schedDate = !empty($load['scheduled_date'])
+                    ? date('d M Y', strtotime($load['scheduled_date'])) : 'TBD';
+                $weight   = $load['weight_kg']  ? $load['weight_kg']  . ' kg' : 'N/A';
+                $volume   = $load['volume_m3']  ? $load['volume_m3']  . ' m³' : 'N/A';
+                $tailLift = ($load['requires_tail_lift'] ?? false) ? '✅ Required' : '❌ Not required';
+
+                $msg = "🚚 *NEW LOAD OFFER — Fastrux*\n\n"
+                     . "📦 *Load ID:* `{$load['id']}`\n"
+                     . "📍 *Pickup:* {$load['pickup_address']}\n"
+                     . "🏁 *Delivery:* {$load['delivery_address']}\n"
+                     . "📦 *Cargo:* {$load['cargo_description']}\n"
+                     . "⚖️ *Weight:* {$weight} | 📦 *Volume:* {$volume}\n"
+                     . "🔩 *Tail Lift:* {$tailLift}\n"
+                     . "📅 *Date:* {$schedDate}\n";
+
+                if (!empty($load['contact_name'])) {
+                    $msg .= "📞 *Contact:* {$load['contact_name']}";
+                    if (!empty($load['contact_phone'])) {
+                        $msg .= " — {$load['contact_phone']}";
+                    }
+                    $msg .= "\n";
+                }
+                if (!empty($load['notes'])) {
+                    $msg .= "📝 *Notes:* {$load['notes']}\n";
+                }
+                $msg .= "\nReply *YES* to accept or *NO* to decline.";
+
+                $apiUrl  = "https://api.telegram.org/bot{$botToken}/sendMessage";
+                $payload = json_encode([
+                    'chat_id'    => $chatId,
+                    'text'       => $msg,
+                    'parse_mode' => 'Markdown',
+                ]);
+
+                $ctx  = stream_context_create([
+                    'http' => [
+                        'method'  => 'POST',
+                        'header'  => "Content-Type: application/json\r\n",
+                        'content' => $payload,
+                        'timeout' => 10,
+                    ],
+                ]);
+                $resp = @file_get_contents($apiUrl, false, $ctx);
+
+                if ($resp !== false) {
+                    $respData = json_decode($resp, true);
+                    if ($respData && ($respData['ok'] ?? false)) {
+                        $telegramSent = true;
+                    } else {
+                        $telegramError = $respData['description'] ?? 'Telegram API error';
+                    }
+                } else {
+                    $telegramError = 'Could not reach Telegram API';
+                }
+            } elseif (!$botToken) {
+                $telegramError = 'Telegram bot token not configured';
+            } else {
+                $telegramError = 'Driver has no Telegram chat ID saved';
+            }
+
+            // Persist the assignment
+            $loads[$loadIdx]['assigned_driver_id'] = $driverId;
+            $loads[$loadIdx]['status']             = 'matched';
+            if ($telegramSent) {
+                $loads[$loadIdx]['telegram_sent_at'] = date('Y-m-d H:i:s');
+            }
+            writeJson(LOADS_JSON, $loads);
+
+            $successMsg = $telegramSent
+                ? 'Driver assigned and notified via Telegram'
+                : 'Driver assigned' . ($telegramError ? " (Telegram: {$telegramError})" : '');
+
+            respond(true, $successMsg, [
+                'telegram_sent'  => $telegramSent,
+                'telegram_error' => $telegramError,
+            ]);
+
+        // Save Telegram bot token
+        case 'save_telegram_config':
+            $token = trim($_POST['bot_token'] ?? '');
+            if (!$token) respond(false, 'bot_token is required');
+
+            // Validate format: numeric_id:alphanumeric_string (35 or more chars after colon)
+            if (!preg_match('/^\d+:[A-Za-z0-9_-]{35,}$/', $token)) {
+                respond(false, 'Invalid token format. Expected: 123456789:ABCdef… (at least 35 alphanumeric characters after the colon)');
+            }
+
+            writeJson(TELEGRAM_CFG, ['bot_token' => $token]);
+            respond(true, 'Telegram bot token saved successfully');
+
+        default:
+            respond(false, 'Unknown action');
+    }
+}
+
+respond(false, 'Method not allowed');
