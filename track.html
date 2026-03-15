@@ -332,6 +332,16 @@
       if (e.key === 'Enter') doTrack();
     });
 
+    // Auto-track if 'id' query param is present (e.g. from landing page form)
+    (function () {
+      const params = new URLSearchParams(window.location.search);
+      const preloadId = params.get('id');
+      if (preloadId) {
+        document.getElementById('trackingInput').value = preloadId;
+        doTrack();
+      }
+    })();
+
     function doTrack() {
       const num = document.getElementById('trackingInput').value.trim().toUpperCase();
       const result    = document.getElementById('trackResult');
