@@ -158,4 +158,150 @@
         <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Global Offices</h3>
         <div class="office-grid">
           <div class="office-card"><h4>🇬🇧 London</h4><p>45 Harbor Road<br>London, E14 9GE</p></div>
-          <div class="office-card"><h4>🇩🇪 Hamburg</h4><p>12 Hafen Strasse<br>Hamburg, 
+          <div class="office-card"><h4>🇩🇪 Hamburg</h4><p>12 Hafen Strasse<br>Hamburg, 20457</p></div>
+          <div class="office-card"><h4>🇸🇬 Singapore</h4><p>8 Marina Blvd<br>Singapore, 018981</p></div>
+        </div>
+      </div>
+
+      <!-- Right: contact form -->
+      <div class="contact-form-card">
+        <h3>Send Us a Message</h3>
+
+        <div class="form-feedback" id="contactFeedback"></div>
+
+        <form id="contactForm" novalidate>
+          <input type="hidden" name="form_type" value="contact" />
+          <div class="form-row">
+            <div class="form-group">
+              <label for="c_first_name">First Name *</label>
+              <input class="form-control" type="text" id="c_first_name" name="first_name" placeholder="John" required />
+            </div>
+            <div class="form-group">
+              <label for="c_last_name">Last Name *</label>
+              <input class="form-control" type="text" id="c_last_name" name="last_name" placeholder="Doe" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="c_email">Email Address *</label>
+            <input class="form-control" type="email" id="c_email" name="email" placeholder="you@company.com" required />
+          </div>
+          <div class="form-group">
+            <label for="c_phone">Phone Number</label>
+            <input class="form-control" type="tel" id="c_phone" name="phone" placeholder="+1 (555) 000-0000" />
+          </div>
+          <div class="form-group">
+            <label for="c_subject">Subject *</label>
+            <select class="form-control" id="c_subject" name="subject" required>
+              <option value="">Select a topic…</option>
+              <option>Shipment Tracking</option>
+              <option>Request a Quote</option>
+              <option>Billing &amp; Invoices</option>
+              <option>Partnership Enquiry</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="c_message">Message *</label>
+            <textarea class="form-control" id="c_message" name="message" rows="4"
+                      placeholder="Tell us how we can help…" required style="resize:vertical;"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" id="contactBtn"
+                  style="width:100%;padding:14px;font-size:16px;">
+            Send Message
+            <iconify-icon icon="lucide:send" style="font-size:16px;margin-left:8px"></iconify-icon>
+          </button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="logo">
+            <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
+            Fastrux
+          </a>
+          <p>Delivering excellence in logistics and supply chain management worldwide. Your trusted partner for seamless transportation.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Services</h4>
+          <div class="footer-links">
+            <a href="ocean-freight.html">Ocean Freight</a>
+            <a href="air-freight.html">Air Freight</a>
+            <a href="ground-transport.html">Ground Transport</a>
+            <a href="warehousing.html">Warehousing</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <a href="careers.html">Careers</a>
+            <a href="news.html">News &amp; Media</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-links">
+            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon> 123 Logistics Way, NY 10001</div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+15551234567">+1 (555) 123-4567</a></div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 Fastrux Logistics. All rights reserved.</div>
+        <div class="social-links">
+          <a href="https://facebook.com"  target="_blank" rel="noopener" aria-label="Facebook"><iconify-icon icon="lucide:facebook"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://twitter.com"   target="_blank" rel="noopener" aria-label="Twitter"><iconify-icon icon="lucide:twitter"   style="font-size:20px"></iconify-icon></a>
+          <a href="https://linkedin.com"  target="_blank" rel="noopener" aria-label="LinkedIn"><iconify-icon icon="lucide:linkedin"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="lucide:instagram" style="font-size:20px"></iconify-icon></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const ham = document.getElementById('hamburger');
+    const mob = document.getElementById('mobileMenu');
+    ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+
+    document.getElementById('contactForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const btn      = document.getElementById('contactBtn');
+      const feedback = document.getElementById('contactFeedback');
+      const origHTML = btn.innerHTML;
+
+      btn.disabled  = true;
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon> Sending…';
+
+      try {
+        const res  = await fetch('process_form.php', { method: 'POST', body: new FormData(this) });
+        const data = await res.json();
+        showFeedback(feedback, data.success, data.success
+          ? `✓ ${data.message} (Ref: ${data.reference})`
+          : `✗ ${data.message}`);
+        if (data.success) { this.reset(); }
+      } catch (err) {
+        showFeedback(feedback, false, '✗ Network error — please try again or email us directly.');
+      }
+
+      btn.disabled  = false;
+      btn.innerHTML = origHTML;
+      feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    function showFeedback(el, success, msg) {
+      el.className     = 'form-feedback ' + (success ? 'success' : 'error');
+      el.textContent   = msg;
+      el.style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
