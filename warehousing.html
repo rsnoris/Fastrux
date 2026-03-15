@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Warehousing — Fastrux Logistics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,6 +16,13 @@
       grid-template-columns: 1fr 1fr;
       gap: 64px;
       align-items: center;
+    }
+    .service-intro-grid img {
+      width: 100%;
+      min-height: 380px;
+      object-fit: cover;
+      border-radius: var(--radius-xl);
+      box-shadow: 0 20px 48px rgba(0,0,0,.1);
     }
     .service-intro-content h2 { font-size: 34px; font-weight: 700; margin-bottom: 20px; line-height: 1.25; }
     .service-intro-content p  { color: var(--muted-foreground); margin-bottom: 16px; font-size: 16px; line-height: 1.75; }
@@ -323,9 +331,11 @@
           <a class="btn btn-outline" href="contact.html">Speak to a Specialist</a>
         </div>
       </div>
-      <div style="background:linear-gradient(135deg,var(--secondary),#c7dcff);border-radius:var(--radius-xl);min-height:380px;display:flex;align-items:center;justify-content:center;">
-        <iconify-icon icon="lucide:warehouse" style="font-size:120px;color:var(--primary);opacity:.25"></iconify-icon>
-      </div>
+      <img
+        src="https://images.unsplash.com/photo-1553413077-190dd305871c?w=800&q=80"
+        alt="Fastrux modern warehouse facility interior"
+        loading="lazy"
+      />
     </div>
   </section>
 
