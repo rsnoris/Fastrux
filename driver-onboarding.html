@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Drive with Us — Fastrux Logistics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="shared.css" />
+  <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    /* ── Page hero ── */
+    .driver-hero {
+      background: linear-gradient(135deg, #0b2545 0%, #0b6fff 100%);
+      color: #fff;
+      padding: 80px 0 64px;
+      text-align: center;
+    }
+    .driver-hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 16px; line-height: 1.15; }
+    .driver-hero p  { font-size: 18px; opacity: .85; max-width: 600px; margin: 0 auto 32px; line-height: 1.65; }
+    .hero-badges    { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+      border-radius: 999px; padding: 8px 18px; font-size: 14px; font-weight: 500;
+    }
+
+    /* ── Benefits strip ── */
+    .benefits-strip {
+      background: var(--secondary);
+      padding: 40px 0;
+    }
+    .benefits-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .benefit-item {
+      display: flex; align-items: flex-start; gap: 14px;
+    }
+    .benefit-icon {
+      width: 44px; height: 44px; min-width: 44px;
+      background: var(--primary); color: #fff;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .benefit-item h4 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .benefit-item p  { font-size: 13px; color: var(--muted-foreground); margin: 0; }
+
+    /* ── Form layout ── */
+    .onboard-layout {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .steps-nav {
+      position: sticky;
+      top: 100px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 24px;
+    }
+    .steps-nav h3 { font-size: 14px; font-weight: 700; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+    .step-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 12px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: background .15s;
+      color: var(--muted-foreground);
+      font-size: 14px; font-weight: 500;
+      margin-bottom: 4px;
+    }
+    .step-item.active { background: var(--secondary); color: var(--primary); }
+    .step-item:hover  { background: var(--secondary); }
+    .step-num {
+      width: 24px; height: 24px; min-width: 24px;
+      border-radius: 50%;
+      background: var(--muted);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      color: var(--muted-foreground);
+    }
+    .step-item.active .step-num { background: var(--primary); color: #fff; }
+    .step-item.done  .step-num  { background: var(--success); color: #fff; }
+
+    /* ── Form card ── */
+    .form-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 40px;
+    }
+    .form-section-title {
+      font-size: 22px; font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .form-section-desc {
+      font-size: 14px; color: var(--muted-foreground);
+      margin-bottom: 32px;
+    }
+    .form-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 32px 0;
+    }
+    .form-section-heading {
+      font-size: 15px; font-weight: 700;
+      color: var(--foreground);
+      margin-bottom: 16px; margin-top: 32px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .form-section-heading:first-of-type { margin-top: 0; }
+
+    /* Dimensions grid */
+    .dims-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+    .dims-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* File upload */
+    .upload-area {
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+    }
+    .upload-area:hover,
+    .upload-area.dragover {
+      border-color: var(--primary);
+      background: var(--secondary);
+    }
+    .upload-area input[type="file"] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+    }
+    .upload-icon  { color: var(--primary); margin-bottom: 10px; }
+    .upload-label { font-size: 14px; font-weight: 600; color: var(--foreground); display: block; margin-bottom: 4px; }
+    .upload-hint  { font-size: 12px; color: var(--muted-foreground); }
+    .upload-previews {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px;
+    }
+    .upload-preview-item {
+      position: relative;
+      width: 80px; height: 80px;
+    }
+    .upload-preview-item img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+    .upload-preview-item .remove-btn {
+      position: absolute; top: -6px; right: -6px;
+      width: 20px; height: 20px;
+      background: var(--destructive); color: #fff;
+      border: none; border-radius: 50%;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700; line-height: 1;
+    }
+
+    .uploads-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    .upload-group label { font-size: 14px; font-weight: 600; display: block; margin-bottom: 8px; }
+
+    /* Availability checkboxes */
+    .checkbox-group {
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .checkbox-label {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 8px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 14px; font-weight: 500;
+      transition: all .15s;
+      user-select: none;
+    }
+    .checkbox-label input { accent-color: var(--primary); }
+    .checkbox-label:has(input:checked) {
+      background: var(--secondary);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Form nav buttons */
+    .form-nav {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-top: 36px; padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+    .progress-bar-wrap {
+      background: var(--muted); border-radius: 999px;
+      height: 6px; overflow: hidden; margin-bottom: 32px;
+    }
+    .progress-bar {
+      height: 100%; background: var(--primary);
+      border-radius: 999px;
+      transition: width .35s ease;
+    }
+
+    /* Success state */
+    .success-state {
+      text-align: center; padding: 60px 40px;
+    }
+    .success-icon {
+      width: 72px; height: 72px;
+      background: #e6f9ee; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 24px; color: var(--success);
+    }
+    .success-state h2 { font-size: 28px; font-weight: 700; margin-bottom: 12px; }
+    .success-state p  { color: var(--muted-foreground); font-size: 16px; margin-bottom: 8px; }
+    .success-ref {
+      display: inline-block; background: var(--secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md); padding: 10px 20px;
+      font-weight: 700; font-size: 18px; margin: 16px 0 24px;
+      font-family: monospace; color: var(--primary);
+    }
+
+    @media (max-width: 1024px) {
+      .onboard-layout { grid-template-columns: 1fr; }
+      .steps-nav { position: static; }
+      .benefits-grid { grid-template-columns: repeat(2, 1fr); }
+      .dims-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 640px) {
+      .driver-hero h1 { font-size: 32px; }
+      .form-card { padding: 24px 20px; }
+      .dims-grid { grid-template-columns: 1fr; }
+      .dims-grid-2 { grid-template-columns: 1fr; }
+      .uploads-grid { grid-template-columns: 1fr; }
+      .benefits-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <div class="container header-content">
+      <a href="index.html" class="logo">
+        <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
+        Fastrux
+      </a>
+      <nav class="nav-links">
+        <a class="nav-link" href="index.html">Home</a>
+        <a class="nav-link" href="index.html#services">Services</a>
+        <a class="nav-link" href="track.html">Tracking</a>
+        <a class="nav-link" href="about.html">About Us</a>
+        <a class="nav-link" href="contact.html">Contact</a>
+        <a class="nav-link active" href="driver-onboarding.html">Drive with Us</a>
+      </nav>
+      <div class="header-actions">
+        <a class="nav-link" href="login.html">Login</a>
+        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      </div>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+  <nav class="mobile-menu" id="mobileMenu">
+    <a class="nav-link" href="index.html">Home</a>
+    <a class="nav-link" href="index.html#services">Services</a>
+    <a class="nav-link" href="track.html">Tracking</a>
+    <a class="nav-link" href="about.html">About Us</a>
+    <a class="nav-link" href="contact.html">Contact</a>
+    <a class="nav-link active" href="driver-onboarding.html">Drive with Us</a>
+    <div class="header-actions" style="margin-top:8px;">
+      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+    </div>
+  </nav>
+
+  <!-- ── HERO ── -->
+  <section class="driver-hero">
+    <div class="container">
+      <h1>Join the Fastrux Driver Network</h1>
+      <p>Earn more, drive on your terms, and become part of a growing logistics community across the UK. Register your van today and start receiving delivery jobs.</p>
+      <div class="hero-badges">
+        <span class="hero-badge"><iconify-icon icon="lucide:banknote" style="font-size:16px"></iconify-icon> Competitive Pay</span>
+        <span class="hero-badge"><iconify-icon icon="lucide:calendar" style="font-size:16px"></iconify-icon> Flexible Hours</span>
+        <span class="hero-badge"><iconify-icon icon="lucide:shield-check" style="font-size:16px"></iconify-icon> Fully Insured Jobs</span>
+        <span class="hero-badge"><iconify-icon icon="lucide:headphones" style="font-size:16px"></iconify-icon> 24/7 Driver Support</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── BENEFITS STRIP ── -->
+  <section class="benefits-strip">
+    <div class="container">
+      <div class="benefits-grid">
+        <div class="benefit-item">
+          <div class="benefit-icon"><iconify-icon icon="lucide:wallet" style="font-size:22px"></iconify-icon></div>
+          <div>
+            <h4>Weekly Payments</h4>
+            <p>Get paid every Friday directly into your bank account.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon"><iconify-icon icon="lucide:map" style="font-size:22px"></iconify-icon></div>
+          <div>
+            <h4>Choose Your Area</h4>
+            <p>Work in the regions that suit your schedule and home base.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon"><iconify-icon icon="lucide:smartphone" style="font-size:22px"></iconify-icon></div>
+          <div>
+            <h4>Easy Job App</h4>
+            <p>Manage all jobs, routes, and earnings from our driver app.</p>
+          </div>
+        </div>
+        <div class="benefit-item">
+          <div class="benefit-icon"><iconify-icon icon="lucide:trending-up" style="font-size:22px"></iconify-icon></div>
+          <div>
+            <h4>Grow Your Business</h4>
+            <p>Top drivers earn preferred status and higher-paying contracts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── MAIN FORM ── -->
+  <section class="section">
+    <div class="container">
+      <div class="onboard-layout">
+
+        <!-- Steps sidebar -->
+        <div class="steps-nav">
+          <h3>Application Steps</h3>
+          <div class="step-item active" data-step="1" id="step-nav-1">
+            <div class="step-num">1</div>
+            Personal Details
+          </div>
+          <div class="step-item" data-step="2" id="step-nav-2">
+            <div class="step-num">2</div>
+            Vehicle Details
+          </div>
+          <div class="step-item" data-step="3" id="step-nav-3">
+            <div class="step-num">3</div>
+            Van Dimensions
+          </div>
+          <div class="step-item" data-step="4" id="step-nav-4">
+            <div class="step-num">4</div>
+            Photos &amp; Documents
+          </div>
+          <div class="step-item" data-step="5" id="step-nav-5">
+            <div class="step-num">5</div>
+            Availability &amp; Notes
+          </div>
+          <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
+            <p style="font-size:12px;color:var(--muted-foreground);line-height:1.6;">
+              <iconify-icon icon="lucide:lock" style="font-size:13px;vertical-align:middle;margin-right:4px"></iconify-icon>
+              Your information is stored securely and will only be used for driver onboarding.
+            </p>
+          </div>
+        </div>
+
+        <!-- Form area -->
+        <div class="form-card" id="formCard">
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" id="progressBar" style="width:20%"></div>
+          </div>
+
+          <form id="driverForm" enctype="multipart/form-data" novalidate>
+            <input type="hidden" name="form_type" value="driver_onboard" />
+
+            <!-- ═══════════ STEP 1 — Personal Details ═══════════ -->
+            <div class="form-step" id="step-1">
+              <h2 class="form-section-title">Personal Details</h2>
+              <p class="form-section-desc">Tell us about yourself. All fields marked * are required.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="first_name">First Name *</label>
+                  <input class="form-control" type="text" id="first_name" name="first_name" placeholder="Jane" required />
+                </div>
+                <div class="form-group">
+                  <label for="last_name">Last Name *</label>
+                  <input class="form-control" type="text" id="last_name" name="last_name" placeholder="Smith" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="email">Email Address *</label>
+                  <input class="form-control" type="email" id="email" name="email" placeholder="jane@example.com" required />
+                </div>
+                <div class="form-group">
+                  <label for="phone">Phone Number *</label>
+                  <input class="form-control" type="tel" id="phone" name="phone" placeholder="+44 7700 000000" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="dob">Date of Birth *</label>
+                  <input class="form-control" type="date" id="dob" name="dob" required />
+                </div>
+                <div class="form-group">
+                  <label for="address">Home Town / City *</label>
+                  <input class="form-control" type="text" id="address" name="address" placeholder="London" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="license_number">Driver Licence Number *</label>
+                  <input class="form-control" type="text" id="license_number" name="license_number" placeholder="SMITH 123456 AB1CD" required />
+                </div>
+                <div class="form-group">
+                  <label for="license_expiry">Licence Expiry Date *</label>
+                  <input class="form-control" type="date" id="license_expiry" name="license_expiry" required />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="years_experience">Years of Driving Experience *</label>
+                <select class="form-control" id="years_experience" name="years_experience" required>
+                  <option value="">Select…</option>
+                  <option value="less_than_1">Less than 1 year</option>
+                  <option value="1_to_2">1–2 years</option>
+                  <option value="3_to_5">3–5 years</option>
+                  <option value="6_to_10">6–10 years</option>
+                  <option value="over_10">Over 10 years</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ═══════════ STEP 2 — Vehicle Details ═══════════ -->
+            <div class="form-step" id="step-2" style="display:none">
+              <h2 class="form-section-title">Vehicle Details</h2>
+              <p class="form-section-desc">Enter the details of the van you will use for deliveries.</p>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="van_make">Van Make *</label>
+                  <select class="form-control" id="van_make" name="van_make" required>
+                    <option value="">Select manufacturer…</option>
+                    <option>Ford</option>
+                    <option>Mercedes-Benz</option>
+                    <option>Volkswagen</option>
+                    <option>Vauxhall</option>
+                    <option>Renault</option>
+                    <option>Peugeot</option>
+                    <option>Citroën</option>
+                    <option>Fiat</option>
+                    <option>Iveco</option>
+                    <option>Toyota</option>
+                    <option>Nissan</option>
+                    <option>LDV</option>
+                    <option>Other</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="van_model">Van Model *</label>
+                  <input class="form-control" type="text" id="van_model" name="van_model" placeholder="e.g. Transit Custom" required />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="van_year">Year of Manufacture *</label>
+                  <input class="form-control" type="number" id="van_year" name="van_year" placeholder="e.g. 2020" min="2000" required />
+                </div>
+                <div class="form-group">
+                  <label for="van_color">Van Colour</label>
+                  <input class="form-control" type="text" id="van_color" name="van_color" placeholder="e.g. White" />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="van_reg">Registration Number (Number Plate) *</label>
+                  <input class="form-control" type="text" id="van_reg" name="van_reg" placeholder="e.g. AB21 XYZ" required style="text-transform:uppercase;" />
+                </div>
+                <div class="form-group">
+                  <label for="van_type">Van Type / Body Style *</label>
+                  <select class="form-control" id="van_type" name="van_type" required>
+                    <option value="">Select type…</option>
+                    <option value="panel_van">Panel Van</option>
+                    <option value="luton">Luton Van</option>
+                    <option value="curtainsider">Curtainsider</option>
+                    <option value="refrigerated">Refrigerated Van</option>
+                    <option value="flatbed">Flatbed</option>
+                    <option value="dropside">Dropside</option>
+                    <option value="tipper">Tipper</option>
+                    <option value="box_van">Box Van</option>
+                    <option value="minibus">Minibus / People Carrier</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="insurance_expiry">Insurance Expiry Date *</label>
+                  <input class="form-control" type="date" id="insurance_expiry" name="insurance_expiry" required />
+                </div>
+                <div class="form-group">
+                  <label for="mot_expiry">MOT Expiry Date *</label>
+                  <input class="form-control" type="date" id="mot_expiry" name="mot_expiry" required />
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ STEP 3 — Van Dimensions ═══════════ -->
+            <div class="form-step" id="step-3" style="display:none">
+              <h2 class="form-section-title">Van Dimensions</h2>
+              <p class="form-section-desc">Provide accurate measurements so we can match you to suitable jobs. All measurements are for the <strong>internal cargo area</strong>.</p>
+
+              <div class="form-section-heading">
+                <iconify-icon icon="lucide:ruler" style="font-size:18px;color:var(--primary)"></iconify-icon>
+                Internal Cargo Dimensions
+              </div>
+              <div class="dims-grid">
+                <div class="form-group">
+                  <label for="cargo_length">Internal Length (m) *</label>
+                  <input class="form-control" type="number" id="cargo_length" name="cargo_length"
+                         placeholder="e.g. 2.8" step="0.01" min="0.5" max="10" required />
+                </div>
+                <div class="form-group">
+                  <label for="cargo_width">Internal Width (m) *</label>
+                  <input class="form-control" type="number" id="cargo_width" name="cargo_width"
+                         placeholder="e.g. 1.9" step="0.01" min="0.5" max="5" required />
+                </div>
+                <div class="form-group">
+                  <label for="cargo_height">Internal Height (m) *</label>
+                  <input class="form-control" type="number" id="cargo_height" name="cargo_height"
+                         placeholder="e.g. 1.8" step="0.01" min="0.5" max="5" required />
+                </div>
+              </div>
+
+              <div class="form-section-heading">
+                <iconify-icon icon="lucide:weight" style="font-size:18px;color:var(--primary)"></iconify-icon>
+                Load Capacity
+              </div>
+              <div class="dims-grid-2">
+                <div class="form-group">
+                  <label for="payload_kg">Max Payload (kg) *</label>
+                  <input class="form-control" type="number" id="payload_kg" name="payload_kg"
+                         placeholder="e.g. 1200" min="100" max="20000" required />
+                </div>
+                <div class="form-group">
+                  <label for="volume_m3">Cargo Volume (m³)</label>
+                  <input class="form-control" type="number" id="volume_m3" name="volume_m3"
+                         placeholder="Auto-calculated or enter manually" step="0.01" min="0" />
+                  <p style="font-size:12px;color:var(--muted-foreground);margin-top:5px;">
+                    Auto-calculated from dimensions above, or override manually.
+                  </p>
+                </div>
+              </div>
+
+              <div class="form-section-heading">
+                <iconify-icon icon="lucide:package" style="font-size:18px;color:var(--primary)"></iconify-icon>
+                External Van Dimensions (optional)
+              </div>
+              <div class="dims-grid">
+                <div class="form-group">
+                  <label for="ext_length">External Length (m)</label>
+                  <input class="form-control" type="number" id="ext_length" name="ext_length"
+                         placeholder="e.g. 5.4" step="0.01" min="0" />
+                </div>
+                <div class="form-group">
+                  <label for="ext_width">External Width (m)</label>
+                  <input class="form-control" type="number" id="ext_width" name="ext_width"
+                         placeholder="e.g. 2.0" step="0.01" min="0" />
+                </div>
+                <div class="form-group">
+                  <label for="ext_height">External Height (m)</label>
+                  <input class="form-control" type="number" id="ext_height" name="ext_height"
+                         placeholder="e.g. 2.5" step="0.01" min="0" />
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top:8px;">
+                <label for="tail_lift">Tail Lift</label>
+                <select class="form-control" id="tail_lift" name="tail_lift">
+                  <option value="no">No tail lift</option>
+                  <option value="yes">Yes — tail lift fitted</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- ═══════════ STEP 4 — Photos & Documents ═══════════ -->
+            <div class="form-step" id="step-4" style="display:none">
+              <h2 class="form-section-title">Photos &amp; Documents</h2>
+              <p class="form-section-desc">Upload clear photos of your van and copies of key documents. Accepted formats: JPG, PNG, PDF (max 10 MB per file).</p>
+
+              <div class="uploads-grid">
+                <div class="upload-group">
+                  <label>Van — Front View *</label>
+                  <div class="upload-area" id="upload-front">
+                    <input type="file" name="photo_front[]" accept="image/*" multiple id="input-front" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:camera" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG · max 10 MB</span>
+                    <div class="upload-previews" id="prev-front"></div>
+                  </div>
+                </div>
+                <div class="upload-group">
+                  <label>Van — Side View *</label>
+                  <div class="upload-area" id="upload-side">
+                    <input type="file" name="photo_side[]" accept="image/*" multiple id="input-side" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:camera" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG · max 10 MB</span>
+                    <div class="upload-previews" id="prev-side"></div>
+                  </div>
+                </div>
+                <div class="upload-group">
+                  <label>Van — Cargo Area Interior *</label>
+                  <div class="upload-area" id="upload-interior">
+                    <input type="file" name="photo_interior[]" accept="image/*" multiple id="input-interior" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:image" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG · max 10 MB</span>
+                    <div class="upload-previews" id="prev-interior"></div>
+                  </div>
+                </div>
+                <div class="upload-group">
+                  <label>Driver's Licence (front) *</label>
+                  <div class="upload-area" id="upload-licence">
+                    <input type="file" name="doc_licence[]" accept="image/*,application/pdf" id="input-licence" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:id-card" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG, PDF · max 10 MB</span>
+                    <div class="upload-previews" id="prev-licence"></div>
+                  </div>
+                </div>
+                <div class="upload-group">
+                  <label>Vehicle Insurance Certificate *</label>
+                  <div class="upload-area" id="upload-insurance">
+                    <input type="file" name="doc_insurance[]" accept="image/*,application/pdf" id="input-insurance" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:file-text" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG, PDF · max 10 MB</span>
+                    <div class="upload-previews" id="prev-insurance"></div>
+                  </div>
+                </div>
+                <div class="upload-group">
+                  <label>MOT Certificate <span style="font-weight:400;color:var(--muted-foreground);">(optional)</span></label>
+                  <div class="upload-area" id="upload-mot">
+                    <input type="file" name="doc_mot[]" accept="image/*,application/pdf" id="input-mot" />
+                    <div class="upload-icon"><iconify-icon icon="lucide:file-check" style="font-size:32px"></iconify-icon></div>
+                    <span class="upload-label">Click or drag &amp; drop</span>
+                    <span class="upload-hint">JPG, PNG, PDF · max 10 MB</span>
+                    <div class="upload-previews" id="prev-mot"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ═══════════ STEP 5 — Availability & Notes ═══════════ -->
+            <div class="form-step" id="step-5" style="display:none">
+              <h2 class="form-section-title">Availability &amp; Preferences</h2>
+              <p class="form-section-desc">Help us understand when and where you can work.</p>
+
+              <div class="form-group">
+                <label>Days Available *</label>
+                <div class="checkbox-group">
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="monday" /> Monday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="tuesday" /> Tuesday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="wednesday" /> Wednesday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="thursday" /> Thursday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="friday" /> Friday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="saturday" /> Saturday</label>
+                  <label class="checkbox-label"><input type="checkbox" name="availability[]" value="sunday" /> Sunday</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="work_type">Work Pattern *</label>
+                <select class="form-control" id="work_type" name="work_type" required>
+                  <option value="">Select…</option>
+                  <option value="full_time">Full-time (5+ days/week)</option>
+                  <option value="part_time">Part-time (2–4 days/week)</option>
+                  <option value="weekends">Weekends only</option>
+                  <option value="flexible">Flexible / as needed</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="operating_areas">Operating Areas *</label>
+                <textarea class="form-control" id="operating_areas" name="operating_areas" rows="3"
+                          placeholder="e.g. London Zone 1–3, M25 corridor, South East England…" required
+                          style="resize:vertical;"></textarea>
+                <p style="font-size:12px;color:var(--muted-foreground);margin-top:5px;">List the cities, counties or postcodes you are willing to cover.</p>
+              </div>
+
+              <div class="form-group">
+                <label for="notes">Additional Notes <span style="font-weight:400;color:var(--muted-foreground);">(optional)</span></label>
+                <textarea class="form-control" id="notes" name="notes" rows="4"
+                          placeholder="Any special equipment, previous courier experience, or anything else we should know…"
+                          style="resize:vertical;"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:400;">
+                  <input type="checkbox" name="terms_agreed" id="termsCheck" required
+                         style="margin-top:3px;accent-color:var(--primary);" />
+                  <span style="font-size:14px;color:var(--muted-foreground);">
+                    I confirm that all information provided is accurate and I agree to the
+                    <a href="terms.html" style="color:var(--primary);">Terms &amp; Conditions</a>
+                    and
+                    <a href="privacy.html" style="color:var(--primary);">Privacy Policy</a>.
+                  </span>
+                </label>
+              </div>
+
+              <!-- feedback box -->
+              <div class="form-feedback" id="driverFeedback"></div>
+            </div>
+
+            <!-- Form Navigation -->
+            <div class="form-nav">
+              <button type="button" class="btn btn-outline" id="prevBtn" style="display:none;" onclick="changeStep(-1)">
+                <iconify-icon icon="lucide:arrow-left" style="font-size:16px;margin-right:8px"></iconify-icon>
+                Back
+              </button>
+              <div></div><!-- spacer -->
+              <button type="button" class="btn btn-primary" id="nextBtn" onclick="changeStep(1)">
+                Continue
+                <iconify-icon icon="lucide:arrow-right" style="font-size:16px;margin-left:8px"></iconify-icon>
+              </button>
+              <button type="submit" class="btn btn-primary" id="submitBtn" style="display:none;">
+                Submit Application
+                <iconify-icon icon="lucide:send" style="font-size:16px;margin-left:8px"></iconify-icon>
+              </button>
+            </div>
+          </form>
+
+          <!-- Success state (hidden until form submitted) -->
+          <div class="success-state" id="successState" style="display:none;">
+            <div class="success-icon">
+              <iconify-icon icon="lucide:check-circle-2" style="font-size:36px"></iconify-icon>
+            </div>
+            <h2>Application Received!</h2>
+            <p>Thank you for applying to join the Fastrux driver network.</p>
+            <p>Your reference number is:</p>
+            <div class="success-ref" id="successRef">DRV-XXXXXXXX</div>
+            <p style="max-width:420px;margin:0 auto 24px;">Our driver relations team will review your application within <strong>2 working days</strong> and contact you via email.</p>
+            <a href="index.html" class="btn btn-primary">
+              <iconify-icon icon="lucide:home" style="font-size:16px;margin-right:8px"></iconify-icon>
+              Back to Home
+            </a>
+          </div>
+        </div><!-- /form-card -->
+      </div><!-- /onboard-layout -->
+    </div><!-- /container -->
+  </section>
+
+  <!-- ── FOOTER ── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="index.html" class="logo">
+            <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
+            Fastrux
+          </a>
+          <p>Delivering excellence in logistics and supply chain management worldwide. Your trusted partner for seamless transportation.</p>
+        </div>
+        <div>
+          <h4 class="footer-heading">Services</h4>
+          <div class="footer-links">
+            <a href="ocean-freight.html">Ocean Freight</a>
+            <a href="air-freight.html">Air Freight</a>
+            <a href="ground-transport.html">Ground Transport</a>
+            <a href="warehousing.html">Warehousing</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Company</h4>
+          <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <a href="careers.html">Careers</a>
+            <a href="driver-onboarding.html">Drive with Us</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+        <div>
+          <h4 class="footer-heading">Contact</h4>
+          <div class="footer-links">
+            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon>123 Logistics Way, NY 10001</div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+15551234567">+1 (555) 123-4567</a></div>
+            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div>© 2026 Fastrux Logistics. All rights reserved.</div>
+        <div class="social-links">
+          <a href="https://facebook.com"  target="_blank" rel="noopener" aria-label="Facebook"><iconify-icon icon="lucide:facebook"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://twitter.com"   target="_blank" rel="noopener" aria-label="Twitter"><iconify-icon icon="lucide:twitter"   style="font-size:20px"></iconify-icon></a>
+          <a href="https://linkedin.com"  target="_blank" rel="noopener" aria-label="LinkedIn"><iconify-icon icon="lucide:linkedin"  style="font-size:20px"></iconify-icon></a>
+          <a href="https://instagram.com" target="_blank" rel="noopener" aria-label="Instagram"><iconify-icon icon="lucide:instagram" style="font-size:20px"></iconify-icon></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Hamburger ──────────────────────────────────────────
+    const ham = document.getElementById('hamburger');
+    const mob = document.getElementById('mobileMenu');
+    ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+
+    // ── Multi-step form logic ─────────────────────────────
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    function updateStepUI() {
+      for (let i = 1; i <= totalSteps; i++) {
+        document.getElementById('step-' + i).style.display = (i === currentStep) ? '' : 'none';
+        const navItem = document.getElementById('step-nav-' + i);
+        navItem.classList.remove('active', 'done');
+        if (i === currentStep) navItem.classList.add('active');
+        if (i < currentStep) navItem.classList.add('done');
+        if (i < currentStep) navItem.querySelector('.step-num').innerHTML = '<iconify-icon icon="lucide:check" style="font-size:12px"></iconify-icon>';
+      }
+      document.getElementById('prevBtn').style.display  = currentStep > 1 ? '' : 'none';
+      document.getElementById('nextBtn').style.display  = currentStep < totalSteps ? '' : 'none';
+      document.getElementById('submitBtn').style.display = currentStep === totalSteps ? '' : 'none';
+      document.getElementById('progressBar').style.width = ((currentStep / totalSteps) * 100) + '%';
+    }
+
+    function validateStep(step) {
+      const stepEl = document.getElementById('step-' + step);
+      const required = stepEl.querySelectorAll('[required]');
+      let valid = true;
+      required.forEach(field => {
+        field.style.borderColor = '';
+        if (field.type === 'checkbox') {
+          // availability checkboxes — handled specially below
+        } else if (!field.value.trim()) {
+          field.style.borderColor = 'var(--destructive)';
+          field.focus();
+          valid = false;
+        }
+      });
+      // Special: step 5 check availability checkbox group
+      if (step === 5) {
+        const avail = document.querySelectorAll('input[name="availability[]"]:checked');
+        if (avail.length === 0) {
+          alert('Please select at least one day of availability.');
+          valid = false;
+        }
+      }
+      return valid;
+    }
+
+    function changeStep(direction) {
+      if (direction === 1 && !validateStep(currentStep)) return;
+      currentStep = Math.min(Math.max(currentStep + direction, 1), totalSteps);
+      updateStepUI();
+      document.getElementById('formCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    // Step nav click
+    document.querySelectorAll('.step-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const target = parseInt(item.dataset.step);
+        if (target < currentStep) {
+          currentStep = target;
+          updateStepUI();
+        }
+      });
+    });
+
+    // ── Auto-calculate volume ──────────────────────────────
+    ['cargo_length', 'cargo_width', 'cargo_height'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => {
+        const l = parseFloat(document.getElementById('cargo_length').value) || 0;
+        const w = parseFloat(document.getElementById('cargo_width').value) || 0;
+        const h = parseFloat(document.getElementById('cargo_height').value) || 0;
+        const vol = document.getElementById('volume_m3');
+        if (l && w && h) vol.value = (l * w * h).toFixed(2);
+      });
+    });
+
+    // ── File upload previews ───────────────────────────────
+    function setupUpload(inputId, previewId) {
+      const input   = document.getElementById(inputId);
+      const preview = document.getElementById(previewId);
+      input.addEventListener('change', () => renderPreviews(input, preview));
+    }
+
+    function renderPreviews(input, container) {
+      container.innerHTML = '';
+      Array.from(input.files).forEach(file => {
+        const wrap = document.createElement('div');
+        wrap.className = 'upload-preview-item';
+        if (file.type.startsWith('image/')) {
+          const img = document.createElement('img');
+          img.src = URL.createObjectURL(file);
+          wrap.appendChild(img);
+        } else {
+          wrap.innerHTML = '<div style="width:80px;height:80px;display:flex;align-items:center;justify-content:center;background:var(--secondary);border-radius:var(--radius-md);font-size:11px;font-weight:600;color:var(--primary);text-align:center;padding:4px;word-break:break-all;">' + file.name + '</div>';
+        }
+        container.appendChild(wrap);
+      });
+    }
+
+    setupUpload('input-front',     'prev-front');
+    setupUpload('input-side',      'prev-side');
+    setupUpload('input-interior',  'prev-interior');
+    setupUpload('input-licence',   'prev-licence');
+    setupUpload('input-insurance', 'prev-insurance');
+    setupUpload('input-mot',       'prev-mot');
+
+    // ── Drag & drop for upload areas ──────────────────────
+    document.querySelectorAll('.upload-area').forEach(area => {
+      area.addEventListener('dragover',  e => { e.preventDefault(); area.classList.add('dragover'); });
+      area.addEventListener('dragleave', ()  => area.classList.remove('dragover'));
+      area.addEventListener('drop', e => {
+        e.preventDefault();
+        area.classList.remove('dragover');
+        const inp = area.querySelector('input[type="file"]');
+        const prev = area.querySelector('.upload-previews');
+        if (inp && e.dataTransfer.files.length) {
+          inp.files = e.dataTransfer.files;
+          renderPreviews(inp, prev);
+        }
+      });
+    });
+
+    // ── Form submission ────────────────────────────────────
+    document.getElementById('driverForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      if (!validateStep(5)) return;
+
+      const submitBtn = document.getElementById('submitBtn');
+      const feedback  = document.getElementById('driverFeedback');
+      const origHTML  = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon>Submitting…';
+
+      try {
+        const res  = await fetch('process_form.php', { method: 'POST', body: new FormData(this) });
+        const data = await res.json();
+        if (data.success) {
+          document.getElementById('successRef').textContent = data.reference;
+          this.style.display = 'none';
+          document.getElementById('successState').style.display = '';
+        } else {
+          feedback.className   = 'form-feedback error';
+          feedback.textContent = '✗ ' + data.message;
+          feedback.style.display = 'flex';
+          submitBtn.disabled  = false;
+          submitBtn.innerHTML = origHTML;
+          feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      } catch {
+        feedback.className   = 'form-feedback error';
+        feedback.textContent = '✗ Network error — please try again or contact us directly.';
+        feedback.style.display = 'flex';
+        submitBtn.disabled  = false;
+        submitBtn.innerHTML = origHTML;
+      }
+    });
+
+    // ── Init ───────────────────────────────────────────────
+    updateStepUI();
+    // Set van_year max to current year + 1 dynamically
+    document.getElementById('van_year').max = new Date().getFullYear() + 1;
+  </script>
+</body>
+</html>
