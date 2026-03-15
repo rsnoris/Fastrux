@@ -22,6 +22,7 @@ define('DRIVERS_JSON',   DATA_DIR . 'driver_submissions.json');
 define('LOCATIONS_JSON', DATA_DIR . 'driver_locations.json');
 define('LOADS_JSON',     DATA_DIR . 'load_requests.json');
 define('TELEGRAM_CFG',   DATA_DIR . 'telegram_config.json');
+define('SMS_CFG',        DATA_DIR . 'sms_config.json');
 
 // ── Helpers ──────────────────────────────────────────────────────
 function respond(bool $ok, string $msg = '', array $extra = []): void
@@ -51,6 +52,45 @@ function writeJson(string $file, array $data): void
         mkdir(DATA_DIR, 0755, true);
     }
     file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
+/**
+ * Send an SMS via Twilio REST API.
+ * Returns ['sent' => bool, 'error' => string].
+ */
+function sendTwilioSms(string $to, string $body): array
+{
+    $cfg = readJson(SMS_CFG);
+    $sid  = $cfg['account_sid'] ?? '';
+    $auth = $cfg['auth_token']  ?? '';
+    $from = $cfg['from_number'] ?? '';
+
+    if (!$sid || !$auth || !$from) {
+        return ['sent' => false, 'error' => 'SMS not configured'];
+    }
+
+    $url     = "https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json";
+    $payload = http_build_query(['To' => $to, 'From' => $from, 'Body' => $body]);
+
+    $ctx = stream_context_create([
+        'http' => [
+            'method'          => 'POST',
+            'header'          => "Content-Type: application/x-www-form-urlencoded\r\n"
+                               . "Authorization: Basic " . base64_encode("{$sid}:{$auth}") . "\r\n",
+            'content'         => $payload,
+            'timeout'         => 10,
+            'ignore_errors'   => true,
+        ],
+    ]);
+    $resp = file_get_contents($url, false, $ctx);
+    if ($resp === false) {
+        return ['sent' => false, 'error' => 'Could not reach Twilio API'];
+    }
+    $respData = json_decode($resp, true);
+    if (isset($respData['sid'])) {
+        return ['sent' => true, 'error' => ''];
+    }
+    return ['sent' => false, 'error' => $respData['message'] ?? 'Twilio error'];
 }
 
 // ── GET endpoints ────────────────────────────────────────────────
@@ -104,6 +144,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             respond(true, '', [
                 'configured'   => !empty($cfg['bot_token']),
                 'masked_token' => $masked,
+            ]);
+
+        // Return masked SMS (Twilio) config status
+        case 'get_sms_config':
+            $smsCfg = readJson(SMS_CFG);
+            $maskedSid = '';
+            if (!empty($smsCfg['account_sid'])) {
+                $maskedSid = substr($smsCfg['account_sid'], 0, 6) . '…' . substr($smsCfg['account_sid'], -4);
+            }
+            respond(true, '', [
+                'configured'  => !empty($smsCfg['account_sid']) && !empty($smsCfg['auth_token']) && !empty($smsCfg['from_number']),
+                'masked_sid'  => $maskedSid,
             ]);
 
         default:
@@ -312,15 +364,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if ($telegramSent) {
                 $loads[$loadIdx]['telegram_sent_at'] = date('Y-m-d H:i:s');
             }
+
+            // Attempt SMS notification via driver's phone number
+            $smsSent  = false;
+            $smsError = '';
+            $phone    = $driver['phone'] ?? '';
+            if ($phone) {
+                $schedDate = !empty($load['scheduled_date'])
+                    ? date('d M Y', strtotime($load['scheduled_date'])) : 'TBD';
+                // Strip tags and special chars from load data before embedding in SMS
+                $smsLoadId   = strip_tags($load['id']               ?? '');
+                $smsPickup   = strip_tags($load['pickup_address']   ?? '');
+                $smsDelivery = strip_tags($load['delivery_address'] ?? '');
+                $smsBody = "Fastrux: New load offer [{$smsLoadId}]\n"
+                         . "Pickup: {$smsPickup}\n"
+                         . "Delivery: {$smsDelivery}\n"
+                         . "Date: {$schedDate}\n"
+                         . "Reply YES to accept or NO to decline.";
+                $smsResult = sendTwilioSms($phone, $smsBody);
+                $smsSent  = $smsResult['sent'];
+                $smsError = $smsResult['error'];
+                if ($smsSent) {
+                    $loads[$loadIdx]['sms_sent_at'] = date('Y-m-d H:i:s');
+                }
+            } else {
+                $smsError = 'Driver has no phone number saved';
+            }
+
             writeJson(LOADS_JSON, $loads);
 
-            $successMsg = $telegramSent
-                ? 'Driver assigned and notified via Telegram'
-                : 'Driver assigned' . ($telegramError ? " (Telegram: {$telegramError})" : '');
+            $notifParts = [];
+            if ($telegramSent) $notifParts[] = 'Telegram';
+            if ($smsSent)      $notifParts[] = 'SMS';
+
+            $successMsg = 'Driver assigned';
+            if ($notifParts) {
+                $successMsg .= ' and notified via ' . implode(' & ', $notifParts);
+            }
+            $warnings = [];
+            if (!$telegramSent && $telegramError) $warnings[] = "Telegram: {$telegramError}";
+            if (!$smsSent      && $smsError)      $warnings[] = "SMS: {$smsError}";
+            if ($warnings) $successMsg .= ' (' . implode('; ', $warnings) . ')';
 
             respond(true, $successMsg, [
                 'telegram_sent'  => $telegramSent,
                 'telegram_error' => $telegramError,
+                'sms_sent'       => $smsSent,
+                'sms_error'      => $smsError,
             ]);
 
         // Save Telegram bot token
@@ -335,6 +425,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             writeJson(TELEGRAM_CFG, ['bot_token' => $token]);
             respond(true, 'Telegram bot token saved successfully');
+
+        // Save SMS (Twilio) credentials
+        case 'save_sms_config':
+            $sid   = trim($_POST['account_sid'] ?? '');
+            $auth  = trim($_POST['auth_token']  ?? '');
+            $from  = trim($_POST['from_number'] ?? '');
+
+            if (!$sid)  respond(false, 'account_sid is required');
+            if (!$auth) respond(false, 'auth_token is required');
+            if (!$from) respond(false, 'from_number is required');
+
+            writeJson(SMS_CFG, [
+                'account_sid'  => $sid,
+                'auth_token'   => $auth,
+                'from_number'  => $from,
+            ]);
+            respond(true, 'SMS (Twilio) config saved successfully');
 
         default:
             respond(false, 'Unknown action');

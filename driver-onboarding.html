@@ -65,25 +65,46 @@
       padding: 24px;
     }
     .steps-nav h3 { font-size: 14px; font-weight: 700; color: var(--muted-foreground); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 16px; }
+    /* Wrapper that draws the straight vertical line through all step numbers */
+    .steps-list {
+      --step-pad-left: 12px;  /* matches .step-item padding-left */
+      --step-num-size: 24px;  /* matches .step-num width/height */
+      position: relative;
+    }
+    .steps-list::before {
+      content: '';
+      position: absolute;
+      /* centre of the step-num circle: padding-left + half circle width */
+      left: calc(var(--step-pad-left) + var(--step-num-size) / 2 - 1px);
+      top: 22px;
+      bottom: 22px;
+      width: 2px;
+      background: var(--border);
+      z-index: 0;
+    }
     .step-item {
       display: flex; align-items: center; gap: 12px;
-      padding: 10px 12px;
+      padding: 10px var(--step-pad-left, 12px);
       border-radius: var(--radius-md);
       cursor: pointer;
       transition: background .15s;
       color: var(--muted-foreground);
       font-size: 14px; font-weight: 500;
-      margin-bottom: 4px;
+      margin-bottom: 0;
+      position: relative;
     }
     .step-item.active { background: var(--secondary); color: var(--primary); }
     .step-item:hover  { background: var(--secondary); }
     .step-num {
-      width: 24px; height: 24px; min-width: 24px;
+      width: var(--step-num-size, 24px); height: var(--step-num-size, 24px); min-width: var(--step-num-size, 24px);
       border-radius: 50%;
       background: var(--muted);
       display: flex; align-items: center; justify-content: center;
       font-size: 12px; font-weight: 700;
       color: var(--muted-foreground);
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
     }
     .step-item.active .step-num { background: var(--primary); color: #fff; }
     .step-item.done  .step-num  { background: var(--success); color: #fff; }
@@ -347,25 +368,27 @@
         <!-- Steps sidebar -->
         <div class="steps-nav">
           <h3>Application Steps</h3>
-          <div class="step-item active" data-step="1" id="step-nav-1">
-            <div class="step-num">1</div>
-            Personal Details
-          </div>
-          <div class="step-item" data-step="2" id="step-nav-2">
-            <div class="step-num">2</div>
-            Vehicle Details
-          </div>
-          <div class="step-item" data-step="3" id="step-nav-3">
-            <div class="step-num">3</div>
-            Van Dimensions
-          </div>
-          <div class="step-item" data-step="4" id="step-nav-4">
-            <div class="step-num">4</div>
-            Photos &amp; Documents
-          </div>
-          <div class="step-item" data-step="5" id="step-nav-5">
-            <div class="step-num">5</div>
-            Availability &amp; Notes
+          <div class="steps-list">
+            <div class="step-item active" data-step="1" id="step-nav-1">
+              <div class="step-num">1</div>
+              Personal Details
+            </div>
+            <div class="step-item" data-step="2" id="step-nav-2">
+              <div class="step-num">2</div>
+              Vehicle Details
+            </div>
+            <div class="step-item" data-step="3" id="step-nav-3">
+              <div class="step-num">3</div>
+              Van Dimensions
+            </div>
+            <div class="step-item" data-step="4" id="step-nav-4">
+              <div class="step-num">4</div>
+              Photos &amp; Documents
+            </div>
+            <div class="step-item" data-step="5" id="step-nav-5">
+              <div class="step-num">5</div>
+              Availability &amp; Notes
+            </div>
           </div>
           <div style="margin-top:24px;padding-top:20px;border-top:1px solid var(--border);">
             <p style="font-size:12px;color:var(--muted-foreground);line-height:1.6;">
