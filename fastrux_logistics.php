@@ -910,5 +910,6 @@
   <style>
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
+  <script src="auth-nav.js"></script>
 </body>
 </html>

@@ -1010,5 +1010,6 @@
     // Set van_year max to current year + 1 dynamically
     document.getElementById('van_year').max = new Date().getFullYear() + 1;
   </script>
+  <script src="auth-nav.js"></script>
 </body>
 </html>

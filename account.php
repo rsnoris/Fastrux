@@ -335,9 +335,10 @@
               <div class="form-group">
                 <label for="p_role">Account Role *</label>
                 <select class="form-control" id="p_role" name="role" onchange="handleRoleChange(this.value)">
-                  <option value="customer">Customer / Shipper</option>
-                  <option value="driver">Driver</option>
-                  <option value="owner_operator">Owner &amp; Operator</option>
+                  <option value="shipper">Shipper</option>
+                  <option value="driver">Employee — Owner &amp; Operator / Driver</option>
+                  <option value="owner_operator">Employee — Owner &amp; Operator (Legacy)</option>
+                  <option value="corporate_staff">Employee — Corporate Staff</option>
                 </select>
               </div>
             </div>
@@ -395,8 +396,8 @@
 
             <!-- Role-specific KYC fields -->
 
-            <!-- Customer fields -->
-            <div id="kyc-customer" class="kyc-role-section">
+            <!-- Shipper fields (also used for legacy 'customer' role) -->
+            <div id="kyc-shipper" class="kyc-role-section">
               <div class="form-section-title">Business / Shipping Details</div>
               <div class="form-row-2">
                 <div class="form-group">
@@ -530,6 +531,35 @@
               <div class="form-group">
                 <label for="k_oo_operating_areas">Operating Regions</label>
                 <input class="form-control" type="text" id="k_oo_operating_areas" name="oo_operating_areas" placeholder="e.g. Southeast US, Nationwide" />
+              </div>
+            </div>
+
+            <!-- Corporate Staff fields -->
+            <div id="kyc-corporate_staff" class="kyc-role-section" style="display:none;">
+              <div class="form-section-title">Corporate Staff Details</div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="k_job_title">Job Title *</label>
+                  <input class="form-control" type="text" id="k_job_title" name="job_title" placeholder="e.g. Operations Manager" />
+                </div>
+                <div class="form-group">
+                  <label for="k_department">Department</label>
+                  <input class="form-control" type="text" id="k_department" name="department" placeholder="e.g. Logistics, Finance" />
+                </div>
+              </div>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label for="k_employee_id">Employee / Staff ID</label>
+                  <input class="form-control" type="text" id="k_employee_id" name="employee_id" placeholder="e.g. EMP-00123" />
+                </div>
+                <div class="form-group">
+                  <label for="k_start_date">Start Date</label>
+                  <input class="form-control" type="date" id="k_start_date" name="start_date" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="k_work_location">Work Location / Office</label>
+                <input class="form-control" type="text" id="k_work_location" name="work_location" placeholder="e.g. Leander TX HQ, Remote" />
               </div>
             </div>
 
@@ -738,18 +768,26 @@
       document.getElementById('userAvatar').textContent      = initials;
       document.getElementById('userName').textContent        = (user.first_name || '') + ' ' + (user.last_name || '');
       document.getElementById('userEmail').textContent       = user.email || '';
-      document.getElementById('userRoleLabel').textContent   = formatRole(user.role || 'customer');
+      document.getElementById('userRoleLabel').textContent   = formatRole(user.role || 'shipper');
 
       // Pre-fill profile form
       document.getElementById('p_first_name').value = user.first_name || '';
       document.getElementById('p_last_name').value  = user.last_name  || '';
       document.getElementById('p_email').value      = user.email      || '';
-      if (user.role) document.getElementById('p_role').value = user.role;
-      handleRoleChange(user.role || 'customer');
+      // Normalize legacy 'customer' role to 'shipper'
+      const normalizedRole = (user.role === 'customer') ? 'shipper' : (user.role || 'shipper');
+      document.getElementById('p_role').value = normalizedRole;
+      handleRoleChange(normalizedRole);
     }
 
     function formatRole(role) {
-      const map = { customer: 'Customer / Shipper', driver: 'Driver', owner_operator: 'Owner & Operator' };
+      const map = {
+        customer:        'Shipper',
+        shipper:         'Shipper',
+        driver:          'Employee — Owner & Operator / Driver',
+        owner_operator:  'Employee — Owner & Operator',
+        corporate_staff: 'Employee — Corporate Staff',
+      };
       return map[role] || role;
     }
 
@@ -778,14 +816,17 @@
         'insurance_expiry','years_experience','operating_areas',
         'business_name','mc_number','fleet_size','oo_tax_id',
         'oo_license_number','oo_insurance_expiry','oo_operating_areas',
+        'job_title','department','employee_id','start_date','work_location',
       ];
       fields.forEach(f => {
         const el = document.getElementById('p_' + f) || document.getElementById('k_' + f);
         if (el && kyc[f] !== undefined) el.value = kyc[f];
       });
       if (kyc.role) {
-        document.getElementById('p_role').value = kyc.role;
-        handleRoleChange(kyc.role);
+        // Normalize legacy 'customer' role to 'shipper'
+        const normalizedRole = kyc.role === 'customer' ? 'shipper' : kyc.role;
+        document.getElementById('p_role').value = normalizedRole;
+        handleRoleChange(normalizedRole);
       }
       // Update KYC status pill
       if (kyc.kyc_status) {
@@ -816,10 +857,12 @@
     // ── Role-specific KYC fields ────────────────────────────────
     function handleRoleChange(role) {
       document.querySelectorAll('.kyc-role-section').forEach(s => s.style.display = 'none');
-      const section = document.getElementById('kyc-' + role);
+      // shipper and legacy customer both use the customer KYC section
+      const sectionId = (role === 'shipper' || role === 'customer') ? 'kyc-shipper' : 'kyc-' + role;
+      const section = document.getElementById(sectionId);
       if (section) section.style.display = 'block';
 
-      // Show driver licence upload for driver/owner_operator
+      // Show driver licence upload for driver/owner_operator roles
       const driverExtra = document.getElementById('docDriverExtra');
       if (driverExtra) {
         driverExtra.style.display = (role === 'driver' || role === 'owner_operator') ? 'block' : 'none';
@@ -863,7 +906,7 @@
           if (currentUser) {
             fd.append('user_id', currentUser.id);
             fd.append('user_email', currentUser.email || '');
-            fd.append('user_role', document.getElementById('p_role')?.value || currentUser.role || 'customer');
+            fd.append('user_role', document.getElementById('p_role')?.value || currentUser.role || 'shipper');
           }
           const res  = await fetch('process_form.php', { method: 'POST', body: fd });
           const data = await res.json();
@@ -913,5 +956,6 @@
     // Spin animation for loader icon
     document.head.insertAdjacentHTML('beforeend', '<style>@keyframes spin{to{transform:rotate(360deg)}}</style>');
   </script>
+  <script src="auth-nav.js"></script>
 </body>
 </html>

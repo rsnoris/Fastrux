@@ -99,6 +99,14 @@
                  placeholder="Acme Corp" autocomplete="organization" />
         </div>
         <div class="form-group">
+          <label for="role">I am a… *</label>
+          <select class="form-control" id="role" name="role" required>
+            <option value="shipper">Shipper — I need to ship goods</option>
+            <option value="driver">Employee — Owner &amp; Operator / Driver</option>
+            <option value="corporate_staff">Employee — Corporate Staff</option>
+          </select>
+        </div>
+        <div class="form-group">
           <label for="password">Password</label>
           <div class="password-wrapper">
             <input class="form-control" type="password" id="password" name="password"
@@ -174,12 +182,13 @@
           const firstName = document.getElementById('firstName').value.trim();
           const lastName  = document.getElementById('lastName').value.trim();
           const email     = document.getElementById('email').value.trim();
+          const role      = document.getElementById('role').value || 'shipper';
           localStorage.setItem('fx_user', JSON.stringify({
             id:         data.reference || '',
             first_name: firstName,
             last_name:  lastName,
             email:      email,
-            role:       'customer',
+            role:       data.role || role,
           }));
           // Redirect to intended page or home after short delay
           const params = new URLSearchParams(window.location.search);

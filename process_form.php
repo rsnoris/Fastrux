@@ -533,6 +533,7 @@ function handleLogin(): void
             'first_name' => $user['first_name'],
             'last_name'  => $user['last_name'],
             'email'      => $user['email'],
+            'role'       => $user['role'] ?? 'shipper',
         ],
     ]);
 }
@@ -548,6 +549,7 @@ function handleRegister(): void
     $email     = clean($_POST['email']     ?? '');
     $company   = clean($_POST['company']   ?? '');
     $password  = $_POST['password']        ?? '';  // raw — will be hashed
+    $role      = clean($_POST['role']      ?? 'shipper');
 
     if (!$firstName || !$lastName) {
         respond(false, 'First and last name are required.');
@@ -557,6 +559,12 @@ function handleRegister(): void
     }
     if (strlen($password) < 8) {
         respond(false, 'Password must be at least 8 characters long.');
+    }
+
+    // Sanitize role
+    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'corporate_staff'];
+    if (!in_array($role, $allowedRegRoles, true)) {
+        $role = 'shipper';
     }
 
     // ── Duplicate email check ──
@@ -580,16 +588,18 @@ function handleRegister(): void
         'last_name'     => $lastName,
         'email'         => $email,
         'company'       => $company,
+        'role'          => $role,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
     ];
 
     appendJson('registered_users.json', $entry);
 
-    $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company'];
-    appendCsv('registered_users.csv', $headers, [$id, $timestamp, $firstName, $lastName, $email, $company]);
+    $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company', 'role'];
+    appendCsv('registered_users.csv', $headers, [$id, $timestamp, $firstName, $lastName, $email, $company, $role]);
 
     respond(true, 'Account created successfully! You can now sign in.', [
         'reference' => $id,
+        'role'      => $role,
     ]);
 }
 
@@ -609,9 +619,9 @@ function handleKycUpdate(): void
     }
 
     // Sanitize role to a safe directory name
-    $allowedRoles = ['customer', 'driver', 'owner_operator'];
+    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff'];
     if (!in_array($role, $allowedRoles, true)) {
-        $role = 'customer';
+        $role = 'shipper';
     }
 
     // Build user folder: /data/users/{role}/{userId}/
@@ -834,7 +844,7 @@ function handleKycLoad(): void
     }
 
     // Search across all role folders
-    $roles = ['customer', 'driver', 'owner_operator'];
+    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff'];
     foreach ($roles as $role) {
         $kycFile = DATA_DIR . 'users/' . $role . '/' . $safeId . '/kyc.json';
         if (file_exists($kycFile)) {
