@@ -1,9 +1,9 @@
 <?php
 /**
- * offers_tracking_data.php — Offers Tracking Board API
+ * offers_tracking_data.php — Offers Tracking Board API (MySQL backend)
  *
  * Handles driver location updates, load request management,
- * driver–load matching, and Telegram offer notifications.
+ * driver-load matching, and Telegram/SMS notifications.
  */
 
 header('Content-Type: application/json');
@@ -16,13 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// ── Constants ────────────────────────────────────────────────────
-define('DATA_DIR',       __DIR__ . '/data/');
-define('DRIVERS_JSON',   DATA_DIR . 'driver_submissions.json');
-define('LOCATIONS_JSON', DATA_DIR . 'driver_locations.json');
-define('LOADS_JSON',     DATA_DIR . 'load_requests.json');
-define('TELEGRAM_CFG',   DATA_DIR . 'telegram_config.json');
-define('SMS_CFG',        DATA_DIR . 'sms_config.json');
+require_once __DIR__ . '/db.php';
+require_once __DIR__ . '/audit.php';
 
 // ── Helpers ──────────────────────────────────────────────────────
 function respond(bool $ok, string $msg = '', array $extra = []): void
@@ -36,34 +31,40 @@ function clean(string $s): string
     return htmlspecialchars(strip_tags(trim($s)), ENT_QUOTES, 'UTF-8');
 }
 
-function readJson(string $file): array
+/**
+ * Read a config value from app_config table.
+ */
+function getConfig(string $key): string
 {
-    if (!file_exists($file)) {
-        return [];
+    try {
+        $stmt = getDb()->prepare('SELECT config_value FROM app_config WHERE config_key = ?');
+        $stmt->execute([$key]);
+        $row = $stmt->fetch();
+        return $row ? $row['config_value'] : '';
+    } catch (Throwable $e) {
+        return '';
     }
-    $raw  = file_get_contents($file);
-    $data = json_decode($raw, true);
-    return is_array($data) ? $data : [];
 }
 
-function writeJson(string $file, array $data): void
+/**
+ * Save a config value into app_config (upsert).
+ */
+function setConfig(string $key, string $value): void
 {
-    if (!is_dir(DATA_DIR)) {
-        mkdir(DATA_DIR, 0755, true);
-    }
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    getDb()->prepare(
+        'INSERT INTO app_config (config_key, config_value) VALUES (?, ?)
+         ON DUPLICATE KEY UPDATE config_value = VALUES(config_value), updated_at = NOW()'
+    )->execute([$key, $value]);
 }
 
 /**
  * Send an SMS via Twilio REST API.
- * Returns ['sent' => bool, 'error' => string].
  */
 function sendTwilioSms(string $to, string $body): array
 {
-    $cfg = readJson(SMS_CFG);
-    $sid  = $cfg['account_sid'] ?? '';
-    $auth = $cfg['auth_token']  ?? '';
-    $from = $cfg['from_number'] ?? '';
+    $sid  = getConfig('twilio_account_sid');
+    $auth = getConfig('twilio_auth_token');
+    $from = getConfig('twilio_from_number');
 
     if (!$sid || !$auth || !$from) {
         return ['sent' => false, 'error' => 'SMS not configured'];
@@ -71,25 +72,19 @@ function sendTwilioSms(string $to, string $body): array
 
     $url     = "https://api.twilio.com/2010-04-01/Accounts/{$sid}/Messages.json";
     $payload = http_build_query(['To' => $to, 'From' => $from, 'Body' => $body]);
+    $ctx     = stream_context_create(['http' => [
+        'method'        => 'POST',
+        'header'        => "Content-Type: application/x-www-form-urlencoded\r\n"
+                         . "Authorization: Basic " . base64_encode("{$sid}:{$auth}") . "\r\n",
+        'content'       => $payload,
+        'timeout'       => 10,
+        'ignore_errors' => true,
+    ]]);
 
-    $ctx = stream_context_create([
-        'http' => [
-            'method'          => 'POST',
-            'header'          => "Content-Type: application/x-www-form-urlencoded\r\n"
-                               . "Authorization: Basic " . base64_encode("{$sid}:{$auth}") . "\r\n",
-            'content'         => $payload,
-            'timeout'         => 10,
-            'ignore_errors'   => true,
-        ],
-    ]);
     $resp = file_get_contents($url, false, $ctx);
-    if ($resp === false) {
-        return ['sent' => false, 'error' => 'Could not reach Twilio API'];
-    }
+    if ($resp === false) return ['sent' => false, 'error' => 'Could not reach Twilio API'];
     $respData = json_decode($resp, true);
-    if (isset($respData['sid'])) {
-        return ['sent' => true, 'error' => ''];
-    }
+    if (isset($respData['sid'])) return ['sent' => true, 'error' => ''];
     return ['sent' => false, 'error' => $respData['message'] ?? 'Twilio error'];
 }
 
@@ -99,63 +94,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
     switch ($action) {
 
-        // Return all drivers merged with their latest location data
         case 'get_drivers':
-            $drivers   = readJson(DRIVERS_JSON);
-            $locations = readJson(LOCATIONS_JSON);
+            $db   = getDb();
+            $rows = $db->query(
+                'SELECT da.*,
+                        dl.lat, dl.lng, dl.status AS location_status, dl.updated_at AS location_updated
+                 FROM   driver_applications da
+                 LEFT JOIN driver_locations dl ON dl.driver_id = da.id
+                 ORDER BY da.created_at DESC'
+            )->fetchAll();
 
-            $result = array_map(function (array $d) use ($locations): array {
-                $loc = $locations[$d['id']] ?? null;
+            $result = array_map(function (array $d): array {
                 return [
                     'id'               => $d['id'],
-                    'name'             => trim(($d['first_name'] ?? '') . ' ' . ($d['last_name'] ?? '')),
-                    'phone'            => $d['phone']           ?? '',
-                    'email'            => $d['email']           ?? '',
-                    'van_reg'          => $d['van_reg']         ?? '',
-                    'van_type'         => $d['van_type']        ?? '',
-                    'payload_kg'       => $d['payload_kg']      ?? null,
-                    'volume_m3'        => $d['volume_m3']       ?? null,
-                    'tail_lift'        => $d['tail_lift']       ?? 'no',
-                    'operating_areas'  => $d['operating_areas'] ?? '',
-                    'driver_status'    => $d['status']          ?? 'pending',
+                    'name'             => trim($d['first_name'] . ' ' . $d['last_name']),
+                    'phone'            => $d['phone']            ?? '',
+                    'email'            => $d['email']            ?? '',
+                    'van_reg'          => $d['van_reg']          ?? '',
+                    'van_type'         => $d['van_type']         ?? '',
+                    'payload_kg'       => $d['payload_kg'],
+                    'volume_m3'        => $d['volume_m3'],
+                    'tail_lift'        => $d['tail_lift'] ? 'yes' : 'no',
+                    'operating_areas'  => $d['operating_areas']  ?? '',
+                    'driver_status'    => $d['status']           ?? 'pending',
                     'telegram_chat_id' => $d['telegram_chat_id'] ?? '',
-                    'lat'              => $loc['lat']        ?? null,
-                    'lng'              => $loc['lng']        ?? null,
-                    'location_status'  => $loc['status']     ?? 'offline',
-                    'location_updated' => $loc['updated_at'] ?? null,
+                    'lat'              => $d['lat'],
+                    'lng'              => $d['lng'],
+                    'location_status'  => $d['location_status']  ?? 'offline',
+                    'location_updated' => $d['location_updated'],
                 ];
-            }, $drivers);
+            }, $rows);
 
             respond(true, '', ['drivers' => $result]);
 
-        // Return all load requests (newest first)
         case 'get_loads':
-            $loads = readJson(LOADS_JSON);
-            respond(true, '', ['loads' => array_reverse($loads)]);
+            $loads = getDb()->query('SELECT * FROM loads ORDER BY created_at DESC')->fetchAll();
+            // Deserialise boolean
+            foreach ($loads as &$l) {
+                $l['requires_tail_lift'] = (bool) $l['requires_tail_lift'];
+            }
+            unset($l);
+            respond(true, '', ['loads' => $loads]);
 
-        // Return masked Telegram bot-token status
         case 'get_telegram_config':
-            $cfg = readJson(TELEGRAM_CFG);
+            $token  = getConfig('telegram_bot_token');
             $masked = '';
-            if (!empty($cfg['bot_token'])) {
-                $parts  = explode(':', $cfg['bot_token'], 2);
+            if ($token) {
+                $parts  = explode(':', $token, 2);
                 $masked = ($parts[0] ?? '') . ':***' . substr($parts[1] ?? '', -4);
             }
-            respond(true, '', [
-                'configured'   => !empty($cfg['bot_token']),
-                'masked_token' => $masked,
-            ]);
+            respond(true, '', ['configured' => $token !== '', 'masked_token' => $masked]);
 
-        // Return masked SMS (Twilio) config status
         case 'get_sms_config':
-            $smsCfg = readJson(SMS_CFG);
-            $maskedSid = '';
-            if (!empty($smsCfg['account_sid'])) {
-                $maskedSid = substr($smsCfg['account_sid'], 0, 6) . '…' . substr($smsCfg['account_sid'], -4);
-            }
+            $sid       = getConfig('twilio_account_sid');
+            $maskedSid = $sid
+                ? substr($sid, 0, 6) . '...' . substr($sid, -4)
+                : '';
             respond(true, '', [
-                'configured'  => !empty($smsCfg['account_sid']) && !empty($smsCfg['auth_token']) && !empty($smsCfg['from_number']),
-                'masked_sid'  => $maskedSid,
+                'configured' => $sid !== '' && getConfig('twilio_auth_token') !== '' && getConfig('twilio_from_number') !== '',
+                'masked_sid' => $maskedSid,
             ]);
 
         default:
@@ -169,7 +166,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     switch ($postAction) {
 
-        // Update a driver's GPS coordinates and availability status
         case 'update_location':
             $driverId = clean($_POST['driver_id'] ?? '');
             $lat      = filter_var($_POST['lat'] ?? '', FILTER_VALIDATE_FLOAT);
@@ -177,177 +173,142 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $status   = in_array($_POST['status'] ?? '', ['available', 'busy', 'offline'], true)
                         ? $_POST['status'] : 'available';
 
-            if (!$driverId)            respond(false, 'driver_id is required');
+            if (!$driverId)                    respond(false, 'driver_id is required');
             if ($lat === false || $lng === false) respond(false, 'Valid lat and lng are required');
 
-            $locations              = readJson(LOCATIONS_JSON);
-            $locations[$driverId]   = [
-                'lat'        => $lat,
-                'lng'        => $lng,
-                'status'     => $status,
-                'updated_at' => date('Y-m-d H:i:s'),
-            ];
-            writeJson(LOCATIONS_JSON, $locations);
+            $db = getDb();
+            $db->prepare(
+                'INSERT INTO driver_locations (driver_id, lat, lng, status)
+                 VALUES (?, ?, ?, ?)
+                 ON DUPLICATE KEY UPDATE lat = VALUES(lat), lng = VALUES(lng),
+                                         status = VALUES(status), updated_at = NOW()'
+            )->execute([$driverId, $lat, $lng, $status]);
+
+            auditLog('driver.location_updated', null, 'driver_application', $driverId,
+                     ['lat' => $lat, 'lng' => $lng, 'status' => $status]);
             respond(true, 'Location updated');
 
-        // Create a new load request
         case 'add_load':
-            $required = ['pickup_address', 'delivery_address', 'cargo_description', 'scheduled_date'];
-            foreach ($required as $field) {
-                if (empty(trim($_POST[$field] ?? ''))) {
-                    respond(false, "Field '$field' is required");
-                }
+            foreach (['pickup_address', 'delivery_address', 'cargo_description', 'scheduled_date'] as $f) {
+                if (empty(trim($_POST[$f] ?? ''))) respond(false, "Field '$f' is required");
             }
 
-            $pickupLat  = filter_var($_POST['pickup_lat']  ?? '', FILTER_VALIDATE_FLOAT);
-            $pickupLng  = filter_var($_POST['pickup_lng']  ?? '', FILTER_VALIDATE_FLOAT);
+            $pickupLat  = filter_var($_POST['pickup_lat']   ?? '', FILTER_VALIDATE_FLOAT);
+            $pickupLng  = filter_var($_POST['pickup_lng']   ?? '', FILTER_VALIDATE_FLOAT);
             $delivLat   = filter_var($_POST['delivery_lat'] ?? '', FILTER_VALIDATE_FLOAT);
             $delivLng   = filter_var($_POST['delivery_lng'] ?? '', FILTER_VALIDATE_FLOAT);
-            $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
-            $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
+            $weightKg   = filter_var($_POST['weight_kg']    ?? '', FILTER_VALIDATE_FLOAT);
+            $volumeM3   = filter_var($_POST['volume_m3']    ?? '', FILTER_VALIDATE_FLOAT);
 
-            $loads  = readJson(LOADS_JSON);
-            $existingIds = array_column($loads, 'id');
-            // Generate a unique FX-XXXXXXXXXXXXXXX tracking ID (FX- + 15 digits)
+            // Generate unique FX-XXXXXXXXXXXXXXX (FX- + 15 digits)
+            $db = getDb();
             do {
                 $digits = '';
                 for ($i = 0; $i < 15; $i++) $digits .= random_int(0, 9);
                 $id = 'FX-' . $digits;
-            } while (in_array($id, $existingIds, true));
-            $load = [
-                'id'                 => $id,
-                'created_at'         => date('Y-m-d H:i:s'),
-                'status'             => 'open',
-                'pickup_address'     => clean($_POST['pickup_address']),
-                'pickup_lat'         => ($pickupLat !== false) ? $pickupLat : null,
-                'pickup_lng'         => ($pickupLng !== false) ? $pickupLng : null,
-                'delivery_address'   => clean($_POST['delivery_address']),
-                'delivery_lat'       => ($delivLat  !== false) ? $delivLat  : null,
-                'delivery_lng'       => ($delivLng  !== false) ? $delivLng  : null,
-                'cargo_description'  => clean($_POST['cargo_description']),
-                'weight_kg'          => ($weightKg  !== false) ? $weightKg  : null,
-                'volume_m3'          => ($volumeM3  !== false) ? $volumeM3  : null,
-                'requires_tail_lift' => ($_POST['requires_tail_lift'] ?? 'no') === 'yes',
-                'scheduled_date'     => clean($_POST['scheduled_date']),
-                'contact_name'       => clean($_POST['contact_name']  ?? ''),
-                'contact_phone'      => clean($_POST['contact_phone'] ?? ''),
-                'notes'              => clean($_POST['notes']          ?? ''),
-                'assigned_driver_id' => null,
-                'telegram_sent_at'   => null,
-            ];
+                $exists = $db->prepare('SELECT id FROM loads WHERE id = ?');
+                $exists->execute([$id]);
+            } while ($exists->fetch());
 
-            $loads[] = $load;
-            writeJson(LOADS_JSON, $loads);
+            $db->prepare(
+                'INSERT INTO loads
+                    (id, status, pickup_address, pickup_lat, pickup_lng,
+                     delivery_address, delivery_lat, delivery_lng,
+                     cargo_description, weight_kg, volume_m3, requires_tail_lift,
+                     scheduled_date, contact_name, contact_phone, notes)
+                 VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)'
+            )->execute([
+                $id, 'open',
+                clean($_POST['pickup_address']),
+                ($pickupLat !== false) ? $pickupLat : null,
+                ($pickupLng !== false) ? $pickupLng : null,
+                clean($_POST['delivery_address']),
+                ($delivLat  !== false) ? $delivLat  : null,
+                ($delivLng  !== false) ? $delivLng  : null,
+                clean($_POST['cargo_description']),
+                ($weightKg  !== false) ? $weightKg  : null,
+                ($volumeM3  !== false) ? $volumeM3  : null,
+                (($_POST['requires_tail_lift'] ?? 'no') === 'yes') ? 1 : 0,
+                clean($_POST['scheduled_date']),
+                clean($_POST['contact_name']  ?? ''),
+                clean($_POST['contact_phone'] ?? ''),
+                clean($_POST['notes']         ?? ''),
+            ]);
+
+            $loadStmt = $db->prepare('SELECT * FROM loads WHERE id = ?');
+            $loadStmt->execute([$id]);
+            $load = $loadStmt->fetch();
+            auditLog('load.created', null, 'load', $id, ['pickup' => $_POST['pickup_address']]);
             respond(true, 'Load request created', ['load' => $load]);
 
-        // Update the status of an existing load
         case 'update_load_status':
             $loadId  = clean($_POST['load_id'] ?? '');
             $status  = clean($_POST['status']  ?? '');
             $allowed = ['open', 'matched', 'in_transit', 'completed', 'cancelled'];
-
-            if (!$loadId)               respond(false, 'load_id is required');
+            if (!$loadId)                          respond(false, 'load_id is required');
             if (!in_array($status, $allowed, true)) respond(false, 'Invalid status');
 
-            $loads = readJson(LOADS_JSON);
-            $found = false;
-            foreach ($loads as &$load) {
-                if ($load['id'] === $loadId) {
-                    $load['status'] = $status;
-                    $found = true;
-                    break;
-                }
-            }
-            unset($load);
+            $db   = getDb();
+            $stmt = $db->prepare('UPDATE loads SET status = ?, updated_at = NOW() WHERE id = ?');
+            $stmt->execute([$status, $loadId]);
+            if ($stmt->rowCount() === 0) respond(false, 'Load not found');
 
-            if (!$found) respond(false, 'Load not found');
-            writeJson(LOADS_JSON, $loads);
+            auditLog('load.status_updated', null, 'load', $loadId, ['status' => $status]);
             respond(true, 'Load status updated');
 
-        // Assign a driver to a load and send Telegram notification
         case 'assign_driver':
             $loadId   = clean($_POST['load_id']   ?? '');
             $driverId = clean($_POST['driver_id'] ?? '');
-
             if (!$loadId || !$driverId) respond(false, 'load_id and driver_id are required');
 
-            $loads   = readJson(LOADS_JSON);
-            $drivers = readJson(DRIVERS_JSON);
+            $db   = getDb();
+            $load = $db->prepare('SELECT * FROM loads WHERE id = ?');
+            $load->execute([$loadId]);
+            $load = $load->fetch();
+            if (!$load) respond(false, 'Load not found');
 
-            $load     = null;
-            $driver   = null;
-            $loadIdx  = -1;
-
-            foreach ($loads as $i => $l) {
-                if ($l['id'] === $loadId) {
-                    $load    = $l;
-                    $loadIdx = $i;
-                    break;
-                }
-            }
-            foreach ($drivers as $d) {
-                if ($d['id'] === $driverId) {
-                    $driver = $d;
-                    break;
-                }
-            }
-
-            if ($load    === null) respond(false, 'Load not found');
-            if ($driver  === null) respond(false, 'Driver not found');
+            $driver = $db->prepare('SELECT * FROM driver_applications WHERE id = ?');
+            $driver->execute([$driverId]);
+            $driver = $driver->fetch();
+            if (!$driver) respond(false, 'Driver not found');
 
             $telegramSent  = false;
             $telegramError = '';
-
-            // Attempt Telegram notification
-            $cfg      = readJson(TELEGRAM_CFG);
-            $chatId   = $driver['telegram_chat_id'] ?? '';
-            $botToken = $cfg['bot_token']            ?? '';
+            $chatId        = $driver['telegram_chat_id'] ?? '';
+            $botToken      = getConfig('telegram_bot_token');
 
             if ($chatId && $botToken) {
                 $schedDate = !empty($load['scheduled_date'])
                     ? date('d M Y', strtotime($load['scheduled_date'])) : 'TBD';
                 $weight   = $load['weight_kg']  ? $load['weight_kg']  . ' kg' : 'N/A';
                 $volume   = $load['volume_m3']  ? $load['volume_m3']  . ' m³' : 'N/A';
-                $tailLift = ($load['requires_tail_lift'] ?? false) ? '✅ Required' : '❌ Not required';
+                $tailLift = ($load['requires_tail_lift'] ?? 0) ? 'Required' : 'Not required';
 
-                $msg = "🚚 *NEW LOAD OFFER — Fastrux*\n\n"
-                     . "📦 *Load ID:* `{$load['id']}`\n"
-                     . "📍 *Pickup:* {$load['pickup_address']}\n"
-                     . "🏁 *Delivery:* {$load['delivery_address']}\n"
-                     . "📦 *Cargo:* {$load['cargo_description']}\n"
-                     . "⚖️ *Weight:* {$weight} | 📦 *Volume:* {$volume}\n"
-                     . "🔩 *Tail Lift:* {$tailLift}\n"
-                     . "📅 *Date:* {$schedDate}\n";
-
+                $msg = "*NEW LOAD OFFER - Fastrux*\n\n"
+                     . "*Load ID:* `{$load['id']}`\n"
+                     . "*Pickup:* {$load['pickup_address']}\n"
+                     . "*Delivery:* {$load['delivery_address']}\n"
+                     . "*Cargo:* {$load['cargo_description']}\n"
+                     . "*Weight:* {$weight} | *Volume:* {$volume}\n"
+                     . "*Tail Lift:* {$tailLift}\n"
+                     . "*Date:* {$schedDate}\n";
                 if (!empty($load['contact_name'])) {
-                    $msg .= "📞 *Contact:* {$load['contact_name']}";
-                    if (!empty($load['contact_phone'])) {
-                        $msg .= " — {$load['contact_phone']}";
-                    }
+                    $msg .= "*Contact:* {$load['contact_name']}";
+                    if (!empty($load['contact_phone'])) $msg .= " - {$load['contact_phone']}";
                     $msg .= "\n";
                 }
-                if (!empty($load['notes'])) {
-                    $msg .= "📝 *Notes:* {$load['notes']}\n";
-                }
-                $msg .= "\nReply *YES* to accept or *NO* to decline.";
+                if (!empty($load['notes'])) $msg .= "*Notes:* {$load['notes']}\n";
+                $msg .= "\nReply YES to accept or NO to decline.";
 
                 $apiUrl  = "https://api.telegram.org/bot{$botToken}/sendMessage";
-                $payload = json_encode([
-                    'chat_id'    => $chatId,
-                    'text'       => $msg,
-                    'parse_mode' => 'Markdown',
-                ]);
-
-                $ctx  = stream_context_create([
-                    'http' => [
-                        'method'  => 'POST',
-                        'header'  => "Content-Type: application/json\r\n",
-                        'content' => $payload,
-                        'timeout' => 10,
-                    ],
-                ]);
+                $payload = json_encode(['chat_id' => $chatId, 'text' => $msg, 'parse_mode' => 'Markdown']);
+                $ctx     = stream_context_create(['http' => [
+                    'method'  => 'POST',
+                    'header'  => "Content-Type: application/json\r\n",
+                    'content' => $payload,
+                    'timeout' => 10,
+                ]]);
                 $resp = @file_get_contents($apiUrl, false, $ctx);
-
                 if ($resp !== false) {
                     $respData = json_decode($resp, true);
                     if ($respData && ($respData['ok'] ?? false)) {
@@ -364,23 +325,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $telegramError = 'Driver has no Telegram chat ID saved';
             }
 
-            // Persist the assignment
-            $loads[$loadIdx]['assigned_driver_id'] = $driverId;
-            $loads[$loadIdx]['status']             = 'matched';
-            if ($telegramSent) {
-                $loads[$loadIdx]['telegram_sent_at'] = date('Y-m-d H:i:s');
-            }
-
-            // Attempt SMS notification via driver's phone number
             $smsSent  = false;
             $smsError = '';
             $phone    = $driver['phone'] ?? '';
             if ($phone) {
-                $schedDate = !empty($load['scheduled_date'])
+                $schedDate  = !empty($load['scheduled_date'])
                     ? date('d M Y', strtotime($load['scheduled_date'])) : 'TBD';
-                // Strip tags and special chars from load data before embedding in SMS
-                $smsLoadId   = strip_tags($load['id']               ?? '');
-                $smsPickup   = strip_tags($load['pickup_address']   ?? '');
+                $smsLoadId   = strip_tags($load['id']             ?? '');
+                $smsPickup   = strip_tags($load['pickup_address'] ?? '');
                 $smsDelivery = strip_tags($load['delivery_address'] ?? '');
                 $smsBody = "Fastrux: New load offer [{$smsLoadId}]\n"
                          . "Pickup: {$smsPickup}\n"
@@ -388,65 +340,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                          . "Date: {$schedDate}\n"
                          . "Reply YES to accept or NO to decline.";
                 $smsResult = sendTwilioSms($phone, $smsBody);
-                $smsSent  = $smsResult['sent'];
-                $smsError = $smsResult['error'];
-                if ($smsSent) {
-                    $loads[$loadIdx]['sms_sent_at'] = date('Y-m-d H:i:s');
-                }
+                $smsSent   = $smsResult['sent'];
+                $smsError  = $smsResult['error'];
             } else {
                 $smsError = 'Driver has no phone number saved';
             }
 
-            writeJson(LOADS_JSON, $loads);
+            // Persist the assignment
+            $db->prepare(
+                'UPDATE loads SET assigned_driver_id = ?, status = ?,
+                                  telegram_sent_at = ?, sms_sent_at = ?, updated_at = NOW()
+                 WHERE id = ?'
+            )->execute([
+                $driverId,
+                'matched',
+                $telegramSent ? date('Y-m-d H:i:s') : null,
+                $smsSent      ? date('Y-m-d H:i:s') : null,
+                $loadId,
+            ]);
+
+            auditLog('load.driver_assigned', null, 'load', $loadId, [
+                'driver_id' => $driverId, 'telegram_sent' => $telegramSent, 'sms_sent' => $smsSent,
+            ]);
 
             $notifParts = [];
             if ($telegramSent) $notifParts[] = 'Telegram';
             if ($smsSent)      $notifParts[] = 'SMS';
-
             $successMsg = 'Driver assigned';
-            if ($notifParts) {
-                $successMsg .= ' and notified via ' . implode(' & ', $notifParts);
-            }
+            if ($notifParts) $successMsg .= ' and notified via ' . implode(' & ', $notifParts);
             $warnings = [];
             if (!$telegramSent && $telegramError) $warnings[] = "Telegram: {$telegramError}";
             if (!$smsSent      && $smsError)      $warnings[] = "SMS: {$smsError}";
             if ($warnings) $successMsg .= ' (' . implode('; ', $warnings) . ')';
 
             respond(true, $successMsg, [
-                'telegram_sent'  => $telegramSent,
-                'telegram_error' => $telegramError,
-                'sms_sent'       => $smsSent,
-                'sms_error'      => $smsError,
+                'telegram_sent' => $telegramSent, 'telegram_error' => $telegramError,
+                'sms_sent'      => $smsSent,      'sms_error'      => $smsError,
             ]);
 
-        // Save Telegram bot token
         case 'save_telegram_config':
             $token = trim($_POST['bot_token'] ?? '');
             if (!$token) respond(false, 'bot_token is required');
-
-            // Validate format: numeric_id:alphanumeric_string (35 or more chars after colon)
-            if (!preg_match('/^\d+:[A-Za-z0-9_-]{35,}$/', $token)) {
-                respond(false, 'Invalid token format. Expected: 123456789:ABCdef… (at least 35 alphanumeric characters after the colon)');
-            }
-
-            writeJson(TELEGRAM_CFG, ['bot_token' => $token]);
+            if (!preg_match('/^\d+:[A-Za-z0-9_-]{35,}$/', $token))
+                respond(false, 'Invalid token format. Expected: 123456789:ABCdef... (at least 35 alphanumeric characters after the colon)');
+            setConfig('telegram_bot_token', $token);
+            auditLog('config.telegram_saved');
             respond(true, 'Telegram bot token saved successfully');
 
-        // Save SMS (Twilio) credentials
         case 'save_sms_config':
-            $sid   = trim($_POST['account_sid'] ?? '');
-            $auth  = trim($_POST['auth_token']  ?? '');
-            $from  = trim($_POST['from_number'] ?? '');
-
+            $sid  = trim($_POST['account_sid'] ?? '');
+            $auth = trim($_POST['auth_token']  ?? '');
+            $from = trim($_POST['from_number'] ?? '');
             if (!$sid)  respond(false, 'account_sid is required');
             if (!$auth) respond(false, 'auth_token is required');
             if (!$from) respond(false, 'from_number is required');
-
-            writeJson(SMS_CFG, [
-                'account_sid'  => $sid,
-                'auth_token'   => $auth,
-                'from_number'  => $from,
-            ]);
+            setConfig('twilio_account_sid',  $sid);
+            setConfig('twilio_auth_token',   $auth);
+            setConfig('twilio_from_number',  $from);
+            auditLog('config.sms_saved');
             respond(true, 'SMS (Twilio) config saved successfully');
 
         default:
