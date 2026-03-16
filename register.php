@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login — Fastrux Logistics</title>
+  <title>Create Account — Fastrux Logistics</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -17,7 +17,14 @@
       background: none; border: none; cursor: pointer;
       color: var(--muted-foreground); display: flex; align-items: center;
     }
-    .forgot-link { float: right; font-size: 13px; color: var(--primary); font-weight: 500; }
+    .name-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    @media (max-width: 480px) {
+      .name-row { grid-template-columns: 1fr; }
+    }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
@@ -25,21 +32,21 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.html">Home</a>
-        <a class="nav-link" href="index.html#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link" href="about.html">About Us</a>
-        <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="about.php">About Us</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link active" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -47,14 +54,14 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link" href="index.html#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link" href="about.html">About Us</a>
-    <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="about.php">About Us</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -64,35 +71,61 @@
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux
       </div>
-      <h1 class="auth-title">Welcome back</h1>
-      <p class="auth-subtitle">Sign in to manage your shipments and account.</p>
-      <div class="form-feedback" id="loginFeedback"></div>
-      <form id="loginForm" novalidate>
-        <input type="hidden" name="form_type" value="login" />
+      <h1 class="auth-title">Create your account</h1>
+      <p class="auth-subtitle">Start managing your shipments with Fastrux today.</p>
+      <div class="form-feedback" id="registerFeedback"></div>
+      <form id="registerForm" novalidate>
+        <input type="hidden" name="form_type" value="register" />
+        <div class="name-row">
+          <div class="form-group">
+            <label for="firstName">First name</label>
+            <input class="form-control" type="text" id="firstName" name="firstName"
+                   placeholder="Jane" required autocomplete="given-name" />
+          </div>
+          <div class="form-group">
+            <label for="lastName">Last name</label>
+            <input class="form-control" type="text" id="lastName" name="lastName"
+                   placeholder="Smith" required autocomplete="family-name" />
+          </div>
+        </div>
         <div class="form-group">
           <label for="email">Email address</label>
           <input class="form-control" type="email" id="email" name="email"
                  placeholder="you@example.com" required autocomplete="email" />
         </div>
         <div class="form-group">
-          <label for="password">
-            Password
-            <a class="forgot-link" href="forgot-password.html">Forgot password?</a>
-          </label>
+          <label for="company">Company name <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+          <input class="form-control" type="text" id="company" name="company"
+                 placeholder="Acme Corp" autocomplete="organization" />
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
           <div class="password-wrapper">
             <input class="form-control" type="password" id="password" name="password"
-                   placeholder="••••••••" required autocomplete="current-password" />
+                   placeholder="Min. 8 characters" required autocomplete="new-password" minlength="8" />
             <button type="button" class="password-toggle" id="togglePwd" aria-label="Show password">
               <iconify-icon icon="lucide:eye" id="eyeIcon" style="font-size:18px"></iconify-icon>
             </button>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary" id="loginBtn"
-                style="width:100%;padding:14px;font-size:16px;margin-top:8px;">
-          Sign In
+        <div class="form-group" style="margin-bottom:0;">
+          <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-weight:400;">
+            <input type="checkbox" name="terms" id="termsCheck" required
+                   style="margin-top:3px;accent-color:var(--primary);" />
+            <span style="font-size:14px;color:var(--muted-foreground);">
+              I agree to the
+              <a href="terms.php" style="color:var(--primary);">Terms of Service</a>
+              and
+              <a href="privacy.php" style="color:var(--primary);">Privacy Policy</a>
+            </span>
+          </label>
+        </div>
+        <button type="submit" class="btn btn-primary" id="registerBtn"
+                style="width:100%;padding:14px;font-size:16px;margin-top:24px;">
+          Create Account
         </button>
       </form>
-      <p class="auth-footer-text">Don't have an account? <a href="register.html">Create one free</a></p>
+      <p class="auth-footer-text">Already have an account? <a href="login.php">Sign in</a></p>
     </div>
   </div>
 
@@ -101,8 +134,8 @@
       <div class="footer-bottom" style="border-top:none;padding-top:0;">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy.html" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms.html"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>
@@ -121,13 +154,13 @@
       eye.setAttribute('icon', show ? 'lucide:eye-off' : 'lucide:eye');
     });
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const btn      = document.getElementById('loginBtn');
-      const feedback = document.getElementById('loginFeedback');
+      const btn      = document.getElementById('registerBtn');
+      const feedback = document.getElementById('registerFeedback');
       const origHTML = btn.innerHTML;
       btn.disabled   = true;
-      btn.innerHTML  = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon>Signing in…';
+      btn.innerHTML  = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon>Creating account…';
       feedback.style.display = 'none';
       try {
         const res  = await fetch('process_form.php', { method: 'POST', body: new FormData(this) });
@@ -136,17 +169,21 @@
           feedback.className   = 'form-feedback success';
           feedback.textContent = '✓ ' + data.message;
           feedback.style.display = 'flex';
+          this.reset();
           // Store user session in localStorage
+          const firstName = document.getElementById('firstName').value.trim();
+          const lastName  = document.getElementById('lastName').value.trim();
+          const email     = document.getElementById('email').value.trim();
           localStorage.setItem('fx_user', JSON.stringify({
-            id:         data.user?.id         || '',
-            first_name: data.user?.first_name || '',
-            last_name:  data.user?.last_name  || '',
-            email:      data.user?.email      || document.getElementById('email').value.trim(),
-            role:       data.user?.role       || 'customer',
+            id:         data.reference || '',
+            first_name: firstName,
+            last_name:  lastName,
+            email:      email,
+            role:       'customer',
           }));
           // Redirect to intended page or home after short delay
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || 'index.html';
+          const redirect = params.get('redirect') || 'index.php';
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';

@@ -280,21 +280,21 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.html">Home</a>
-        <a class="nav-link" href="index.html#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link" href="about.html">About Us</a>
-        <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link active" href="driver-onboarding.html">Drive with Us</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="about.php">About Us</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link active" href="driver-onboarding.php">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -302,14 +302,14 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link" href="index.html#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link" href="about.html">About Us</a>
-    <a class="nav-link" href="contact.html">Contact</a>
-    <a class="nav-link active" href="driver-onboarding.html">Drive with Us</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="about.php">About Us</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+    <a class="nav-link active" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -746,9 +746,9 @@
                          style="margin-top:3px;accent-color:var(--primary);" />
                   <span style="font-size:14px;color:var(--muted-foreground);">
                     I confirm that all information provided is accurate and I agree to the
-                    <a href="terms.html" style="color:var(--primary);">Terms &amp; Conditions</a>
+                    <a href="terms.php" style="color:var(--primary);">Terms &amp; Conditions</a>
                     and
-                    <a href="privacy.html" style="color:var(--primary);">Privacy Policy</a>.
+                    <a href="privacy.php" style="color:var(--primary);">Privacy Policy</a>.
                   </span>
                 </label>
               </div>
@@ -785,7 +785,7 @@
             <p>Your reference number is:</p>
             <div class="success-ref" id="successRef">DRV-XXXXXXXX</div>
             <p style="max-width:420px;margin:0 auto 24px;">Our driver relations team will review your application within <strong>2 working days</strong> and contact you via email.</p>
-            <a href="index.html" class="btn btn-primary">
+            <a href="index.php" class="btn btn-primary">
               <iconify-icon icon="lucide:home" style="font-size:16px;margin-right:8px"></iconify-icon>
               Back to Home
             </a>
@@ -800,7 +800,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -809,19 +809,19 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.html">Ocean Freight</a>
-            <a href="air-freight.html">Air Freight</a>
-            <a href="ground-transport.html">Ground Transport</a>
-            <a href="warehousing.html">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="careers.html">Careers</a>
-            <a href="driver-onboarding.html">Drive with Us</a>
-            <a href="contact.html">Contact</a>
+            <a href="about.php">About Us</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>
