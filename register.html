@@ -174,7 +174,13 @@
           const firstName = document.getElementById('firstName').value.trim();
           const lastName  = document.getElementById('lastName').value.trim();
           const email     = document.getElementById('email').value.trim();
-          localStorage.setItem('fx_user', JSON.stringify({ email, name: (firstName + ' ' + lastName).trim() || email.split('@')[0] }));
+          localStorage.setItem('fx_user', JSON.stringify({
+            id:         data.reference || '',
+            first_name: firstName,
+            last_name:  lastName,
+            email:      email,
+            role:       'customer',
+          }));
           // Redirect to intended page or home after short delay
           const params = new URLSearchParams(window.location.search);
           const redirect = params.get('redirect') || 'index.html';

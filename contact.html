@@ -35,15 +35,6 @@
     .contact-item a  { font-size: 15px; color: var(--muted-foreground); text-decoration: none; line-height: 1.5; }
     .contact-item a:hover { color: var(--primary); }
 
-    .office-grid {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 40px;
-    }
-    .office-card {
-      background: var(--secondary); border-radius: var(--radius-lg); padding: 20px;
-    }
-    .office-card h4 { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-    .office-card p  { font-size: 13px; color: var(--muted-foreground); line-height: 1.6; }
-
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
 
     .contact-form-card {
@@ -70,10 +61,8 @@
 
     @media (max-width: 1024px) {
       .contact-grid { grid-template-columns: 1fr; gap: 48px; }
-      .office-grid  { grid-template-columns: repeat(2,1fr); }
     }
     @media (max-width: 480px) {
-      .office-grid { grid-template-columns: 1fr; }
       .form-row    { grid-template-columns: 1fr; }
     }
   </style>
@@ -165,12 +154,6 @@
           </div>
         </div>
 
-        <h3 style="font-size:18px;font-weight:700;margin-bottom:16px;">Global Offices</h3>
-        <div class="office-grid">
-          <div class="office-card"><h4>🇬🇧 London</h4><p>45 Harbor Road<br>London, E14 9GE</p></div>
-          <div class="office-card"><h4>🇩🇪 Hamburg</h4><p>12 Hafen Strasse<br>Hamburg, 20457</p></div>
-          <div class="office-card"><h4>🇸🇬 Singapore</h4><p>8 Marina Blvd<br>Singapore, 018981</p></div>
-        </div>
       </div>
 
       <!-- Right: contact form -->
