@@ -242,5 +242,6 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
   </script>
+  <script src="auth-nav.js"></script>
 </body>
 </html>

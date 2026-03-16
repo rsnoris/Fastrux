@@ -274,6 +274,16 @@
   </div>
 
   <script>
+    // ── Auth guard — employee roles only ─────────────────────
+    (function() {
+      var user = null;
+      try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
+      var employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
+      if (!user || !user.id || employeeRoles.indexOf(user.role) === -1) {
+        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+      }
+    })();
+
     // ── State ────────────────────────────────────────────────────
     let watchId      = null;   // geolocation watch ID
     let intervalId   = null;   // fallback polling interval

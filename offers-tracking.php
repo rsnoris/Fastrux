@@ -1424,6 +1424,15 @@
     return true;
   }
 
+  // ── Page-level auth guard — employee roles only ─────────
+  (function() {
+    const user = getCurrentUser();
+    const employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
+    if (!user || !user.id || !employeeRoles.includes(user.role)) {
+      window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+    }
+  })();
+
   // ═══════════════════════════════════════════════════════════
   //  MODALS
   // ═══════════════════════════════════════════════════════════

@@ -553,6 +553,16 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
   <div id="toast"></div>
 
   <script>
+    // ── Auth guard — employee roles only ─────────────────────
+    (function() {
+      var user = null;
+      try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
+      var employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
+      if (!user || !user.id || employeeRoles.indexOf(user.role) === -1) {
+        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+      }
+    })();
+
     // ── Filter / search ─────────────────────────────────────────
     const rows         = Array.from(document.querySelectorAll('.quote-row'));
     const searchInput  = document.getElementById('searchInput');

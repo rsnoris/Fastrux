@@ -378,5 +378,6 @@
       result.style.display = 'block';
     }
   </script>
+  <script src="auth-nav.js"></script>
 </body>
 </html>
