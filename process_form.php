@@ -605,6 +605,7 @@ function handleRegister(): void
 
     $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company', 'role'];
     appendCsv('registered_users.csv', $headers, [$id, $timestamp, $firstName, $lastName, $email, $company, $role]);
+    auditLog('user.registered', $id, 'user', $id, "New account registered: {$email} (role: {$role})");
 
     respond(true, 'Account created successfully! You can now sign in.', [
         'reference' => $id,
@@ -688,6 +689,7 @@ function handleKycUpdate(): void
         }
 
         file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        auditLog('kyc.profile_updated', $userId, 'user', $userId, "Profile updated for user {$userId} (role: {$role})");
         respond(true, 'Profile saved successfully.', ['kyc' => $existing]);
     }
 
@@ -744,6 +746,7 @@ function handleKycUpdate(): void
         $existing['updated_at'] = $timestamp;
 
         file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        auditLog('kyc.identity_submitted', $userId, 'user', $userId, "KYC identity submitted for user {$userId} (role: {$role})");
         respond(true, 'KYC information saved. Your details are pending review.', ['kyc' => $existing]);
     }
 
@@ -783,6 +786,7 @@ function handleKycUpdate(): void
         }
 
         file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        auditLog('kyc.documents_uploaded', $userId, 'user', $userId, "KYC documents uploaded for user {$userId}: " . implode(', ', array_keys($savedFiles)));
         respond(true, 'Documents uploaded successfully.', ['files' => array_keys($savedFiles)]);
     }
 
@@ -829,6 +833,7 @@ function handleKycUpdate(): void
             $usersPath,
             json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
         );
+        auditLog('user.password_changed', $userId, 'user', $userId, "Password changed for user {$userId}");
         respond(true, 'Password updated successfully.');
     }
 

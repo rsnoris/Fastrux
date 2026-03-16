@@ -24,6 +24,8 @@ define('LOADS_JSON',     DATA_DIR . 'load_requests.json');
 define('TELEGRAM_CFG',   DATA_DIR . 'telegram_config.json');
 define('SMS_CFG',        DATA_DIR . 'sms_config.json');
 
+require_once __DIR__ . '/audit_helper.php';
+
 // ── Helpers ──────────────────────────────────────────────────────
 function respond(bool $ok, string $msg = '', array $extra = []): void
 {
@@ -238,6 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $loads[] = $load;
             writeJson(LOADS_JSON, $loads);
+            auditLog('load.created', '', 'load', $id, "Load {$id} created: " . clean($_POST['pickup_address']) . ' → ' . clean($_POST['delivery_address']));
             respond(true, 'Load request created', ['load' => $load]);
 
         // Update the status of an existing load
@@ -262,6 +265,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (!$found) respond(false, 'Load not found');
             writeJson(LOADS_JSON, $loads);
+            auditLog('load.status_changed', '', 'load', $loadId, "Load {$loadId} status changed to '{$status}'");
             respond(true, 'Load status updated');
 
         // Assign a driver to a load and send Telegram notification
@@ -398,6 +402,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             writeJson(LOADS_JSON, $loads);
+
+            auditLog('load.driver_assigned', '', 'load', $loadId, "Driver {$driverId} assigned to load {$loadId}");
 
             $notifParts = [];
             if ($telegramSent) $notifParts[] = 'Telegram';

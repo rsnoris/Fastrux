@@ -15,6 +15,8 @@ define('DATA_DIR',    __DIR__ . '/data/');
 define('DRIVERS_JSON', DATA_DIR . 'driver_submissions.json');
 define('DRIVERS_CSV',  DATA_DIR . 'driver_submissions.csv');
 
+require_once __DIR__ . '/audit_helper.php';
+
 // ── Helpers ─────────────────────────────────────────────────
 
 function respond(bool $success, string $message, array $extra = []): void {
@@ -149,6 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     writeDrivers($drivers);
+    auditLog('driver.status_changed', '', 'driver', $driverId, "Driver {$driverId} status changed to '{$status}'");
     respond(true, 'Status updated successfully.');
 }
 

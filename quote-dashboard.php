@@ -369,6 +369,9 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
         Fastrux <span>/ Quote Requests</span>
       </a>
       <div style="display:flex;gap:12px;align-items:center;">
+        <a href="observability.php" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
+          <iconify-icon icon="lucide:activity" style="font-size:14px;margin-right:6px"></iconify-icon>Observability
+        </a>
         <a href="driver-dashboard.php" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:6px"></iconify-icon>Driver Dashboard
         </a>
