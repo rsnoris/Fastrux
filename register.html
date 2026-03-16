@@ -170,6 +170,15 @@
           feedback.textContent = '✓ ' + data.message;
           feedback.style.display = 'flex';
           this.reset();
+          // Store user session in localStorage
+          const firstName = document.getElementById('firstName').value.trim();
+          const lastName  = document.getElementById('lastName').value.trim();
+          const email     = document.getElementById('email').value.trim();
+          localStorage.setItem('fx_user', JSON.stringify({ email, name: (firstName + ' ' + lastName).trim() || email.split('@')[0] }));
+          // Redirect to intended page or home after short delay
+          const params = new URLSearchParams(window.location.search);
+          const redirect = params.get('redirect') || 'index.html';
+          setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';
           feedback.textContent = '✗ ' + data.message;

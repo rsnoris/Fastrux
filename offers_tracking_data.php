@@ -206,7 +206,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
             $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
 
-            $id   = 'LOAD-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+            $loads  = readJson(LOADS_JSON);
+            $existingIds = array_column($loads, 'id');
+            // Generate a unique FX-XXXXXXXXXXXXXXX tracking ID (FX- + 15 digits)
+            do {
+                $digits = '';
+                for ($i = 0; $i < 15; $i++) $digits .= random_int(0, 9);
+                $id = 'FX-' . $digits;
+            } while (in_array($id, $existingIds, true));
             $load = [
                 'id'                 => $id,
                 'created_at'         => date('Y-m-d H:i:s'),
@@ -229,7 +236,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'telegram_sent_at'   => null,
             ];
 
-            $loads   = readJson(LOADS_JSON);
             $loads[] = $load;
             writeJson(LOADS_JSON, $loads);
             respond(true, 'Load request created', ['load' => $load]);

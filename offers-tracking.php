@@ -372,6 +372,51 @@
       .form-row { grid-template-columns: 1fr; }
       .stats-strip { gap: 10px; }
     }
+
+    /* ── Payment modal ───────────────────────────────────── */
+    .payment-tracking-id {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--secondary);
+      border: 1.5px solid var(--primary);
+      border-radius: var(--radius-md);
+      padding: 10px 18px;
+      font-family: monospace; font-size: 17px; font-weight: 700;
+      color: var(--primary);
+      margin: 12px 0 20px;
+      letter-spacing: .04em;
+    }
+    .card-input-wrap {
+      position: relative;
+    }
+    .card-input-wrap iconify-icon {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      font-size: 20px; color: var(--muted-foreground); pointer-events: none;
+    }
+    .card-network-icons {
+      display: flex; gap: 6px; margin-bottom: 14px;
+    }
+    .card-network-badge {
+      background: var(--muted); border: 1px solid var(--border);
+      border-radius: 4px; padding: 4px 8px;
+      font-size: 11px; font-weight: 700; color: var(--muted-foreground);
+      letter-spacing: .04em;
+    }
+    .payment-success {
+      text-align: center; padding: 24px 0 8px;
+    }
+    .payment-success-icon {
+      width: 64px; height: 64px; background: #e6f9ee; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; color: var(--success); font-size: 32px;
+    }
+    .payment-success h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
+    .payment-success p  { color: var(--muted-foreground); font-size: 14px; margin-bottom: 6px; }
+    .pay-alert-error {
+      background: #fef2f2; color: #b91c1c;
+      border: 1px solid #fca5a5;
+      padding: 10px 14px; border-radius: 6px;
+      font-size: 13px; margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -688,6 +733,103 @@
           <iconify-icon icon="lucide:plus" style="font-size:15px;margin-right:6px"></iconify-icon>
           Create Load Request
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Payment Modal ── -->
+  <div class="modal-backdrop hidden" id="paymentModal">
+    <div class="modal">
+      <!-- Loading state -->
+      <div id="paymentContent">
+        <div class="modal-header">
+          <h2>
+            <iconify-icon icon="lucide:credit-card" style="font-size:18px;margin-right:8px;vertical-align:middle;color:var(--primary)"></iconify-icon>
+            Payment Details
+          </h2>
+          <button class="modal-close" id="closePaymentModal">
+            <iconify-icon icon="lucide:x" style="font-size:18px"></iconify-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:4px;">Load request created with tracking ID:</p>
+          <div class="payment-tracking-id" id="paymentTrackingId">
+            <iconify-icon icon="lucide:tag" style="font-size:16px"></iconify-icon>
+            <span id="payTrackingIdText">—</span>
+          </div>
+          <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:16px;">Complete your payment to confirm the load request.</p>
+
+          <div class="card-network-icons">
+            <span class="card-network-badge">VISA</span>
+            <span class="card-network-badge">MASTERCARD</span>
+            <span class="card-network-badge">AMEX</span>
+            <span class="card-network-badge">DISCOVER</span>
+          </div>
+
+          <form id="paymentForm" novalidate>
+            <div class="form-group">
+              <label>Cardholder Name <span class="req">*</span></label>
+              <input type="text" id="payCardName" placeholder="Jane Smith" required autocomplete="cc-name" />
+            </div>
+            <div class="form-group card-input-wrap">
+              <label>Card Number <span class="req">*</span></label>
+              <input type="text" id="payCardNumber" placeholder="1234 5678 9012 3456"
+                     maxlength="19" required autocomplete="cc-number" inputmode="numeric" />
+              <iconify-icon icon="lucide:credit-card"></iconify-icon>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Expiry <span class="req">*</span></label>
+                <input type="text" id="payExpiry" placeholder="MM / YY" maxlength="7" required autocomplete="cc-exp" inputmode="numeric" />
+              </div>
+              <div class="form-group">
+                <label>CVV <span class="req">*</span></label>
+                <input type="text" id="payCvv" placeholder="•••" maxlength="4" required autocomplete="cc-csc" inputmode="numeric" />
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:4px;">
+              <label>Billing Address <span class="req">*</span></label>
+              <input type="text" id="payBillingAddress" placeholder="123 Main St, City, Postcode" required autocomplete="billing street-address" />
+            </div>
+            <div id="paymentAlert" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;"></div>
+          </form>
+
+          <p style="font-size:11px;color:var(--muted-foreground);margin-top:14px;display:flex;align-items:center;gap:6px;">
+            <iconify-icon icon="lucide:lock" style="font-size:13px;flex-shrink:0;"></iconify-icon>
+            Your payment is processed securely. Card details are encrypted and never stored on our servers.
+          </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-outline" id="cancelPayment">Cancel</button>
+          <button class="btn btn-primary" id="submitPayment" style="min-width:140px;">
+            <iconify-icon icon="lucide:lock" style="font-size:15px;margin-right:6px"></iconify-icon>
+            Pay &amp; Confirm
+          </button>
+        </div>
+      </div>
+
+      <!-- Success state (hidden initially) -->
+      <div id="paymentSuccess" style="display:none;">
+        <div class="modal-header" style="border-bottom:none;">
+          <span></span>
+          <button class="modal-close" id="closePaymentSuccess">
+            <iconify-icon icon="lucide:x" style="font-size:18px"></iconify-icon>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="payment-success">
+            <div class="payment-success-icon">
+              <iconify-icon icon="lucide:check"></iconify-icon>
+            </div>
+            <h3>Payment Confirmed!</h3>
+            <p>Your load request has been confirmed and is now active.</p>
+            <p>Tracking ID: <strong id="paySuccessId" style="color:var(--primary);font-family:monospace;font-size:15px;">—</strong></p>
+            <p style="margin-top:8px;">Our team will match you with an available driver shortly.</p>
+            <button class="btn btn-primary" id="payDoneBtn" style="margin-top:20px;padding:12px 32px;">
+              Done
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1127,7 +1269,15 @@
       if (data.success) {
         form.reset();
         document.getElementById('addLoadModal').classList.add('hidden');
-        showToast('Load request created: ' + data.load.id, 'success');
+        // Show payment modal with the new tracking ID
+        const trackId = data.load.id;
+        document.getElementById('payTrackingIdText').textContent = trackId;
+        document.getElementById('paySuccessId').textContent      = trackId;
+        document.getElementById('paymentContent').style.display  = '';
+        document.getElementById('paymentSuccess').style.display  = 'none';
+        document.getElementById('paymentForm').reset();
+        document.getElementById('paymentAlert').style.display    = 'none';
+        document.getElementById('paymentModal').classList.remove('hidden');
         await loadData();
       } else {
         alert.textContent   = data.message;
@@ -1259,9 +1409,26 @@
   });
 
   // ═══════════════════════════════════════════════════════════
+  //  AUTH HELPERS
+  // ═══════════════════════════════════════════════════════════
+  function getCurrentUser() {
+    try { return JSON.parse(localStorage.getItem('fx_user') || 'null'); } catch { return null; }
+  }
+
+  function requireAuth() {
+    const user = getCurrentUser();
+    if (!user) {
+      window.location.href = 'login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+      return false;
+    }
+    return true;
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  MODALS
   // ═══════════════════════════════════════════════════════════
   document.getElementById('openAddLoadBtn').addEventListener('click', () => {
+    if (!requireAuth()) return;
     document.getElementById('addLoadModal').classList.remove('hidden');
   });
   document.getElementById('closeAddLoadModal').addEventListener('click', () => {
@@ -1275,8 +1442,112 @@
       document.getElementById('addLoadModal').classList.add('hidden');
   });
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') document.getElementById('addLoadModal').classList.add('hidden');
+    if (e.key === 'Escape') {
+      document.getElementById('addLoadModal').classList.add('hidden');
+      document.getElementById('paymentModal').classList.add('hidden');
+    }
   });
+
+  // ── Payment modal handlers ────────────────────────────────
+  function closePaymentModal() {
+    document.getElementById('paymentModal').classList.add('hidden');
+  }
+  document.getElementById('closePaymentModal').addEventListener('click', closePaymentModal);
+  document.getElementById('cancelPayment').addEventListener('click', closePaymentModal);
+  document.getElementById('closePaymentSuccess').addEventListener('click', closePaymentModal);
+  document.getElementById('payDoneBtn').addEventListener('click', closePaymentModal);
+  document.getElementById('paymentModal').addEventListener('click', e => {
+    if (e.target === document.getElementById('paymentModal')) closePaymentModal();
+  });
+
+  // Format card number with spaces
+  document.getElementById('payCardNumber').addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').substring(0, 16);
+    this.value = v.match(/.{1,4}/g)?.join(' ') ?? v;
+  });
+  // Format expiry MM / YY
+  document.getElementById('payExpiry').addEventListener('input', function () {
+    let v = this.value.replace(/\D/g, '').substring(0, 4);
+    if (v.length > 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+    this.value = v;
+  });
+  // CVV digits only
+  document.getElementById('payCvv').addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').substring(0, 4);
+  });
+
+  document.getElementById('submitPayment').addEventListener('click', async () => {
+    const btn   = document.getElementById('submitPayment');
+    const alert = document.getElementById('paymentAlert');
+    const orig  = btn.innerHTML;
+
+    const cardName    = document.getElementById('payCardName').value.trim();
+    const cardNumber  = document.getElementById('payCardNumber').value.replace(/\s/g, '');
+    const expiry      = document.getElementById('payExpiry').value.replace(/\s/g, '');
+    const cvv         = document.getElementById('payCvv').value.trim();
+    const billing     = document.getElementById('payBillingAddress').value.trim();
+
+    alert.style.display = 'none';
+
+    // Luhn algorithm check for card number validity
+    function luhnCheck(num) {
+      let sum = 0, alt = false;
+      for (let i = num.length - 1; i >= 0; i--) {
+        let n = parseInt(num[i], 10);
+        if (alt) { n *= 2; if (n > 9) n -= 9; }
+        sum += n;
+        alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
+
+    // Validate
+    if (!cardName) {
+      showPayAlert('Please enter the cardholder name.'); return;
+    }
+    if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+      showPayAlert('Please enter a valid card number.'); return;
+    }
+    const expiryClean = expiry.replace('/', '');
+    if (expiryClean.length !== 4) {
+      showPayAlert('Please enter a valid expiry date (MM/YY).'); return;
+    }
+    const mm = parseInt(expiryClean.substring(0, 2), 10);
+    // Sliding window: 2-digit year 00-49 → 2000–2049, 50-99 → 1950–1999 (standard ISO 7816)
+    const twoDigitYear = parseInt(expiryClean.substring(2), 10);
+    const yy = twoDigitYear <= 49 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+    const now = new Date();
+    if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
+      showPayAlert('Your card appears to be expired.'); return;
+    }
+    if (cvv.length < 3) {
+      showPayAlert('Please enter a valid CVV (3–4 digits).'); return;
+    }
+    if (!billing) {
+      showPayAlert('Please enter a billing address.'); return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:15px;margin-right:6px;animation:spin 1s linear infinite"></iconify-icon>Processing…';
+
+    // TODO: Replace this simulated delay with a real payment gateway API call
+    // e.g. Stripe: stripe.confirmCardPayment(clientSecret, { payment_method: { card, billing_details } })
+    await new Promise(r => setTimeout(r, 1800));
+
+    // Show success state
+    document.getElementById('paymentContent').style.display = 'none';
+    document.getElementById('paymentSuccess').style.display = '';
+
+    btn.disabled  = false;
+    btn.innerHTML = orig;
+  });
+
+  function showPayAlert(msg) {
+    const el = document.getElementById('paymentAlert');
+    el.textContent = msg;
+    el.className   = 'pay-alert-error';
+    el.style.display = 'block';
+  }
 
   // ── Telegram banner toggle ───────────────────────────────
   document.getElementById('tgToggleBtn').addEventListener('click', () => {
