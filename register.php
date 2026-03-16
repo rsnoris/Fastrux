@@ -177,12 +177,12 @@
           feedback.className   = 'form-feedback success';
           feedback.textContent = '✓ ' + data.message;
           feedback.style.display = 'flex';
-          // Read values before reset so localStorage is populated correctly
+          this.reset();
+          // Store user session in localStorage
           const firstName = document.getElementById('firstName').value.trim();
           const lastName  = document.getElementById('lastName').value.trim();
           const email     = document.getElementById('email').value.trim();
           const role      = document.getElementById('role').value || 'shipper';
-          this.reset();
           localStorage.setItem('fx_user', JSON.stringify({
             id:         data.reference || '',
             first_name: firstName,
