@@ -358,6 +358,10 @@
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
+        <a href="observability.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+          <iconify-icon icon="lucide:activity" style="font-size:15px;margin-right:6px"></iconify-icon>
+          Observability
+        </a>
         <a href="offers-tracking.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Offers Tracking
