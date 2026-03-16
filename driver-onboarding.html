@@ -92,6 +92,7 @@
       font-size: 14px; font-weight: 500;
       margin-bottom: 0;
       position: relative;
+      text-align: left;
     }
     .step-item.active { background: var(--secondary); color: var(--primary); }
     .step-item:hover  { background: var(--secondary); }
@@ -105,9 +106,11 @@
       flex-shrink: 0;
       position: relative;
       z-index: 1;
+      border: 2px solid var(--border);
+      box-shadow: none;
     }
-    .step-item.active .step-num { background: var(--primary); color: #fff; }
-    .step-item.done  .step-num  { background: var(--success); color: #fff; }
+    .step-item.active .step-num { background: var(--primary); color: #fff; border-color: var(--primary); }
+    .step-item.done  .step-num  { background: var(--success); color: #fff; border-color: var(--success); }
 
     /* ── Form card ── */
     .form-card {

@@ -206,7 +206,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
             $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
 
-            $id   = 'LOAD-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+            $digits = '';
+            for ($i = 0; $i < 15; $i++) $digits .= random_int(0, 9);
+            $id   = 'FX-' . $digits;
             $load = [
                 'id'                 => $id,
                 'created_at'         => date('Y-m-d H:i:s'),
