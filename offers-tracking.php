@@ -411,6 +411,12 @@
     }
     .payment-success h3 { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
     .payment-success p  { color: var(--muted-foreground); font-size: 14px; margin-bottom: 6px; }
+    .pay-alert-error {
+      background: #fef2f2; color: #b91c1c;
+      border: 1px solid #fca5a5;
+      padding: 10px 14px; border-radius: 6px;
+      font-size: 13px; margin-top: 8px;
+    }
   </style>
 </head>
 <body>
@@ -1483,19 +1489,33 @@
 
     alert.style.display = 'none';
 
+    // Luhn algorithm check for card number validity
+    function luhnCheck(num) {
+      let sum = 0, alt = false;
+      for (let i = num.length - 1; i >= 0; i--) {
+        let n = parseInt(num[i], 10);
+        if (alt) { n *= 2; if (n > 9) n -= 9; }
+        sum += n;
+        alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
+
     // Validate
     if (!cardName) {
       showPayAlert('Please enter the cardholder name.'); return;
     }
-    if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber)) {
-      showPayAlert('Please enter a valid card number (13–16 digits).'); return;
+    if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+      showPayAlert('Please enter a valid card number.'); return;
     }
     const expiryClean = expiry.replace('/', '');
     if (expiryClean.length !== 4) {
       showPayAlert('Please enter a valid expiry date (MM/YY).'); return;
     }
     const mm = parseInt(expiryClean.substring(0, 2), 10);
-    const yy = parseInt('20' + expiryClean.substring(2), 10);
+    // Sliding window: 2-digit year 00-49 → 2000–2049, 50-99 → 1950–1999 (standard ISO 7816)
+    const twoDigitYear = parseInt(expiryClean.substring(2), 10);
+    const yy = twoDigitYear <= 49 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
     const now = new Date();
     if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
       showPayAlert('Your card appears to be expired.'); return;
@@ -1510,7 +1530,8 @@
     btn.disabled = true;
     btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:15px;margin-right:6px;animation:spin 1s linear infinite"></iconify-icon>Processing…';
 
-    // Simulate payment processing (replace with real payment gateway API call)
+    // TODO: Replace this simulated delay with a real payment gateway API call
+    // e.g. Stripe: stripe.confirmCardPayment(clientSecret, { payment_method: { card, billing_details } })
     await new Promise(r => setTimeout(r, 1800));
 
     // Show success state
@@ -1523,8 +1544,9 @@
 
   function showPayAlert(msg) {
     const el = document.getElementById('paymentAlert');
-    el.textContent  = msg;
-    el.style.cssText = 'display:block;background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;padding:10px 14px;border-radius:6px;font-size:13px;margin-top:8px;';
+    el.textContent = msg;
+    el.className   = 'pay-alert-error';
+    el.style.display = 'block';
   }
 
   // ── Telegram banner toggle ───────────────────────────────
