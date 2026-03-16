@@ -31,17 +31,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Method not allowed.');
 }
 
-$type = clean($_POST['form_type'] ?? '');
-switch ($type) {
-    case 'contact':        handleContact();       break;
-    case 'quote':          handleQuote();         break;
-    case 'newsletter':     handleNewsletter();    break;
-    case 'driver_onboard': handleDriverOnboard(); break;
-    case 'login':          handleLogin();         break;
-    case 'register':       handleRegister();      break;
-    case 'kyc_update':     handleKycUpdate();     break;
-    case 'kyc_load':       handleKycLoad();       break;
-    default:               respond(false, 'Unknown form type.');
+try {
+    $type = clean($_POST['form_type'] ?? '');
+    switch ($type) {
+        case 'contact':        handleContact();       break;
+        case 'quote':          handleQuote();         break;
+        case 'newsletter':     handleNewsletter();    break;
+        case 'driver_onboard': handleDriverOnboard(); break;
+        case 'login':          handleLogin();         break;
+        case 'register':       handleRegister();      break;
+        case 'kyc_update':     handleKycUpdate();     break;
+        case 'kyc_load':       handleKycLoad();       break;
+        default:               respond(false, 'Unknown form type.');
+    }
+} catch (\Throwable $e) {
+    error_log('Fastrux process_form error: ' . $e->getMessage());
+    respond(false, 'A server error occurred. Please try again later.');
 }
 
 function handleContact(): void
