@@ -112,6 +112,12 @@ switch ($type) {
     case 'register':
         handleRegister();
         break;
+    case 'kyc_update':
+        handleKycUpdate();
+        break;
+    case 'kyc_load':
+        handleKycLoad();
+        break;
     default:
         respond(false, 'Unknown form type.');
 }
@@ -585,4 +591,258 @@ function handleRegister(): void
     respond(true, 'Account created successfully! You can now sign in.', [
         'reference' => $id,
     ]);
+}
+
+// ══════════════════════════════════════════════════════════
+//  KYC UPDATE HANDLER
+//  Saves user KYC/profile data to /data/users/{role}/{id}/
+// ══════════════════════════════════════════════════════════
+
+function handleKycUpdate(): void
+{
+    $userId  = clean($_POST['user_id']    ?? '');
+    $section = clean($_POST['section']    ?? '');
+    $role    = clean($_POST['user_role']  ?? 'customer');
+
+    if (!$userId) {
+        respond(false, 'User ID is required.');
+    }
+
+    // Sanitize role to a safe directory name
+    $allowedRoles = ['customer', 'driver', 'owner_operator'];
+    if (!in_array($role, $allowedRoles, true)) {
+        $role = 'customer';
+    }
+
+    // Build user folder: /data/users/{role}/{userId}/
+    // Strip all non-alphanumeric/dash/underscore characters to prevent path traversal
+    $safeUserId = preg_replace('/[^A-Za-z0-9_\-]/', '', $userId);
+    if (!$safeUserId) {
+        respond(false, 'Invalid user ID format.');
+    }
+    $userDir = DATA_DIR . 'users/' . $role . '/' . $safeUserId . '/';
+    if (!is_dir($userDir)) {
+        mkdir($userDir, 0755, true);
+    }
+
+    $kycFile = $userDir . 'kyc.json';
+
+    // Load existing KYC data
+    $existing = [];
+    if (file_exists($kycFile)) {
+        $existing = json_decode(file_get_contents($kycFile), true) ?? [];
+    }
+
+    $timestamp = date('Y-m-d H:i:s');
+
+    if ($section === 'profile') {
+        $firstName = clean($_POST['first_name'] ?? '');
+        $lastName  = clean($_POST['last_name']  ?? '');
+        $email     = clean($_POST['email']      ?? '');
+        $phone     = clean($_POST['phone']      ?? '');
+        $dob       = clean($_POST['dob']        ?? '');
+        $address   = clean($_POST['address']    ?? '');
+        $company   = clean($_POST['company']    ?? '');
+
+        if (!$firstName || !$lastName) {
+            respond(false, 'First and last name are required.');
+        }
+        if (!validEmail($email)) {
+            respond(false, 'A valid email address is required.');
+        }
+
+        $existing = array_merge($existing, [
+            'user_id'    => $userId,
+            'role'       => $role,
+            'first_name' => $firstName,
+            'last_name'  => $lastName,
+            'email'      => $email,
+            'phone'      => $phone,
+            'dob'        => $dob,
+            'address'    => $address,
+            'company'    => $company,
+            'updated_at' => $timestamp,
+        ]);
+
+        if (!isset($existing['created_at'])) {
+            $existing['created_at'] = $timestamp;
+        }
+
+        file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        respond(true, 'Profile saved successfully.', ['kyc' => $existing]);
+    }
+
+    if ($section === 'kyc') {
+        // Core identity fields
+        $nationalId   = clean($_POST['national_id']  ?? '');
+        $idExpiry     = clean($_POST['id_expiry']    ?? '');
+        $nationality  = clean($_POST['nationality']  ?? '');
+        $ssnLast4     = clean($_POST['ssn_last4']    ?? '');
+
+        if (!$nationalId || !$idExpiry || !$nationality) {
+            respond(false, 'National ID, expiry date, and nationality are required.');
+        }
+
+        $kycData = [
+            'national_id'  => $nationalId,
+            'id_expiry'    => $idExpiry,
+            'nationality'  => $nationality,
+            'ssn_last4'    => $ssnLast4,
+            'kyc_status'   => 'pending',
+            'kyc_submitted_at' => $timestamp,
+        ];
+
+        // Role-specific fields
+        if ($role === 'customer') {
+            $kycData['business_type']    = clean($_POST['business_type']    ?? '');
+            $kycData['tax_id']           = clean($_POST['tax_id']           ?? '');
+            $kycData['billing_address']  = clean($_POST['billing_address']  ?? '');
+            $kycData['annual_shipments'] = clean($_POST['annual_shipments'] ?? '');
+            $kycData['primary_service']  = clean($_POST['primary_service']  ?? '');
+        } elseif ($role === 'driver') {
+            $kycData['license_number']   = clean($_POST['license_number']   ?? '');
+            $kycData['license_expiry']   = clean($_POST['license_expiry']   ?? '');
+            $kycData['van_make']         = clean($_POST['van_make']         ?? '');
+            $kycData['van_model']        = clean($_POST['van_model']        ?? '');
+            $kycData['van_reg']          = strtoupper(clean($_POST['van_reg'] ?? ''));
+            $kycData['insurance_expiry'] = clean($_POST['insurance_expiry'] ?? '');
+            $kycData['years_experience'] = clean($_POST['years_experience'] ?? '');
+            $kycData['operating_areas']  = clean($_POST['operating_areas']  ?? '');
+        } elseif ($role === 'owner_operator') {
+            $kycData['business_name']       = clean($_POST['business_name']       ?? '');
+            $kycData['mc_number']           = clean($_POST['mc_number']           ?? '');
+            $kycData['fleet_size']          = clean($_POST['fleet_size']          ?? '');
+            $kycData['oo_tax_id']           = clean($_POST['oo_tax_id']           ?? '');
+            $kycData['oo_license_number']   = clean($_POST['oo_license_number']   ?? '');
+            $kycData['oo_insurance_expiry'] = clean($_POST['oo_insurance_expiry'] ?? '');
+            $kycData['oo_operating_areas']  = clean($_POST['oo_operating_areas']  ?? '');
+        }
+
+        $existing = array_merge($existing, $kycData);
+        if (!isset($existing['created_at'])) {
+            $existing['created_at'] = $timestamp;
+        }
+        $existing['updated_at'] = $timestamp;
+
+        file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        respond(true, 'KYC information saved. Your details are pending review.', ['kyc' => $existing]);
+    }
+
+    if ($section === 'documents') {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+        $maxSize      = 10 * 1024 * 1024;
+        $docFields    = ['doc_id_front', 'doc_id_back', 'doc_address_proof', 'doc_licence'];
+        $savedFiles   = [];
+
+        foreach ($docFields as $field) {
+            if (!isset($_FILES[$field]) || $_FILES[$field]['error'] !== UPLOAD_ERR_OK) {
+                continue;
+            }
+            $file = $_FILES[$field];
+            if ($file['size'] > $maxSize) {
+                respond(false, "File '{$file['name']}' exceeds the 10 MB limit.");
+            }
+            $finfo    = new finfo(FILEINFO_MIME_TYPE);
+            $mimeType = $finfo->file($file['tmp_name']);
+            if (!in_array($mimeType, $allowedMimes, true)) {
+                respond(false, "File '{$file['name']}' has an unsupported type. Allowed: JPG, PNG, PDF.");
+            }
+            $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $safeExt  = in_array($ext, ['jpg','jpeg','png','gif','webp','pdf'], true) ? $ext : 'bin';
+            $saveName = $field . '.' . $safeExt;
+            $savePath = $userDir . $saveName;
+            if (move_uploaded_file($file['tmp_name'], $savePath)) {
+                $savedFiles[$field] = $savePath;
+                $existing[$field]   = $savePath;
+            }
+        }
+
+        $existing['documents_uploaded_at'] = $timestamp;
+        $existing['updated_at']            = $timestamp;
+        if (!isset($existing['created_at'])) {
+            $existing['created_at'] = $timestamp;
+        }
+
+        file_put_contents($kycFile, json_encode($existing, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+        respond(true, 'Documents uploaded successfully.', ['files' => array_keys($savedFiles)]);
+    }
+
+    if ($section === 'security') {
+        $currentPassword  = $_POST['current_password']  ?? '';
+        $newPassword      = $_POST['new_password']       ?? '';
+        $confirmPassword  = $_POST['confirm_password']   ?? '';
+
+        if (!$currentPassword || !$newPassword || !$confirmPassword) {
+            respond(false, 'All password fields are required.');
+        }
+        if (strlen($newPassword) < 8) {
+            respond(false, 'New password must be at least 8 characters long.');
+        }
+        if ($newPassword !== $confirmPassword) {
+            respond(false, 'New passwords do not match.');
+        }
+
+        // Verify current password against registered users
+        $usersPath = DATA_DIR . 'registered_users.json';
+        if (!file_exists($usersPath)) {
+            respond(false, 'User account not found.');
+        }
+        $users = json_decode(file_get_contents($usersPath), true) ?? [];
+        $found = false;
+        foreach ($users as &$u) {
+            if (($u['id'] ?? '') === $userId) {
+                if (!password_verify($currentPassword, $u['password_hash'] ?? '')) {
+                    respond(false, 'Current password is incorrect.');
+                }
+                $u['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+                $u['updated_at']    = $timestamp;
+                $found = true;
+                break;
+            }
+        }
+        unset($u);
+
+        if (!$found) {
+            respond(false, 'User account not found.');
+        }
+
+        file_put_contents(
+            $usersPath,
+            json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        );
+        respond(true, 'Password updated successfully.');
+    }
+
+    respond(false, 'Unknown section.');
+}
+
+// ══════════════════════════════════════════════════════════
+//  KYC LOAD HANDLER
+//  Retrieves saved KYC data for a user
+// ══════════════════════════════════════════════════════════
+
+function handleKycLoad(): void
+{
+    $userId = clean($_POST['user_id'] ?? '');
+    if (!$userId) {
+        respond(false, 'User ID is required.');
+    }
+
+    $safeId = preg_replace('/[^A-Za-z0-9_\-]/', '', $userId);
+    if (!$safeId) {
+        respond(false, 'Invalid user ID format.');
+    }
+
+    // Search across all role folders
+    $roles = ['customer', 'driver', 'owner_operator'];
+    foreach ($roles as $role) {
+        $kycFile = DATA_DIR . 'users/' . $role . '/' . $safeId . '/kyc.json';
+        if (file_exists($kycFile)) {
+            $kyc = json_decode(file_get_contents($kycFile), true) ?? [];
+            respond(true, 'KYC data loaded.', ['kyc' => $kyc]);
+        }
+    }
+
+    // No data yet — return empty
+    respond(true, 'No KYC data found.', ['kyc' => []]);
 }
