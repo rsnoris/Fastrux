@@ -14,6 +14,8 @@ header('Access-Control-Allow-Headers: Content-Type');
 // ── Config ────────────────────────────────────────────────
 define('DATA_DIR', __DIR__ . '/data/');
 
+require_once __DIR__ . '/audit_helper.php';
+
 // Create data directory if it doesn't exist
 if (!is_dir(DATA_DIR)) {
     mkdir(DATA_DIR, 0755, true);
@@ -168,6 +170,7 @@ function handleContact(): void
     $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'phone', 'subject', 'message'];
     appendCsv('contact_submissions.csv', $headers, array_values($entry));
     appendJson('contact_submissions.json', $entry);
+    auditLog('contact.submitted', '', 'contact', $id, "Contact form submitted by {$firstName} {$lastName} ({$email})");
 
     respond(true, 'Your message has been received. We\'ll get back to you within one business day.', [
         'reference' => $id,
@@ -224,6 +227,7 @@ function handleQuote(): void
     $headers = ['id', 'timestamp', 'first_name', 'last_name', 'company', 'email', 'service', 'origin', 'destination', 'weight_kg', 'volume_m3', 'notes'];
     appendCsv('quote_submissions.csv', $headers, array_values($entry));
     appendJson('quote_submissions.json', $entry);
+    auditLog('quote.submitted', '', 'quote', $id, "Quote requested by {$firstName} {$lastName} ({$email}) — service: {$service}, {$origin} → {$destination}");
 
     respond(true, 'Quote request received! Our team will respond within 24 hours.', [
         'reference' => $id,
@@ -262,6 +266,7 @@ function handleNewsletter(): void
     $headers = ['id', 'timestamp', 'email'];
     appendCsv('newsletter_subscribers.csv', $headers, array_values($entry));
     appendJson('newsletter_subscribers.json', $entry);
+    auditLog('newsletter.subscribed', '', 'newsletter', $id, "Newsletter subscription: {$email}");
 
     respond(true, 'You\'re subscribed! Welcome to the Fastrux newsletter.', [
         'reference' => $id,
@@ -482,6 +487,7 @@ function handleDriverOnboard(): void
         implode(', ', $availability), $workType, $operatingAreas, $notes,
     ];
     appendCsv('driver_submissions.csv', $csvHeaders, $csvRow);
+    auditLog('driver.applied', '', 'driver', $id, "Driver application submitted by {$firstName} {$lastName} ({$email}), van: {$vanReg}");
 
     respond(true, 'Your driver application has been received. We\'ll be in touch within 2 working days.', [
         'reference' => $id,
@@ -520,13 +526,16 @@ function handleLogin(): void
     }
 
     if (!$user) {
+        auditLog('user.login_failed', '', 'user', '', "Failed login attempt for email: {$email}");
         respond(false, 'No account found for that email address.');
     }
 
     if (!password_verify($password, $user['password_hash'] ?? '')) {
+        auditLog('user.login_failed', $user['id'] ?? '', 'user', $user['id'] ?? '', "Failed login attempt (wrong password) for {$email}");
         respond(false, 'Incorrect password. Please try again.');
     }
 
+    auditLog('user.login', $user['id'] ?? '', 'user', $user['id'] ?? '', "User logged in: {$email} (role: " . ($user['role'] ?? 'shipper') . ')');
     respond(true, 'Login successful. Welcome back, ' . htmlspecialchars($user['first_name'], ENT_QUOTES, 'UTF-8') . '!', [
         'user' => [
             'id'         => $user['id'],
