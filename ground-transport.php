@@ -194,21 +194,21 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.html">Home</a>
-        <a class="nav-link active" href="index.html#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link" href="about.html">About Us</a>
-        <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link active" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="about.php">About Us</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -216,15 +216,15 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link active" href="index.html#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link" href="about.html">About Us</a>
-    <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link active" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="about.php">About Us</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.html">Login</a>
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -243,9 +243,9 @@
   <div style="background:var(--card);border-bottom:1px solid var(--border);padding:12px 0;">
     <div class="container">
       <nav style="font-size:13px;color:var(--muted-foreground);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <a href="index.html" style="color:var(--primary);">Home</a>
+        <a href="index.php" style="color:var(--primary);">Home</a>
         <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
-        <a href="index.html#services" style="color:var(--primary);">Services</a>
+        <a href="index.php#services" style="color:var(--primary);">Services</a>
         <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
         <span>Ground Transport</span>
       </nav>
@@ -260,8 +260,8 @@
         <p>Fastrux operates one of North America's most modern commercial truck fleets — over 1,200 vehicles spanning vans, curtainsiders, flatbeds, and refrigerated trailers. Whether it's a single pallet or a full truckload, we cover every size of domestic shipment.</p>
         <p>Our network reaches every ZIP code in the contiguous United States plus major Canadian and Mexican destinations. Real-time GPS tracking on every vehicle means you always know exactly where your freight is and when it will arrive.</p>
         <div style="display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;">
-          <a class="btn btn-primary" href="quote.html">Get Ground Freight Quote</a>
-          <a class="btn btn-outline" href="contact.html">Speak to a Specialist</a>
+          <a class="btn btn-primary" href="quote.php">Get Ground Freight Quote</a>
+          <a class="btn btn-outline" href="contact.php">Speak to a Specialist</a>
         </div>
       </div>
       <img
@@ -344,7 +344,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Liftgate service available</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Digital proof of delivery</li>
           </ul>
-          <a class="btn btn-outline" href="quote.html" style="width:100%;margin-top:24px;">Get Quote</a>
+          <a class="btn btn-outline" href="quote.php" style="width:100%;margin-top:24px;">Get Quote</a>
         </div>
 
         <!-- FTL Standard — featured -->
@@ -359,7 +359,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Dedicated account manager</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Digital POD &amp; e-invoicing</li>
           </ul>
-          <a class="btn btn-primary" href="quote.html" style="width:100%;margin-top:24px;">Get Quote</a>
+          <a class="btn btn-primary" href="quote.php" style="width:100%;margin-top:24px;">Get Quote</a>
         </div>
 
         <!-- Express Same Day -->
@@ -374,7 +374,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>24/7 operations support</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Premium cargo insurance</li>
           </ul>
-          <a class="btn btn-outline" href="quote.html" style="width:100%;margin-top:24px;">Get Quote</a>
+          <a class="btn btn-outline" href="quote.php" style="width:100%;margin-top:24px;">Get Quote</a>
         </div>
 
       </div>
@@ -448,7 +448,7 @@
           <span class="city-tag">Monterrey</span>
           <span class="city-tag">+ All 48 States</span>
         </div>
-        <a class="btn btn-primary" href="quote.html" style="padding:14px 32px;font-size:16px;">
+        <a class="btn btn-primary" href="quote.php" style="padding:14px 32px;font-size:16px;">
           Check My Route
           <iconify-icon icon="lucide:arrow-right" style="font-size:16px;margin-left:8px"></iconify-icon>
         </a>
@@ -462,8 +462,8 @@
       <h2 class="section-title">Ready to move your cargo?</h2>
       <p class="section-subtitle" style="margin-bottom:32px;">Get an instant ground freight quote. Same-day collection available in 40+ cities.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a class="btn btn-primary" href="quote.html" style="padding:14px 32px;font-size:16px;">Get a Free Quote</a>
-        <a class="btn btn-outline" href="contact.html" style="padding:14px 32px;font-size:16px;">Talk to a Specialist</a>
+        <a class="btn btn-primary" href="quote.php" style="padding:14px 32px;font-size:16px;">Get a Free Quote</a>
+        <a class="btn btn-outline" href="contact.php" style="padding:14px 32px;font-size:16px;">Talk to a Specialist</a>
       </div>
     </div>
   </section>
@@ -474,15 +474,15 @@
       <h2 class="section-title">Explore Other Services</h2>
       <p class="section-subtitle">Complete your end-to-end supply chain with our full service offering.</p>
       <div class="other-services-grid">
-        <a href="ocean-freight.html" class="other-service-link">
+        <a href="ocean-freight.php" class="other-service-link">
           <div class="other-service-icon"><iconify-icon icon="lucide:ship" style="font-size:24px"></iconify-icon></div>
           <div><h3>Ocean Freight</h3><p>Cost-effective maritime shipping for large volumes.</p></div>
         </a>
-        <a href="air-freight.html" class="other-service-link">
+        <a href="air-freight.php" class="other-service-link">
           <div class="other-service-icon"><iconify-icon icon="lucide:plane" style="font-size:24px"></iconify-icon></div>
           <div><h3>Air Freight</h3><p>Express delivery for time-critical global cargo.</p></div>
         </a>
-        <a href="warehousing.html" class="other-service-link">
+        <a href="warehousing.php" class="other-service-link">
           <div class="other-service-icon"><iconify-icon icon="lucide:package-check" style="font-size:24px"></iconify-icon></div>
           <div><h3>Warehousing</h3><p>Secure storage, inventory management, and fulfilment.</p></div>
         </a>
@@ -495,7 +495,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -504,20 +504,20 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.html">Ocean Freight</a>
-            <a href="air-freight.html">Air Freight</a>
-            <a href="ground-transport.html">Ground Transport</a>
-            <a href="warehousing.html">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="careers.html">Careers</a>
-            <a href="driver-onboarding.html">Drive with Us</a>
-            <a href="news.html">News &amp; Media</a>
-            <a href="contact.html">Contact</a>
+            <a href="about.php">About Us</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>

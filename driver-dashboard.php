@@ -353,7 +353,7 @@
   <!-- ── Dashboard Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.html" class="dash-brand">
+      <a href="index.php" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
@@ -362,11 +362,11 @@
           <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Offers Tracking
         </a>
-        <a href="driver-onboarding.html" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+        <a href="driver-onboarding.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:plus" style="font-size:15px;margin-right:6px"></iconify-icon>
           New Application
         </a>
-        <a href="index.html" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">
+        <a href="index.php" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>

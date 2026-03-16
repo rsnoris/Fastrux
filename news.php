@@ -266,21 +266,21 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.html">Home</a>
-        <a class="nav-link" href="index.html#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link" href="about.html">About Us</a>
-        <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="about.php">About Us</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -288,15 +288,15 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link" href="index.html#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link" href="about.html">About Us</a>
-    <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="about.php">About Us</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.html">Login</a>
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -444,7 +444,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -453,20 +453,20 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.html">Ocean Freight</a>
-            <a href="air-freight.html">Air Freight</a>
-            <a href="ground-transport.html">Ground Transport</a>
-            <a href="warehousing.html">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="careers.html">Careers</a>
-            <a href="driver-onboarding.html">Drive with Us</a>
-            <a href="news.html">News &amp; Media</a>
-            <a href="contact.html">Contact</a>
+            <a href="about.php">About Us</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>

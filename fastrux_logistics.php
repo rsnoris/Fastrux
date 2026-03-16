@@ -14,35 +14,31 @@
        CSS VARIABLES
     ══════════════════════════════════ */
     :root {
-      --background:             #f6faff;
-      --foreground:             #0b2545;
-      --border:                 #00000014;
-      --input:                  #ffffff;
-      --primary:                #0b6fff;
-      --primary-foreground:     #ffffff;
-      --secondary:              #eaf3ff;
-      --secondary-foreground:   #09325a;
-      --muted:                  #f1f5f9;
-      --muted-foreground:       #6b7280;
-      --success:                #16a34a;
-      --success-foreground:     #ffffff;
-      --accent:                 #ffb020;
-      --accent-foreground:      #09121a;
-      --destructive:            #e02424;
-      --destructive-foreground: #ffffff;
-      --warning:                #f59e0b;
-      --warning-foreground:     #081018;
-      --card:                   #ffffff;
-      --card-foreground:        #0b2545;
-      --radius-sm:              4px;
-      --radius-md:              6px;
-      --radius-lg:              8px;
-      --radius-xl:              12px;
-      --font-family-body:       "Inter", system-ui, sans-serif;
-      --shadow-sm:  0 1px 3px rgba(0,0,0,.08);
-      --shadow-md:  0 4px 16px rgba(11,111,255,.08);
-      --shadow-lg:  0 8px 32px rgba(11,111,255,.12);
-      --shadow-xl:  0 20px 48px rgba(0,0,0,.10);
+      --background:              #f6faff;
+      --foreground:              #0b2545;
+      --border:                  #00000014;
+      --input:                   #ffffff;
+      --primary:                 #0b6fff;
+      --primary-foreground:      #ffffff;
+      --secondary:               #eaf3ff;
+      --secondary-foreground:    #09325a;
+      --muted:                   #f1f5f9;
+      --muted-foreground:        #6b7280;
+      --success:                 #16a34a;
+      --success-foreground:      #ffffff;
+      --accent:                  #ffb020;
+      --accent-foreground:       #09121a;
+      --destructive:             #e02424;
+      --destructive-foreground:  #ffffff;
+      --warning:                 #f59e0b;
+      --warning-foreground:      #081018;
+      --card:                    #ffffff;
+      --card-foreground:         #0b2545;
+      --radius-sm:               4px;
+      --radius-md:               6px;
+      --radius-lg:               8px;
+      --radius-xl:               12px;
+      --font-family-body:        "Inter", system-ui, sans-serif;
     }
 
     /* ══════════════════════════════════
@@ -50,17 +46,16 @@
     ══════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html, body {
-      width: 100%; min-height: 100vh;
+      width: 100%;
+      min-height: 100vh;
       font-family: var(--font-family-body);
       background-color: var(--background);
       color: var(--foreground);
       line-height: 1.6;
       overflow-x: hidden;
-      -webkit-font-smoothing: antialiased;
     }
-    img { max-width: 100%; height: auto; display: block; }
-    a   { text-decoration: none; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    img  { max-width: 100%; height: auto; display: block; }
+    a    { text-decoration: none; }
 
     /* ══════════════════════════════════
        LAYOUT
@@ -87,32 +82,37 @@
       cursor: pointer;
       white-space: nowrap;
       border: none;
-      transition: opacity .2s, background-color .2s, transform .1s, box-shadow .2s;
+      transition: opacity .2s, background-color .2s, transform .1s;
       text-decoration: none;
-      line-height: 1;
     }
     .btn:hover  { opacity: .88; transform: translateY(-1px); }
-    .btn:active { transform: translateY(0); opacity: 1; }
-    .btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .btn:active { transform: translateY(0); }
     .btn-primary { background-color: var(--primary); color: var(--primary-foreground); }
-    .btn-primary:hover { box-shadow: 0 4px 14px rgba(11,111,255,.35); }
-    .btn-outline { background-color: transparent; color: var(--primary); border: 1.5px solid var(--primary); }
-    .btn-outline:hover { background-color: var(--primary); color: var(--primary-foreground); opacity: 1; }
+    .btn-outline {
+      background-color: transparent;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
+    }
+    .btn-outline:hover { background-color: var(--primary); color: var(--primary-foreground); }
 
-    /* ════════════════════════════════���═
+    /* ══════════════════════════════════
        SECTIONS
     ══════════════════════════════════ */
     .section     { padding: 96px 0; }
     .section-alt { background-color: var(--secondary); }
     .section-title {
-      font-size: 40px; font-weight: 700;
-      margin-bottom: 16px; text-align: center;
-      color: var(--foreground); line-height: 1.2;
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 16px;
+      text-align: center;
+      color: var(--foreground);
     }
     .section-subtitle {
-      font-size: 18px; color: var(--muted-foreground);
-      text-align: center; max-width: 600px;
-      margin: 0 auto 64px; line-height: 1.65;
+      font-size: 18px;
+      color: var(--muted-foreground);
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 64px;
     }
 
     /* ══════════════════════════════════
@@ -120,41 +120,46 @@
     ══════════════════════════════════ */
     .form-group { margin-bottom: 20px; }
     .form-group label {
-      display: block; font-size: 14px; font-weight: 600;
-      margin-bottom: 7px; color: var(--foreground);
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 7px;
+      color: var(--foreground);
     }
     .form-control {
-      width: 100%; padding: 12px 16px;
+      width: 100%;
+      padding: 12px 16px;
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
       font-family: var(--font-family-body);
-      font-size: 15px; background-color: var(--input);
-      color: var(--foreground); outline: none;
-      transition: border-color .2s, box-shadow .2s;
-      appearance: none; -webkit-appearance: none;
+      font-size: 15px;
+      background-color: var(--input);
+      color: var(--foreground);
+      outline: none;
+      transition: border-color .2s;
     }
-    .form-control:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(11,111,255,.12);
-    }
-    .form-control::placeholder { color: var(--muted-foreground); }
-    select.form-control {
-      cursor: pointer;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 40px;
-    }
-    textarea.form-control { resize: vertical; }
+    .form-control:focus { border-color: var(--primary); }
     .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
     .form-feedback {
-      display: none; padding: 14px 18px;
-      border-radius: var(--radius-md); font-size: 14px;
-      font-weight: 500; margin-bottom: 20px;
-      align-items: center; gap: 10px; line-height: 1.5;
+      display: none;
+      padding: 14px 18px;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 20px;
+      align-items: center;
+      gap: 10px;
     }
-    .form-feedback.success { background:#e6f9ee; border:1px solid #a7f0c4; color:var(--success); display:flex; }
-    .form-feedback.error   { background:#fef2f2; border:1px solid #fecaca; color:var(--destructive); display:flex; }
+    .form-feedback.success {
+      background: #e6f9ee;
+      border: 1px solid #a7f0c4;
+      color: var(--success);
+    }
+    .form-feedback.error {
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      color: var(--destructive);
+    }
 
     /* ══════════════════════════════════
        HEADER
@@ -162,88 +167,110 @@
     .header {
       background-color: var(--background);
       border-bottom: 1px solid var(--border);
-      height: 80px; display: flex; align-items: center;
-      position: sticky; top: 0; z-index: 100;
-      backdrop-filter: blur(8px);
+      height: 80px;
+      display: flex;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
     .header-content {
-      display: flex; justify-content: space-between;
-      align-items: center; width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
     }
     .logo {
-      font-size: 24px; font-weight: 800; color: var(--primary);
-      display: flex; align-items: center; gap: 8px;
-      text-decoration: none; flex-shrink: 0;
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
     }
-    .nav-links { display: flex; gap: 32px; align-items: center; }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+      align-items: center;
+    }
     .nav-link {
-      color: var(--foreground); text-decoration: none;
-      font-weight: 500; font-size: 15px;
-      transition: color .2s; position: relative;
+      color: var(--foreground);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+      transition: color .2s;
     }
     .nav-link:hover  { color: var(--primary); }
     .nav-link.active { color: var(--primary); }
-    .nav-link.active::after {
-      content: ''; position: absolute;
-      bottom: -4px; left: 0; right: 0;
-      height: 2px; background: var(--primary); border-radius: 2px;
-    }
-    .header-actions { display: flex; gap: 16px; align-items: center; }
+    .header-actions  { display: flex; gap: 16px; align-items: center; }
 
-    /* Hamburger */
+    /* ── Hamburger ── */
     .hamburger {
-      display: none; flex-direction: column; gap: 5px;
-      cursor: pointer; padding: 6px; background: none; border: none;
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
     }
     .hamburger span {
-      display: block; width: 24px; height: 2px;
+      display: block;
+      width: 24px; height: 2px;
       background-color: var(--foreground);
-      transition: transform .3s, opacity .3s; border-radius: 2px;
+      transition: transform .3s, opacity .3s;
+      border-radius: 2px;
     }
     .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
     .hamburger.open span:nth-child(2) { opacity: 0; }
     .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
     .mobile-menu {
-      display: none; flex-direction: column;
+      display: none;
+      flex-direction: column;
       background-color: var(--background);
       border-bottom: 1px solid var(--border);
-      padding: 16px 24px 24px; gap: 4px;
+      padding: 16px 24px 24px;
+      gap: 16px;
     }
     .mobile-menu.open { display: flex; }
-    .mobile-menu .nav-link {
-      font-size: 16px; padding: 12px 0;
-      border-bottom: 1px solid var(--border); display: block;
-    }
-    .mobile-menu .header-actions {
-      flex-direction: column; align-items: stretch; margin-top: 12px; gap: 10px;
-    }
-    .mobile-menu .btn { width: 100%; justify-content: center; }
+    .mobile-menu .nav-link { font-size: 16px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .mobile-menu .header-actions { flex-direction: column; align-items: stretch; }
+    .mobile-menu .btn { justify-content: center; }
 
     /* ══════════════════════════════════
        HERO
     ══════════════════════════════════ */
     .hero { padding: 96px 0; background-color: var(--background); }
     .hero-grid {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 64px; align-items: center;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
     }
     .hero-content h1 {
-      font-size: 56px; line-height: 1.1;
-      font-weight: 800; margin-bottom: 24px; color: var(--foreground);
+      font-size: 56px;
+      line-height: 1.1;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: var(--foreground);
     }
     .hero-content p {
-      font-size: 18px; color: var(--muted-foreground);
-      margin-bottom: 40px; max-width: 500px; line-height: 1.7;
+      font-size: 18px;
+      color: var(--muted-foreground);
+      margin-bottom: 40px;
+      max-width: 500px;
     }
     .hero-actions { display: flex; gap: 16px; flex-wrap: wrap; }
     .hero-image-wrapper {
-      border-radius: var(--radius-lg); overflow: hidden;
-      box-shadow: var(--shadow-xl);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,.1);
     }
     .hero-image-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-    /* Trust bar */
+    /* ── Trust badges ── */
     .trust-bar {
       background: var(--card);
       border-top: 1px solid var(--border);
@@ -251,12 +278,19 @@
       padding: 24px 0;
     }
     .trust-items {
-      display: flex; justify-content: space-around;
-      align-items: center; flex-wrap: wrap; gap: 24px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
     }
     .trust-item {
-      display: flex; align-items: center; gap: 10px;
-      font-size: 14px; font-weight: 600; color: var(--foreground);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--foreground);
     }
     .trust-item iconify-icon { color: var(--primary); }
 
@@ -264,22 +298,33 @@
        SERVICES
     ══════════════════════════════════ */
     .services-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 32px;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
     }
     .service-card {
-      background-color: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 40px 32px;
-      display: flex; flex-direction: column;
+      background-color: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 40px 32px;
+      display: flex;
+      flex-direction: column;
       transition: box-shadow .2s, transform .2s;
     }
-    .service-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+    .service-card:hover {
+      box-shadow: 0 8px 32px rgba(11,111,255,.1);
+      transform: translateY(-2px);
+    }
     .service-icon {
-      width: 48px; height: 48px; background-color: var(--primary);
-      border-radius: var(--radius-sm); display: flex; align-items: center;
-      justify-content: center; margin-bottom: 24px; color: var(--primary-foreground);
+      width: 48px; height: 48px;
+      background-color: var(--primary);
+      border-radius: var(--radius-sm);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 24px;
+      color: var(--primary-foreground);
     }
     .service-title { font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--card-foreground); }
-    .service-desc  { font-size: 15px; color: var(--muted-foreground); margin-bottom: 24px; flex-grow: 1; line-height: 1.65; }
+    .service-desc  { font-size: 15px; color: var(--muted-foreground); margin-bottom: 24px; flex-grow: 1; }
     .service-link  {
       color: var(--primary); font-weight: 500; font-size: 15px;
       display: inline-flex; align-items: center; gap: 6px;
@@ -290,29 +335,46 @@
     /* ══════════════════════════════════
        TRACKING SECTION
     ══════════════════════════════════ */
-    .tracking-section { background-color: var(--primary); padding: 80px 0; color: var(--primary-foreground); }
-    .tracking-container { max-width: 800px; margin: 0 auto; text-align: center; }
-    .tracking-title    { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
+    .tracking-section {
+      background-color: var(--primary);
+      padding: 80px 0;
+      color: var(--primary-foreground);
+    }
+    .tracking-container {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .tracking-title { font-size: 36px; font-weight: 700; margin-bottom: 16px; }
     .tracking-subtitle { margin-bottom: 40px; font-size: 18px; opacity: .9; }
     .tracking-form {
-      display: flex; gap: 8px;
+      display: flex;
+      gap: 8px;
       background-color: var(--background);
-      padding: 8px; border-radius: var(--radius-lg);
+      padding: 8px;
+      border-radius: var(--radius-lg);
     }
     .tracking-input {
-      flex-grow: 1; border: none; padding: 14px 24px;
-      font-size: 16px; font-family: var(--font-family-body);
+      flex-grow: 1;
+      border: none;
+      padding: 14px 24px;
+      font-size: 16px;
+      font-family: var(--font-family-body);
       border-radius: var(--radius-md);
-      background-color: transparent; color: var(--foreground); outline: none;
+      background-color: transparent;
+      color: var(--foreground);
+      outline: none;
     }
     .tracking-input::placeholder { color: var(--muted-foreground); }
 
     /* ══════════════════════════════════
-       STATS STRIP
+       WHY FASTRUX — stats strip
     ══════════════════════════════════ */
     .stats-strip {
-      display: grid; grid-template-columns: repeat(4, 1fr);
-      gap: 32px; text-align: center;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      text-align: center;
     }
     .stat-item h3 { font-size: 44px; font-weight: 800; color: var(--primary); margin-bottom: 8px; }
     .stat-item p  { color: var(--muted-foreground); font-size: 15px; }
@@ -321,48 +383,77 @@
        HOME CONTACT FORM
     ══════════════════════════════════ */
     .home-contact-grid {
-      display: grid; grid-template-columns: 1fr 1.4fr;
-      gap: 64px; align-items: start;
+      display: grid;
+      grid-template-columns: 1fr 1.4fr;
+      gap: 64px;
+      align-items: start;
     }
     .home-contact-info h2 { font-size: 36px; font-weight: 700; margin-bottom: 16px; line-height: 1.25; }
     .home-contact-info p  { color: var(--muted-foreground); font-size: 16px; line-height: 1.75; margin-bottom: 32px; }
-    .contact-detail { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px; }
+
+    .contact-detail {
+      display: flex; gap: 14px; align-items: flex-start; margin-bottom: 20px;
+    }
     .contact-detail-icon {
       width: 44px; height: 44px; min-width: 44px;
-      background: var(--secondary); border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center; color: var(--primary);
+      background: var(--secondary);
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--primary);
     }
-    .contact-detail h4  { font-size: 14px; font-weight: 700; margin-bottom: 3px; color: var(--foreground); }
+    .contact-detail h4  { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
     .contact-detail p,
     .contact-detail a   { font-size: 14px; color: var(--muted-foreground); text-decoration: none; transition: color .2s; }
     .contact-detail a:hover { color: var(--primary); }
+
     .contact-form-card {
-      background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-xl); padding: 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: 40px;
       box-shadow: 0 8px 32px rgba(11,111,255,.06);
     }
-    .contact-form-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 24px; color: var(--foreground); }
+    .contact-form-card h3 { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
 
     /* ══════════════════════════════════
        FOOTER
     ══════════════════════════════════ */
-    .footer { background-color: var(--card); border-top: 1px solid var(--border); padding: 80px 0 40px; }
-    .footer-grid {
-      display: grid; grid-template-columns: 2fr 1fr 1fr 1fr;
-      gap: 48px; margin-bottom: 64px;
+    .footer {
+      background-color: var(--card);
+      border-top: 1px solid var(--border);
+      padding: 80px 0 40px;
     }
-    .footer-brand p { color: var(--muted-foreground); margin-top: 16px; max-width: 300px; font-size: 15px; line-height: 1.7; }
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 48px;
+      margin-bottom: 64px;
+    }
+    .footer-brand p {
+      color: var(--muted-foreground);
+      margin-top: 16px;
+      max-width: 300px;
+      font-size: 15px;
+      line-height: 1.7;
+    }
     .footer-heading { font-size: 16px; font-weight: 600; margin-bottom: 24px; color: var(--foreground); }
     .footer-links   { display: flex; flex-direction: column; gap: 12px; }
     .footer-links a { color: var(--muted-foreground); font-size: 15px; transition: color .2s; }
     .footer-links a:hover { color: var(--primary); }
-    .footer-contact-item { display: flex; gap: 8px; align-items: center; color: var(--muted-foreground); font-size: 15px; }
+    .footer-contact-item {
+      display: flex; gap: 8px; align-items: center;
+      color: var(--muted-foreground); font-size: 15px;
+    }
     .footer-contact-item a { color: inherit; transition: color .2s; }
     .footer-contact-item a:hover { color: var(--primary); }
     .footer-bottom {
-      border-top: 1px solid var(--border); padding-top: 32px;
-      display: flex; justify-content: space-between; align-items: center;
-      color: var(--muted-foreground); font-size: 14px;
+      border-top: 1px solid var(--border);
+      padding-top: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: var(--muted-foreground);
+      font-size: 14px;
     }
     .social-links { display: flex; gap: 16px; }
     .social-links a { color: var(--muted-foreground); display: flex; align-items: center; transition: color .2s; }
@@ -381,23 +472,25 @@
       .home-contact-grid { grid-template-columns: 1fr; gap: 40px; }
     }
     @media (max-width: 768px) {
-      .container       { padding: 0 20px; }
-      .section         { padding: 56px 0; }
-      .section-title   { font-size: 28px; }
+      .container      { padding: 0 20px; }
+      .section        { padding: 56px 0; }
+      .section-title  { font-size: 28px; }
       .nav-links, .header-actions { display: none; }
-      .hamburger       { display: flex; }
-      .hero-grid       { grid-template-columns: 1fr; }
+      .hamburger      { display: flex; }
+      .hero-grid      { grid-template-columns: 1fr; }
       .hero-content h1 { font-size: 38px; }
-      .services-grid   { grid-template-columns: 1fr; }
-      .tracking-form   { flex-direction: column; }
-      .footer-grid     { grid-template-columns: 1fr; gap: 32px; }
-      .footer-bottom   { flex-direction: column; gap: 16px; text-align: center; }
-      .form-row        { grid-template-columns: 1fr; }
+      .services-grid  { grid-template-columns: 1fr; }
+      .tracking-form  { flex-direction: column; }
+      .tracking-form .btn { border-radius: var(--radius-md); }
+      .footer-grid    { grid-template-columns: 1fr; gap: 32px; }
+      .footer-bottom  { flex-direction: column; gap: 16px; text-align: center; }
+      .form-row       { grid-template-columns: 1fr; }
     }
     @media (max-width: 480px) {
       .hero-content h1 { font-size: 30px; }
       .section-title   { font-size: 24px; }
       .stats-strip     { grid-template-columns: repeat(2, 1fr); gap: 24px; }
+      .trust-items     { justify-content: flex-start; }
     }
   </style>
 </head>
@@ -408,21 +501,20 @@
   ══════════════════════════════════ -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link active" href="index.html">Home</a>
+        <a class="nav-link active" href="index.php">Home</a>
         <a class="nav-link" href="#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link" href="about.html">About Us</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="about.php">About Us</a>
         <a class="nav-link" href="#contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -430,15 +522,14 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link active" href="index.html">Home</a>
+    <a class="nav-link active" href="index.php">Home</a>
     <a class="nav-link" href="#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link" href="about.html">About Us</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="about.php">About Us</a>
     <a class="nav-link" href="#contact">Contact</a>
-    <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.html">Login</a>
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -451,7 +542,7 @@
         <h1>Global Logistics &amp; Freight Management</h1>
         <p>Streamline your supply chain with our fast, reliable, and secure transportation solutions. We deliver your cargo on time, every time, anywhere in the world.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="track.html">Track Shipment</a>
+          <a class="btn btn-primary" href="track.php">Track Shipment</a>
           <a class="btn btn-outline" href="#services">Explore Services</a>
         </div>
       </div>
@@ -465,15 +556,30 @@
     </div>
   </section>
 
-  <!-- Trust bar -->
+  <!-- ── Trust bar ── -->
   <div class="trust-bar">
     <div class="container">
       <div class="trust-items">
-        <div class="trust-item"><iconify-icon icon="lucide:shield-check" style="font-size:20px"></iconify-icon>98.7% On-Time Delivery</div>
-        <div class="trust-item"><iconify-icon icon="lucide:globe" style="font-size:20px"></iconify-icon>180+ Countries Served</div>
-        <div class="trust-item"><iconify-icon icon="lucide:package" style="font-size:20px"></iconify-icon>4.2M Shipments Delivered</div>
-        <div class="trust-item"><iconify-icon icon="lucide:headphones" style="font-size:20px"></iconify-icon>24/7 Customer Support</div>
-        <div class="trust-item"><iconify-icon icon="lucide:award" style="font-size:20px"></iconify-icon>20+ Years of Excellence</div>
+        <div class="trust-item">
+          <iconify-icon icon="lucide:shield-check" style="font-size:20px"></iconify-icon>
+          98.7% On-Time Delivery
+        </div>
+        <div class="trust-item">
+          <iconify-icon icon="lucide:globe" style="font-size:20px"></iconify-icon>
+          180+ Countries Served
+        </div>
+        <div class="trust-item">
+          <iconify-icon icon="lucide:package" style="font-size:20px"></iconify-icon>
+          4.2M Shipments Delivered
+        </div>
+        <div class="trust-item">
+          <iconify-icon icon="lucide:headphones" style="font-size:20px"></iconify-icon>
+          24/7 Customer Support
+        </div>
+        <div class="trust-item">
+          <iconify-icon icon="lucide:award" style="font-size:20px"></iconify-icon>
+          20+ Years of Excellence
+        </div>
       </div>
     </div>
   </div>
@@ -487,45 +593,72 @@
       <p class="section-subtitle">From ocean freight to express ground delivery, we provide end-to-end supply chain management tailored to your business needs.</p>
       <div class="services-grid">
         <div class="service-card">
-          <div class="service-icon"><iconify-icon icon="lucide:ship" style="font-size:24px"></iconify-icon></div>
+          <div class="service-icon">
+            <iconify-icon icon="lucide:ship" style="font-size:24px"></iconify-icon>
+          </div>
           <h3 class="service-title">Ocean Freight</h3>
           <p class="service-desc">Cost-effective maritime transport solutions for large-volume cargo across global shipping routes.</p>
-          <a class="service-link" href="ocean-freight.html">Learn more <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon></a>
+          <a class="service-link" href="ocean-freight.php">
+            Learn more
+            <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
+          </a>
         </div>
         <div class="service-card">
-          <div class="service-icon"><iconify-icon icon="lucide:plane" style="font-size:24px"></iconify-icon></div>
+          <div class="service-icon">
+            <iconify-icon icon="lucide:plane" style="font-size:24px"></iconify-icon>
+          </div>
           <h3 class="service-title">Air Freight</h3>
           <p class="service-desc">Rapid delivery for time-sensitive shipments with our expansive network of 200+ airline partners.</p>
-          <a class="service-link" href="air-freight.html">Learn more <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon></a>
+          <a class="service-link" href="air-freight.php">
+            Learn more
+            <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
+          </a>
         </div>
         <div class="service-card">
-          <div class="service-icon"><iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon></div>
+          <div class="service-icon">
+            <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
+          </div>
           <h3 class="service-title">Ground Transport</h3>
           <p class="service-desc">Reliable road freight services featuring a modern fleet of 1,200+ trucks for regional and national deliveries.</p>
-          <a class="service-link" href="ground-transport.html">Learn more <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon></a>
+          <a class="service-link" href="ground-transport.php">
+            Learn more
+            <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
+          </a>
         </div>
         <div class="service-card">
-          <div class="service-icon"><iconify-icon icon="lucide:package-check" style="font-size:24px"></iconify-icon></div>
+          <div class="service-icon">
+            <iconify-icon icon="lucide:package-check" style="font-size:24px"></iconify-icon>
+          </div>
           <h3 class="service-title">Warehousing</h3>
           <p class="service-desc">Secure storage, inventory management, and order fulfilment across 12 strategic global locations.</p>
-          <a class="service-link" href="warehousing.html">Learn more <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon></a>
+          <a class="service-link" href="warehousing.php">
+            Learn more
+            <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
+          </a>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ══════════════════════════════════
-       TRACKING
+       TRACKING SECTION
   ══════════════════════════════════ -->
   <section class="tracking-section" id="tracking">
     <div class="container tracking-container">
       <h2 class="tracking-title">Track Your Shipment</h2>
       <p class="tracking-subtitle">Enter your tracking number to get real-time updates on your cargo's location and status.</p>
-      <form class="tracking-form" action="track.html" method="GET">
-        <input class="tracking-input" type="text" name="id"
-               placeholder="Enter tracking ID (e.g. FX-123456)"
-               aria-label="Tracking ID" autocomplete="off" />
-        <button type="submit" class="btn btn-primary" style="padding:14px 32px;font-size:16px;">Track Now</button>
+      <form class="tracking-form" action="track.php" method="GET">
+        <input
+          class="tracking-input"
+          type="text"
+          name="id"
+          placeholder="Enter tracking ID (e.g. FX-123456)"
+          aria-label="Tracking ID"
+          autocomplete="off"
+        />
+        <button type="submit" class="btn btn-primary" style="padding:14px 32px;font-size:16px;">
+          Track Now
+        </button>
       </form>
     </div>
   </section>
@@ -551,46 +684,74 @@
   ══════════════════════════════════ -->
   <section class="section section-alt" id="contact">
     <div class="container home-contact-grid">
+
+      <!-- Left: info -->
       <div class="home-contact-info">
         <h2>Get In Touch</h2>
-        <p>Have a question about a shipment, need a custom logistics solution, or want to explore a partnership? Drop us a message and we'll get back within one business day.</p>
+        <p>Have a question about a shipment, need a custom logistics solution, or want to explore a partnership? Drop us a message and we'll get back to you within one business day.</p>
+
         <div class="contact-detail">
-          <div class="contact-detail-icon"><iconify-icon icon="lucide:map-pin" style="font-size:20px"></iconify-icon></div>
-          <div><h4>Headquarters</h4><p>1008 Oak Chase way, Leander, TX 78641</p></div>
+          <div class="contact-detail-icon">
+            <iconify-icon icon="lucide:map-pin" style="font-size:20px"></iconify-icon>
+          </div>
+          <div>
+            <h4>Headquarters</h4>
+            <p>1008 Oak Chase way, Leander, TX 78641</p>
+          </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-detail-icon"><iconify-icon icon="lucide:phone" style="font-size:20px"></iconify-icon></div>
-          <div><h4>Phone</h4><a href="tel:+2038896129">+203-889-6129</a></div>
+          <div class="contact-detail-icon">
+            <iconify-icon icon="lucide:phone" style="font-size:20px"></iconify-icon>
+          </div>
+          <div>
+            <h4>Phone</h4>
+            <a href="tel:+2038896129">+203-889-6129</a>
+          </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-detail-icon"><iconify-icon icon="lucide:mail" style="font-size:20px"></iconify-icon></div>
-          <div><h4>Email</h4><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+          <div class="contact-detail-icon">
+            <iconify-icon icon="lucide:mail" style="font-size:20px"></iconify-icon>
+          </div>
+          <div>
+            <h4>Email</h4>
+            <a href="mailto:support@fastrux.com">support@fastrux.com</a>
+          </div>
         </div>
         <div class="contact-detail">
-          <div class="contact-detail-icon"><iconify-icon icon="lucide:clock" style="font-size:20px"></iconify-icon></div>
-          <div><h4>Business Hours</h4><p>Mon–Fri: 8 AM – 8 PM EST<br>Saturday: 9 AM – 5 PM EST</p></div>
+          <div class="contact-detail-icon">
+            <iconify-icon icon="lucide:clock" style="font-size:20px"></iconify-icon>
+          </div>
+          <div>
+            <h4>Business Hours</h4>
+            <p>Mon–Fri: 8 AM – 8 PM EST<br>Saturday: 9 AM – 5 PM EST</p>
+          </div>
         </div>
-        <div style="margin-top:32px;display:flex;gap:12px;flex-wrap:wrap;">
-          <a class="btn btn-primary" href="quote.html">
-            <iconify-icon icon="lucide:file-text" style="font-size:16px;margin-right:8px"></iconify-icon>Get a Quote
+
+        <div style="margin-top:32px;">
+          <a class="btn btn-primary" href="quote.php" style="margin-right:12px;">
+            <iconify-icon icon="lucide:file-text" style="font-size:16px;margin-right:8px"></iconify-icon>
+            Get a Quote
           </a>
-          <a class="btn btn-outline" href="contact.html">Full Contact Page</a>
+          <a class="btn btn-outline" href="contact.php">Full Contact Page</a>
         </div>
       </div>
 
+      <!-- Right: form -->
       <div class="contact-form-card">
         <h3>Send Us a Message</h3>
+
         <div class="form-feedback" id="homeContactFeedback"></div>
+
         <form id="homeContactForm" novalidate>
           <input type="hidden" name="form_type" value="contact" />
           <div class="form-row">
             <div class="form-group">
-              <label for="hc_first">First Name *</label>
-              <input class="form-control" type="text" id="hc_first" name="first_name" placeholder="John" required />
+              <label for="hc_first_name">First Name *</label>
+              <input class="form-control" type="text" id="hc_first_name" name="first_name" placeholder="John" required />
             </div>
             <div class="form-group">
-              <label for="hc_last">Last Name *</label>
-              <input class="form-control" type="text" id="hc_last" name="last_name" placeholder="Doe" required />
+              <label for="hc_last_name">Last Name *</label>
+              <input class="form-control" type="text" id="hc_last_name" name="last_name" placeholder="Doe" required />
             </div>
           </div>
           <div class="form-group">
@@ -634,7 +795,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -643,28 +804,36 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.html">Ocean Freight</a>
-            <a href="air-freight.html">Air Freight</a>
-            <a href="ground-transport.html">Ground Transport</a>
-            <a href="warehousing.html">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="careers.html">Careers</a>
-            <a href="driver-onboarding.html">Drive with Us</a>
-            <a href="news.html">News &amp; Media</a>
-            <a href="contact.html">Contact</a>
+            <a href="about.php">About Us</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Contact</h4>
           <div class="footer-links">
-            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon>1008 Oak Chase way, Leander, TX 78641</div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+2038896129">+203-889-6129</a></div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
+            <div class="footer-contact-item">
+              <iconify-icon icon="lucide:map-pin"></iconify-icon> 1008 Oak Chase way, Leander, TX 78641
+            </div>
+            <div class="footer-contact-item">
+              <iconify-icon icon="lucide:phone"></iconify-icon>
+              <a href="tel:+2038896129">+203-889-6129</a>
+            </div>
+            <div class="footer-contact-item">
+              <iconify-icon icon="lucide:mail"></iconify-icon>
+              <a href="mailto:support@fastrux.com">support@fastrux.com</a>
+            </div>
           </div>
         </div>
       </div>
@@ -681,47 +850,65 @@
   </footer>
 
   <script>
-    // Hamburger
+    // ── Hamburger ──────────────────────────────────────────
     const ham = document.getElementById('hamburger');
     const mob = document.getElementById('mobileMenu');
-    ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
+    ham.addEventListener('click', () => {
+      ham.classList.toggle('open');
+      mob.classList.toggle('open');
+    });
 
-    // Smooth scroll
+    // ── Smooth scroll for in-page anchors ─────────────────
     document.querySelectorAll('a[href^="#"]').forEach(a => {
       a.addEventListener('click', e => {
-        const t = document.querySelector(a.getAttribute('href'));
-        if (t) { e.preventDefault(); t.scrollIntoView({ behavior:'smooth' }); }
+        const target = document.querySelector(a.getAttribute('href'));
+        if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
       });
     });
 
-    // Contact form
-    document.getElementById('homeContactForm').addEventListener('submit', async function(e) {
+    // ── Home contact form ──────────────────────────────────
+    document.getElementById('homeContactForm').addEventListener('submit', async function (e) {
       e.preventDefault();
+
       const btn      = document.getElementById('homeContactBtn');
       const feedback = document.getElementById('homeContactFeedback');
       const origHTML = btn.innerHTML;
+
+      // Loading state
       btn.disabled   = true;
-      btn.innerHTML  = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon>Sending…';
+      btn.innerHTML  = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon> Sending…';
+
       try {
-        const res  = await fetch('process_form.php', { method:'POST', body: new FormData(this) });
+        const res  = await fetch('process_form.php', {
+          method: 'POST',
+          body: new FormData(this),
+        });
         const data = await res.json();
+
         showFeedback(feedback, data.success, data.success
           ? `✓ ${data.message} (Ref: ${data.reference})`
-          : `✗ ${data.message}`);
-        if (data.success) this.reset();
-      } catch {
+          : `✗ ${data.message}`
+        );
+
+        if (data.success) { this.reset(); }
+      } catch (err) {
         showFeedback(feedback, false, '✗ Network error — please try again or email us directly.');
       }
+
       btn.disabled  = false;
       btn.innerHTML = origHTML;
-      feedback.scrollIntoView({ behavior:'smooth', block:'center' });
+      feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
 
-    function showFeedback(el, ok, msg) {
-      el.className     = 'form-feedback ' + (ok ? 'success' : 'error');
-      el.textContent   = msg;
+    function showFeedback(el, success, msg) {
+      el.className    = 'form-feedback ' + (success ? 'success' : 'error');
+      el.textContent  = msg;
       el.style.display = 'flex';
     }
   </script>
+
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </body>
 </html>

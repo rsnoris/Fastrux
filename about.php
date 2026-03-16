@@ -112,21 +112,21 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.html" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.html">Home</a>
-        <a class="nav-link" href="index.html#services">Services</a>
-        <a class="nav-link" href="track.html">Tracking</a>
-        <a class="nav-link active" href="about.html">About Us</a>
-        <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link active" href="about.php">About Us</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.html">Login</a>
-        <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -134,15 +134,15 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.html">Home</a>
-    <a class="nav-link" href="index.html#services">Services</a>
-    <a class="nav-link" href="track.html">Tracking</a>
-    <a class="nav-link active" href="about.html">About Us</a>
-    <a class="nav-link" href="contact.html">Contact</a>
-        <a class="nav-link" href="driver-onboarding.html">Drive with Us</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link active" href="about.php">About Us</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.html">Login</a>
-      <a class="btn btn-primary" href="quote.html">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -162,7 +162,7 @@
         <p>Fastrux was founded with a single mission: make global freight simple. What started as a small domestic trucking operation in New York has grown into a full-service international logistics company serving clients in over 180 countries.</p>
         <p>We believe every shipment tells a story — a manufacturer reaching new markets, a family receiving goods from home, a startup scaling globally. We treat each one with the same urgency and care.</p>
         <p>Today our team of 3,400+ logistics professionals operate across 6 continents, supported by a proprietary technology platform that gives customers real-time visibility at every step.</p>
-        <a class="btn btn-primary" href="quote.html" style="margin-top:16px;">Ship with us today</a>
+        <a class="btn btn-primary" href="quote.php" style="margin-top:16px;">Ship with us today</a>
       </div>
       <img
         src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80"
@@ -272,8 +272,8 @@
       <h2 class="section-title">Ready to work together?</h2>
       <p class="section-subtitle" style="margin-bottom:32px;">Join thousands of businesses who trust Fastrux to move their cargo worldwide.</p>
       <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;">
-        <a class="btn btn-primary" href="quote.html" style="padding:14px 32px;font-size:16px;">Get a Free Quote</a>
-        <a class="btn btn-outline" href="contact.html" style="padding:14px 32px;font-size:16px;">Contact Us</a>
+        <a class="btn btn-primary" href="quote.php" style="padding:14px 32px;font-size:16px;">Get a Free Quote</a>
+        <a class="btn btn-outline" href="contact.php" style="padding:14px 32px;font-size:16px;">Contact Us</a>
       </div>
     </div>
   </section>
@@ -283,7 +283,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.html" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -292,20 +292,20 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.html">Ocean Freight</a>
-            <a href="air-freight.html">Air Freight</a>
-            <a href="ground-transport.html">Ground Transport</a>
-            <a href="warehousing.html">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <a href="careers.html">Careers</a>
-            <a href="driver-onboarding.html">Drive with Us</a>
-            <a href="news.html">News &amp; Media</a>
-            <a href="contact.html">Contact</a>
+            <a href="about.php">About Us</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>

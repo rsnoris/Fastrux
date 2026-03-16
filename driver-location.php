@@ -175,7 +175,7 @@
   <!-- Header -->
   <header class="loc-header">
     <div class="loc-header-inner">
-      <a href="index.html" class="loc-brand">
+      <a href="index.php" class="loc-brand">
         <iconify-icon icon="lucide:truck" style="font-size:22px"></iconify-icon>
         Fastrux <span>&nbsp;/ My Location</span>
       </a>
