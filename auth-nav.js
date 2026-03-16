@@ -67,15 +67,6 @@
           dashLink.textContent = 'Dashboard';
           navLinks.appendChild(dashLink);
         }
-      } else {
-        // For shippers: add "My Quotes" if not present
-        if (!navLinks.querySelector('a[href="quote-dashboard.php"]')) {
-          var quoteDashLink = document.createElement('a');
-          quoteDashLink.className = 'nav-link';
-          quoteDashLink.href = 'quote-dashboard.php';
-          quoteDashLink.textContent = 'My Quotes';
-          navLinks.appendChild(quoteDashLink);
-        }
       }
     }
 
@@ -98,21 +89,6 @@
         if (mobileQuoteBtn) {
           mobileQuoteBtn.href = 'driver-dashboard.php';
           mobileQuoteBtn.textContent = 'Dashboard';
-        }
-      } else {
-        // For shippers: add My Quotes link in mobile menu if not present
-        if (!mobileMenu.querySelector('a[href="quote-dashboard.php"]')) {
-          var mobileQuoteDash = document.createElement('a');
-          mobileQuoteDash.className = 'nav-link';
-          mobileQuoteDash.href = 'quote-dashboard.php';
-          mobileQuoteDash.textContent = 'My Quotes';
-          // Insert before the header-actions div
-          var mobileActions = mobileMenu.querySelector('.header-actions');
-          if (mobileActions) {
-            mobileMenu.insertBefore(mobileQuoteDash, mobileActions);
-          } else {
-            mobileMenu.appendChild(mobileQuoteDash);
-          }
         }
       }
     }
