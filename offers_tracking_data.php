@@ -38,6 +38,15 @@ function clean(string $s): string
     return htmlspecialchars(strip_tags(trim($s)), ENT_QUOTES, 'UTF-8');
 }
 
+/**
+ * Validate and return a user ID in USR-XXXXXXXX format, or empty string if invalid.
+ */
+function validateUserId(string $raw): string
+{
+    $raw = trim($raw);
+    return preg_match('/^USR-[A-Z0-9]{8}$/', $raw) ? $raw : '';
+}
+
 function readJson(string $file): array
 {
     if (!file_exists($file)) {
@@ -106,6 +115,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $drivers   = readJson(DRIVERS_JSON);
             $locations = readJson(LOCATIONS_JSON);
 
+            // Filter drivers by owner when user_id is provided (owner_operator scope)
+            $userId = validateUserId($_GET['user_id'] ?? '');
+            if ($userId !== '') {
+                $drivers = array_values(array_filter($drivers, function (array $d) use ($userId): bool {
+                    return ($d['submitted_by'] ?? '') === $userId;
+                }));
+            }
+
             $result = array_map(function (array $d) use ($locations): array {
                 $loc = $locations[$d['id']] ?? null;
                 return [
@@ -130,9 +147,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 
             respond(true, '', ['drivers' => $result]);
 
-        // Return all load requests (newest first)
+        // Return all load requests (newest first), filtered by owner when user_id is provided
         case 'get_loads':
             $loads = readJson(LOADS_JSON);
+
+            $userId = validateUserId($_GET['user_id'] ?? '');
+            if ($userId !== '') {
+                $loads = array_values(array_filter($loads, function (array $l) use ($userId): bool {
+                    return ($l['created_by'] ?? '') === $userId;
+                }));
+            }
+
             respond(true, '', ['loads' => array_reverse($loads)]);
 
         // Return masked Telegram bot-token status
@@ -208,6 +233,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
             $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
 
+            $rawCreatedBy = trim($_POST['created_by'] ?? '');
+            $createdBy    = validateUserId($rawCreatedBy);
+
             $loads  = readJson(LOADS_JSON);
             $existingIds = array_column($loads, 'id');
             // Generate a unique FX-XXXXXXXXXXXXXXX tracking ID (FX- + 15 digits)
@@ -219,6 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $load = [
                 'id'                 => $id,
                 'created_at'         => date('Y-m-d H:i:s'),
+                'created_by'         => $createdBy,
                 'status'             => 'open',
                 'pickup_address'     => clean($_POST['pickup_address']),
                 'pickup_lat'         => ($pickupLat !== false) ? $pickupLat : null,
@@ -240,7 +269,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $loads[] = $load;
             writeJson(LOADS_JSON, $loads);
-            auditLog('load.created', '', 'load', $id, "Load {$id} created: " . clean($_POST['pickup_address']) . ' → ' . clean($_POST['delivery_address']));
+            auditLog('load.created', $createdBy, 'load', $id, "Load {$id} created: " . clean($_POST['pickup_address']) . ' → ' . clean($_POST['delivery_address']));
             respond(true, 'Load request created', ['load' => $load]);
 
         // Update the status of an existing load

@@ -919,9 +919,16 @@
   // ═══════════════════════════════════════════════════════════
   async function loadData() {
     try {
+      const user = getCurrentUser();
+      // owner_operator users see only their own drivers and loads;
+      // corporate_staff (and other roles) see all data.
+      const scopeParam = (user && user.role === 'owner_operator' && user.id)
+        ? '&user_id=' + encodeURIComponent(user.id)
+        : '';
+
       const [driversRes, loadsRes] = await Promise.all([
-        fetch('offers_tracking_data.php?action=get_drivers&t=' + Date.now()),
-        fetch('offers_tracking_data.php?action=get_loads&t='   + Date.now()),
+        fetch('offers_tracking_data.php?action=get_drivers&t=' + Date.now() + scopeParam),
+        fetch('offers_tracking_data.php?action=get_loads&t='   + Date.now() + scopeParam),
       ]);
       const driversData = await driversRes.json();
       const loadsData   = await loadsRes.json();
@@ -1262,6 +1269,10 @@
     try {
       const fd = new FormData(form);
       fd.append('action', 'add_load');
+      const user = getCurrentUser();
+      if (user && user.id) {
+        fd.append('created_by', user.id);
+      }
 
       const res  = await fetch('offers_tracking_data.php', { method: 'POST', body: fd });
       const data = await res.json();
