@@ -190,6 +190,9 @@ function handleQuote(): void
     $weight      = clean($_POST['weight']       ?? '');
     $volume      = clean($_POST['volume']       ?? '');
     $notes       = clean($_POST['notes']        ?? '');
+    $rawUserId   = clean($_POST['user_id']      ?? '');
+    // Validate user_id format (must match USR-XXXXXXXX pattern)
+    $userId      = preg_match('/^USR-[A-Z0-9]{8}$/', $rawUserId) ? $rawUserId : '';
 
     if (!$firstName || !$lastName) {
         respond(false, 'First and last name are required.');
@@ -211,6 +214,7 @@ function handleQuote(): void
     $entry = [
         'id'          => $id,
         'timestamp'   => $timestamp,
+        'user_id'     => $userId,
         'first_name'  => $firstName,
         'last_name'   => $lastName,
         'company'     => $company,
@@ -224,10 +228,10 @@ function handleQuote(): void
     ];
 
     // ── Save ──
-    $headers = ['id', 'timestamp', 'first_name', 'last_name', 'company', 'email', 'service', 'origin', 'destination', 'weight_kg', 'volume_m3', 'notes'];
+    $headers = ['id', 'timestamp', 'user_id', 'first_name', 'last_name', 'company', 'email', 'service', 'origin', 'destination', 'weight_kg', 'volume_m3', 'notes'];
     appendCsv('quote_submissions.csv', $headers, array_values($entry));
     appendJson('quote_submissions.json', $entry);
-    auditLog('quote.submitted', '', 'quote', $id, "Quote requested by {$firstName} {$lastName} ({$email}) — service: {$service}, {$origin} → {$destination}");
+    auditLog('quote.submitted', $userId, 'quote', $id, "Quote requested by {$firstName} {$lastName} ({$email}) — service: {$service}, {$origin} → {$destination}");
 
     respond(true, 'Quote request received! Our team will respond within 24 hours.', [
         'reference' => $id,

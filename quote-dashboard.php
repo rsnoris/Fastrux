@@ -69,11 +69,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['export']) && $_GET['exp
     exit;
 }
 
-// ── POST — update status ─────────────────────────────────────
+// ── POST — update status or add staff response ───────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     header('Content-Type: application/json');
     $action  = trim(strip_tags($_POST['action']   ?? ''));
     $quoteId = trim(strip_tags($_POST['quote_id'] ?? ''));
+
+    if ($action === 'add_response') {
+        $response = trim($_POST['staff_response'] ?? '');
+        if (!$quoteId) {
+            echo json_encode(['success' => false, 'message' => 'Quote ID is required.']);
+            exit;
+        }
+        $quotes = readQuotes();
+        $found  = false;
+        foreach ($quotes as &$q) {
+            if (($q['id'] ?? '') === $quoteId) {
+                $q['staff_response']    = $response;
+                $q['response_added_at'] = date('Y-m-d H:i:s');
+                $found = true;
+                break;
+            }
+        }
+        unset($q);
+        if (!$found) {
+            echo json_encode(['success' => false, 'message' => 'Quote not found.']);
+            exit;
+        }
+        writeQuotes($quotes);
+        echo json_encode(['success' => true, 'message' => 'Response saved successfully.']);
+        exit;
+    }
+
     $status  = trim(strip_tags($_POST['status']   ?? ''));
 
     if ($action !== 'update_status') {
@@ -481,6 +508,8 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
                 $status   = $q['status'] ?? 'new';
                 $safeStatus = htmlspecialchars($status, ENT_QUOTES, 'UTF-8');
                 $updatedAt = htmlspecialchars($q['updated_at']  ?? '', ENT_QUOTES, 'UTF-8');
+                $staffResp = htmlspecialchars($q['staff_response'] ?? '', ENT_QUOTES, 'UTF-8');
+                $respAddedAt = htmlspecialchars($q['response_added_at'] ?? '', ENT_QUOTES, 'UTF-8');
               ?>
               <tr class="quote-row"
                   data-id="<?= $qid ?>"
@@ -540,6 +569,21 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
                       <span class="detail-value"><?= $notes ?></span>
                     </div>
                     <?php endif; ?>
+                    <div class="detail-field" style="grid-column: 1 / -1;">
+                      <span class="detail-label">Staff Response</span>
+                      <div style="margin-top:6px;">
+                        <textarea class="form-control response-textarea" data-id="<?= $qid ?>"
+                          rows="3" placeholder="Enter your response to the shipper…"
+                          style="width:100%;resize:vertical;"><?= $staffResp ?></textarea>
+                        <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+                          <button class="btn btn-primary save-response-btn" data-id="<?= $qid ?>"
+                            style="padding:7px 18px;font-size:13px;">Save Response</button>
+                          <?php if ($respAddedAt): ?>
+                          <span style="font-size:12px;color:var(--muted-foreground);">Last saved: <?= $respAddedAt ?></span>
+                          <?php endif; ?>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </td>
               </tr>
@@ -641,6 +685,27 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
       t.classList.add('show');
       setTimeout(() => t.classList.remove('show'), 2800);
     }
+
+    // ── Save staff response ──────────────────────────────────────
+    document.addEventListener('click', function(e) {
+      const btn = e.target.closest('.save-response-btn');
+      if (!btn) return;
+      const quoteId  = btn.dataset.id;
+      const textarea = document.querySelector(`.response-textarea[data-id="${quoteId}"]`);
+      if (!textarea) return;
+      const fd = new FormData();
+      fd.append('action',         'add_response');
+      fd.append('quote_id',       quoteId);
+      fd.append('staff_response', textarea.value);
+      btn.disabled = true;
+      fetch('quote-dashboard.php', { method: 'POST', body: fd })
+        .then(r => r.json())
+        .then(data => {
+          showToast(data.success ? '✓ Response saved' : '✗ ' + data.message);
+        })
+        .catch(() => showToast('✗ Network error'))
+        .finally(() => { btn.disabled = false; });
+    });
   </script>
 </body>
 </html>
