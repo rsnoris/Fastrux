@@ -409,6 +409,7 @@
 
           <form id="driverForm" enctype="multipart/form-data" novalidate>
             <input type="hidden" name="form_type" value="driver_onboard" />
+            <input type="hidden" name="submitted_by" id="submittedByField" value="" />
 
             <!-- ═══════════ STEP 1 — Personal Details ═══════════ -->
             <div class="form-step" id="step-1">
@@ -1009,6 +1010,15 @@
     updateStepUI();
     // Set van_year max to current year + 1 dynamically
     document.getElementById('van_year').max = new Date().getFullYear() + 1;
+    // Populate submitted_by from logged-in user
+    (function() {
+      try {
+        var u = JSON.parse(localStorage.getItem('fx_user'));
+        if (u && u.id) {
+          document.getElementById('submittedByField').value = u.id;
+        }
+      } catch(e) {}
+    })();
   </script>
   <script src="auth-nav.js"></script>
 </body>

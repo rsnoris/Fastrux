@@ -280,6 +280,9 @@ function handleNewsletter(): void
 function handleDriverOnboard(): void
 {
     // ── Collect personal details ──
+    $rawSubmittedBy = clean($_POST['submitted_by'] ?? '');
+    // Validate submitted_by format (must match USR-XXXXXXXX pattern)
+    $submittedBy = preg_match('/^USR-[A-Z0-9]{8}$/', $rawSubmittedBy) ? $rawSubmittedBy : '';
     $firstName      = clean($_POST['first_name']      ?? '');
     $lastName       = clean($_POST['last_name']       ?? '');
     $email          = clean($_POST['email']           ?? '');
@@ -420,6 +423,7 @@ function handleDriverOnboard(): void
         'id'               => $id,
         'timestamp'        => $timestamp,
         'status'           => 'pending',
+        'submitted_by'     => $submittedBy,
         // Personal
         'first_name'       => $firstName,
         'last_name'        => $lastName,

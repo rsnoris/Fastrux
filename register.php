@@ -102,8 +102,7 @@
           <label for="role">I am a… *</label>
           <select class="form-control" id="role" name="role" required>
             <option value="shipper">Shipper — I need to ship goods</option>
-            <option value="driver">Employee — Owner &amp; Operator / Driver</option>
-            <option value="corporate_staff">Employee — Corporate Staff</option>
+            <option value="driver">Owner Operator &amp; Driver</option>
           </select>
         </div>
         <div class="form-group">
