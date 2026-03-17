@@ -426,6 +426,9 @@
       if (!user || !user.id) {
         window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
       }
+      if (user && user.role === 'driver') {
+        window.location.href = 'driver-dashboard.php';
+      }
     })();
 
     // ── State ─────────────────────────────────────────────────────

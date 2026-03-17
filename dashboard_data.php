@@ -84,9 +84,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['export']) && $_GET['exp
     exit;
 }
 
-// ── GET — return all drivers ─────────────────────────────────
+// ── GET — return drivers (filtered by submitted_by when user_id provided) ──
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $drivers = readDrivers();
+    $rawUserId = isset($_GET['user_id']) ? trim($_GET['user_id']) : '';
+    // Validate user_id format to prevent parameter injection
+    $userId = preg_match('/^USR-[A-Z0-9]{8}$/', $rawUserId) ? $rawUserId : '';
+
+    // Filter to only show drivers submitted by (or owned by) the requesting user
+    if ($userId !== '') {
+        $drivers = array_values(array_filter($drivers, function($d) use ($userId) {
+            return ($d['submitted_by'] ?? '') === $userId;
+        }));
+    }
 
     // Build photo URLs for each driver (relative to web root)
     foreach ($drivers as &$d) {

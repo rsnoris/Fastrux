@@ -515,7 +515,13 @@
     // ── Load data ────────────────────────────────────────────
     async function loadData() {
       try {
-        const res  = await fetch('dashboard_data.php?t=' + Date.now());
+        var currentUser = null;
+        try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
+        var url = 'dashboard_data.php?t=' + Date.now();
+        if (currentUser && currentUser.id) {
+          url += '&user_id=' + encodeURIComponent(currentUser.id);
+        }
+        const res  = await fetch(url);
         const data = await res.json();
         allDrivers = data.drivers || [];
         applyFilters();
