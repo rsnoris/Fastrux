@@ -465,11 +465,6 @@
         + '</table></div>';
 
       renderRows();
-
-      // Re-attach filter listeners
-      document.getElementById('searchInput').addEventListener('input', applyFilters);
-      document.getElementById('serviceFilter').addEventListener('change', applyFilters);
-      document.getElementById('statusFilter').addEventListener('change', applyFilters);
     }
 
     function renderRows() {

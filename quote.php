@@ -218,10 +218,14 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
+    // Helper: get logged-in user from localStorage
+    function getLoggedInUser() {
+      try { return JSON.parse(localStorage.getItem('fx_user')); } catch (e) { return null; }
+    }
+
     // Pre-fill form for logged-in shippers
     (function () {
-      var user = null;
-      try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
+      var user = getLoggedInUser();
       if (!user || !user.id) return;
       var shipperRoles = ['shipper', 'customer'];
       if (shipperRoles.indexOf(user.role || 'shipper') === -1) return;
@@ -251,8 +255,7 @@
         if (data.success) {
           this.reset();
           // Re-inject user_id after reset if logged in
-          var user = null;
-          try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
+          var user = getLoggedInUser();
           if (user && user.id) document.getElementById('quoteUserId').value = user.id;
         }
       } catch (err) {
