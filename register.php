@@ -176,12 +176,13 @@
           feedback.className   = 'form-feedback success';
           feedback.textContent = '✓ ' + data.message;
           feedback.style.display = 'flex';
-          this.reset();
-          // Store user session in localStorage
+          // Read form values BEFORE reset so they are available for localStorage
           const firstName = document.getElementById('firstName').value.trim();
           const lastName  = document.getElementById('lastName').value.trim();
           const email     = document.getElementById('email').value.trim();
           const role      = document.getElementById('role').value || 'shipper';
+          this.reset();
+          // Store user session in localStorage
           localStorage.setItem('fx_user', JSON.stringify({
             id:         data.reference || '',
             first_name: firstName,
@@ -189,9 +190,9 @@
             email:      email,
             role:       data.role || role,
           }));
-          // Redirect to intended page or home after short delay
+          // Redirect to account page (or intended page if specified)
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || 'index.php';
+          const redirect = params.get('redirect') || 'account.php';
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';
