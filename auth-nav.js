@@ -7,9 +7,14 @@
   'use strict';
 
   var EMPLOYEE_ROLES = ['driver', 'owner_operator', 'corporate_staff'];
+  var SHIPPER_ROLES  = ['shipper', 'customer'];
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
+  }
+
+  function isShipper(role) {
+    return SHIPPER_ROLES.indexOf(role) !== -1;
   }
 
   function formatRole(role) {
@@ -67,6 +72,15 @@
           dashLink.textContent = 'Dashboard';
           navLinks.appendChild(dashLink);
         }
+      } else if (isShipper(role)) {
+        // Add "My Dashboard" link for shippers if not already present
+        if (!navLinks.querySelector('a[href="shipper-dashboard.php"]')) {
+          var shipperDashLink = document.createElement('a');
+          shipperDashLink.className = 'nav-link';
+          shipperDashLink.href = 'shipper-dashboard.php';
+          shipperDashLink.textContent = 'My Dashboard';
+          navLinks.appendChild(shipperDashLink);
+        }
       }
     }
 
@@ -89,6 +103,21 @@
         if (mobileQuoteBtn) {
           mobileQuoteBtn.href = 'driver-dashboard.php';
           mobileQuoteBtn.textContent = 'Dashboard';
+        }
+      } else if (isShipper(role)) {
+        // Add "My Dashboard" link in mobile if not already present
+        if (!mobileMenu.querySelector('a[href="shipper-dashboard.php"]')) {
+          var mobileShipperDash = document.createElement('a');
+          mobileShipperDash.className = 'nav-link';
+          mobileShipperDash.href = 'shipper-dashboard.php';
+          mobileShipperDash.textContent = 'My Dashboard';
+          // Insert before the header-actions div
+          var mobileActions = mobileMenu.querySelector('.header-actions');
+          if (mobileActions) {
+            mobileMenu.insertBefore(mobileShipperDash, mobileActions);
+          } else {
+            mobileMenu.appendChild(mobileShipperDash);
+          }
         }
       }
     }

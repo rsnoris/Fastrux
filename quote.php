@@ -100,6 +100,7 @@
         <div class="form-feedback" id="quoteFeedback"></div>
         <form id="quoteForm" novalidate>
           <input type="hidden" name="form_type" value="quote" />
+          <input type="hidden" name="user_id" id="quoteUserId" value="" />
           <div class="form-row">
             <div class="form-group">
               <label>First Name *</label>
@@ -217,4 +218,61 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
+    // Helper: get logged-in user from localStorage
+    function getLoggedInUser() {
+      try { return JSON.parse(localStorage.getItem('fx_user')); } catch (e) { return null; }
+    }
+
+    // Pre-fill form for logged-in shippers
+    (function () {
+      var user = getLoggedInUser();
+      if (!user || !user.id) return;
+      var shipperRoles = ['shipper', 'customer'];
+      if (shipperRoles.indexOf(user.role || 'shipper') === -1) return;
+      document.getElementById('quoteUserId').value = user.id || '';
+      var f = document.getElementById('quoteForm');
+      if (user.first_name) { var fn = f.querySelector('[name="first_name"]'); if (fn) fn.value = user.first_name; }
+      if (user.last_name)  { var ln = f.querySelector('[name="last_name"]');  if (ln) ln.value = user.last_name;  }
+      if (user.email)      { var em = f.querySelector('[name="email"]');      if (em) em.value = user.email;      }
+    })();
+
     document.getElementById('quoteForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const btn      = document.getElementById('quoteBtn');
+      const feedback = document.getElementById('quoteFeedback');
+      const origHTML = btn.innerHTML;
+
+      btn.disabled  = true;
+      btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon> Submitting…';
+
+      try {
+        const res  = await fetch('process_form.php', { method: 'POST', body: new FormData(this) });
+        const data = await res.json();
+        showFeedback(feedback, data.success, data.success
+          ? `✓ ${data.message} (Ref: ${data.reference})`
+          : `✗ ${data.message}`);
+        if (data.success) {
+          this.reset();
+          // Re-inject user_id after reset if logged in
+          var user = getLoggedInUser();
+          if (user && user.id) document.getElementById('quoteUserId').value = user.id;
+        }
+      } catch (err) {
+        showFeedback(feedback, false, '✗ Network error — please try again or email us directly.');
+      }
+
+      btn.disabled  = false;
+      btn.innerHTML = origHTML;
+      feedback.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    function showFeedback(el, success, msg) {
+      el.className     = 'form-feedback ' + (success ? 'success' : 'error');
+      el.textContent   = msg;
+      el.style.display = 'flex';
+    }
+  </script>
+  <script src="auth-nav.js"></script>
+</body>
+</html>
