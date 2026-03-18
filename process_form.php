@@ -543,6 +543,18 @@ function handleLogin(): void
         respond(false, 'Incorrect password. Please try again.');
     }
 
+    // Block accounts that are pending admin approval
+    if (($user['status'] ?? 'active') === 'pending_approval') {
+        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account pending admin approval: {$email}");
+        respond(false, 'Your account is pending admin approval. You will be notified once it is activated.');
+    }
+
+    // Block rejected accounts
+    if (($user['status'] ?? 'active') === 'rejected') {
+        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account rejected: {$email}");
+        respond(false, 'Your account application was not approved. Please contact support for more information.');
+    }
+
     auditLog('user.login', $user['id'] ?? '', 'user', $user['id'] ?? '', "User logged in: {$email} (role: " . ($user['role'] ?? 'shipper') . ')');
     respond(true, 'Login successful. Welcome back, ' . htmlspecialchars($user['first_name'], ENT_QUOTES, 'UTF-8') . '!', [
         'user' => [
@@ -578,7 +590,7 @@ function handleRegister(): void
         respond(false, 'Password must be at least 8 characters long.');
     }
 
-    // Sanitize role
+    // Sanitize role — admin/super_admin cannot self-register via public form
     $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'corporate_staff'];
     if (!in_array($role, $allowedRegRoles, true)) {
         $role = 'shipper';
@@ -598,6 +610,9 @@ function handleRegister(): void
     $timestamp = date('Y-m-d H:i:s');
     $id        = 'USR-' . strtoupper(substr(md5(uniqid()), 0, 8));
 
+    // corporate_staff accounts require admin approval before they can log in
+    $status = ($role === 'corporate_staff') ? 'pending_approval' : 'active';
+
     $entry = [
         'id'            => $id,
         'timestamp'     => $timestamp,
@@ -606,14 +621,23 @@ function handleRegister(): void
         'email'         => $email,
         'company'       => $company,
         'role'          => $role,
+        'status'        => $status,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
     ];
 
     appendJson('registered_users.json', $entry);
 
-    $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company', 'role'];
-    appendCsv('registered_users.csv', $headers, [$id, $timestamp, $firstName, $lastName, $email, $company, $role]);
-    auditLog('user.registered', $id, 'user', $id, "New account registered: {$email} (role: {$role})");
+    $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company', 'role', 'status'];
+    appendCsv('registered_users.csv', $headers, [$id, $timestamp, $firstName, $lastName, $email, $company, $role, $status]);
+    auditLog('user.registered', $id, 'user', $id, "New account registered: {$email} (role: {$role}, status: {$status})");
+
+    if ($status === 'pending_approval') {
+        respond(true, 'Staff account request submitted! An administrator will review and activate your account shortly.', [
+            'reference'         => $id,
+            'role'              => $role,
+            'pending_approval'  => true,
+        ]);
+    }
 
     respond(true, 'Account created successfully! You can now sign in.', [
         'reference' => $id,
@@ -637,7 +661,7 @@ function handleKycUpdate(): void
     }
 
     // Sanitize role to a safe directory name
-    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff'];
+    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
     if (!in_array($role, $allowedRoles, true)) {
         $role = 'shipper';
     }
@@ -866,7 +890,7 @@ function handleKycLoad(): void
     }
 
     // Search across all role folders
-    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff'];
+    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
     foreach ($roles as $role) {
         $kycFile = DATA_DIR . 'users/' . $role . '/' . $safeId . '/kyc.json';
         if (file_exists($kycFile)) {

@@ -100,10 +100,15 @@
         </div>
         <div class="form-group">
           <label for="role">I am a… *</label>
-          <select class="form-control" id="role" name="role" required>
+          <select class="form-control" id="role" name="role" required onchange="onRoleChange()">
             <option value="shipper">Shipper — I need to ship goods</option>
             <option value="driver">Owner Operator &amp; Driver</option>
+            <option value="corporate_staff">Corporate Staff — Fastrux team member</option>
           </select>
+        </div>
+        <div id="staffPendingNotice" style="display:none;background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:4px;">
+          <iconify-icon icon="lucide:info" style="font-size:15px;margin-right:6px;vertical-align:middle;"></iconify-icon>
+          <strong>Corporate Staff accounts require admin approval.</strong> After registering, an administrator will review and activate your account. You will not be able to log in until approved.
         </div>
         <div class="form-group">
           <label for="password">Password</label>
@@ -153,6 +158,12 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
+    function onRoleChange() {
+      const role   = document.getElementById('role').value;
+      const notice = document.getElementById('staffPendingNotice');
+      if (notice) notice.style.display = role === 'corporate_staff' ? 'block' : 'none';
+    }
+
     const pwd = document.getElementById('password');
     const eye = document.getElementById('eyeIcon');
     document.getElementById('togglePwd').addEventListener('click', () => {
@@ -182,6 +193,15 @@
           const email     = document.getElementById('email').value.trim();
           const role      = document.getElementById('role').value || 'shipper';
           this.reset();
+          onRoleChange(); // reset notice visibility
+
+          // For pending_approval accounts, don't store session or redirect to dashboard
+          if (data.pending_approval) {
+            btn.disabled  = false;
+            btn.innerHTML = origHTML;
+            return; // Stay on page — user must wait for admin approval
+          }
+
           // Store user session in localStorage
           localStorage.setItem('fx_user', JSON.stringify({
             id:         data.reference || '',

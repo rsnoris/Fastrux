@@ -396,9 +396,6 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
         Fastrux <span>/ Quote Requests</span>
       </a>
       <div style="display:flex;gap:12px;align-items:center;">
-        <a href="observability.php" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
-          <iconify-icon icon="lucide:activity" style="font-size:14px;margin-right:6px"></iconify-icon>Observability
-        </a>
         <a href="driver-dashboard.php" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:6px"></iconify-icon>Driver Dashboard
         </a>
@@ -600,12 +597,12 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
   <div id="toast"></div>
 
   <script>
-    // ── Auth guard — employee roles only ─────────────────────
+    // ── Auth guard — employee / admin roles only ─────────────
     (function() {
       var user = null;
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
-      var employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
-      if (!user || !user.id || employeeRoles.indexOf(user.role) === -1) {
+      var allowedRoles = ['driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
+      if (!user || !user.id || allowedRoles.indexOf(user.role) === -1) {
         window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
       }
     })();

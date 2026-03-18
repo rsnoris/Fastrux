@@ -8,6 +8,7 @@
 
   var EMPLOYEE_ROLES = ['driver', 'owner_operator', 'corporate_staff'];
   var SHIPPER_ROLES  = ['shipper', 'customer'];
+  var ADMIN_ROLES    = ['admin', 'super_admin'];
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -17,6 +18,10 @@
     return SHIPPER_ROLES.indexOf(role) !== -1;
   }
 
+  function isAdmin(role) {
+    return ADMIN_ROLES.indexOf(role) !== -1;
+  }
+
   function formatRole(role) {
     var map = {
       customer:        'Shipper',
@@ -24,6 +29,8 @@
       driver:          'Owner & Operator / Driver',
       owner_operator:  'Owner & Operator',
       corporate_staff: 'Corporate Staff',
+      admin:           'Admin',
+      super_admin:     'Super-Admin',
     };
     return map[role] || role;
   }
@@ -50,8 +57,17 @@
       if (isEmployee(role)) {
         var quoteBtn = headerActions.querySelector('a[href="quote.php"]');
         if (quoteBtn) {
-          quoteBtn.href = 'driver-dashboard.php';
+          quoteBtn.href = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
           quoteBtn.textContent = 'Dashboard';
+        }
+      }
+
+      // For admins: change "Get a Quote" button to "Admin Dashboard"
+      if (isAdmin(role)) {
+        var quoteBtn2 = headerActions.querySelector('a[href="quote.php"]');
+        if (quoteBtn2) {
+          quoteBtn2.href = 'admin-dashboard.php';
+          quoteBtn2.textContent = 'Admin Dashboard';
         }
       }
     }
@@ -59,16 +75,30 @@
     // ── Desktop nav links ───────────────────────────────────────
     var navLinks = document.querySelector('.nav-links');
     if (navLinks) {
-      if (isEmployee(role)) {
-        // Hide "Drive with Us" for employees who are already registered
+      if (isAdmin(role)) {
+        // Hide "Drive with Us" for admins
         var driveLink = navLinks.querySelector('a[href="driver-onboarding.php"]');
         if (driveLink) driveLink.style.display = 'none';
 
+        // Add "Admin Dashboard" link if not already present
+        if (!navLinks.querySelector('a[href="admin-dashboard.php"]')) {
+          var adminDashLink = document.createElement('a');
+          adminDashLink.className = 'nav-link';
+          adminDashLink.href = 'admin-dashboard.php';
+          adminDashLink.textContent = 'Admin Dashboard';
+          navLinks.appendChild(adminDashLink);
+        }
+      } else if (isEmployee(role)) {
+        // Hide "Drive with Us" for employees who are already registered
+        var driveLink2 = navLinks.querySelector('a[href="driver-onboarding.php"]');
+        if (driveLink2) driveLink2.style.display = 'none';
+
         // Add a "Dashboard" link if not already present
-        if (!navLinks.querySelector('a[href="driver-dashboard.php"]')) {
+        var dashHref = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
+        if (!navLinks.querySelector('a[href="' + dashHref + '"]')) {
           var dashLink = document.createElement('a');
           dashLink.className = 'nav-link';
-          dashLink.href = 'driver-dashboard.php';
+          dashLink.href = dashHref;
           dashLink.textContent = 'Dashboard';
           navLinks.appendChild(dashLink);
         }
@@ -93,16 +123,27 @@
         el.textContent = 'My Account';
       });
 
-      if (isEmployee(role)) {
+      if (isAdmin(role)) {
         // Hide "Drive with Us" in mobile
         var mobileDriveLink = mobileMenu.querySelector('a[href="driver-onboarding.php"]');
         if (mobileDriveLink) mobileDriveLink.style.display = 'none';
 
-        // Replace "Get a Quote" button with "Dashboard"
+        // Replace "Get a Quote" button with "Admin Dashboard"
         var mobileQuoteBtn = mobileMenu.querySelector('a[href="quote.php"].btn');
         if (mobileQuoteBtn) {
-          mobileQuoteBtn.href = 'driver-dashboard.php';
-          mobileQuoteBtn.textContent = 'Dashboard';
+          mobileQuoteBtn.href = 'admin-dashboard.php';
+          mobileQuoteBtn.textContent = 'Admin Dashboard';
+        }
+      } else if (isEmployee(role)) {
+        // Hide "Drive with Us" in mobile
+        var mobileDriveLink2 = mobileMenu.querySelector('a[href="driver-onboarding.php"]');
+        if (mobileDriveLink2) mobileDriveLink2.style.display = 'none';
+
+        // Replace "Get a Quote" button with "Dashboard"
+        var mobileQuoteBtn2 = mobileMenu.querySelector('a[href="quote.php"].btn');
+        if (mobileQuoteBtn2) {
+          mobileQuoteBtn2.href = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
+          mobileQuoteBtn2.textContent = 'Dashboard';
         }
       } else if (isShipper(role)) {
         // Add "My Dashboard" link in mobile if not already present

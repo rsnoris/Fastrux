@@ -310,6 +310,9 @@
         </button>
         <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">Drivers</a>
         <a href="quote-dashboard.php"  class="btn btn-outline" style="padding:8px 14px;font-size:13px;">Quotes</a>
+        <a href="admin-dashboard.php"  class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:shield" style="font-size:14px;margin-right:5px"></iconify-icon>Admin
+        </a>
         <a href="index.php"            class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:14px;margin-right:5px"></iconify-icon>Main Site
         </a>
@@ -419,15 +422,24 @@
   </div><!-- /container -->
 
   <script>
-    // ── Auth guard — admin / corporate_staff only ─────────────────
+    // ── Auth guard — admin / super_admin only ─────────────────
     (function () {
       var user = null;
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
       if (!user || !user.id) {
         window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
       }
-      if (user && user.role === 'driver') {
-        window.location.href = 'driver-dashboard.php';
+      var adminRoles = ['admin', 'super_admin'];
+      if (adminRoles.indexOf(user.role) === -1) {
+        // Redirect non-admins to their appropriate dashboard
+        if (user.role === 'corporate_staff') {
+          window.location.href = 'staff-dashboard.php';
+        } else if (user.role === 'driver' || user.role === 'owner_operator') {
+          window.location.href = 'driver-dashboard.php';
+        } else {
+          window.location.href = 'shipper-dashboard.php';
+        }
       }
     })();
 

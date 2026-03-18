@@ -358,10 +358,6 @@
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
-        <a href="observability.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
-          <iconify-icon icon="lucide:activity" style="font-size:15px;margin-right:6px"></iconify-icon>
-          Observability
-        </a>
         <a href="offers-tracking.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Offers Tracking
@@ -499,8 +495,8 @@
     (function() {
       var user = null;
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
-      var employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
-      if (!user || !user.id || employeeRoles.indexOf(user.role) === -1) {
+      var allowedRoles = ['driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
+      if (!user || !user.id || allowedRoles.indexOf(user.role) === -1) {
         window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
       }
     })();
