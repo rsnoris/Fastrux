@@ -571,9 +571,10 @@
         document.getElementById('adminRoleBadge').textContent = 'Super-Admin';
         document.getElementById('adminRoleBadge').classList.add('super-admin');
         document.getElementById('adminSubtitle').textContent = 'Super-Admin: full platform control including role management and admin creation.';
-        // Reveal super-admin-only elements (tabs and panes)
+        // Reveal super-admin-only elements using tagName for correct display value
         document.querySelectorAll('.super-only').forEach(function (el) {
-          el.style.display = el.classList.contains('tab-pane') ? 'block' : 'flex';
+          var tag = el.tagName.toLowerCase();
+          el.style.display = (tag === 'div' || tag === 'section') ? 'block' : 'flex';
         });
         document.getElementById('changeRoleHeader').style.display = '';
       } else {
@@ -713,18 +714,25 @@
         }
 
         tbody.innerHTML = users.map(function (u) {
-          return '<tr>' +
+          return '<tr data-uid="' + esc(u.id) + '">' +
             '<td><strong>' + esc((u.first_name || '') + ' ' + (u.last_name || '')) + '</strong></td>' +
             '<td>' + esc(u.email || '—') + '</td>' +
             '<td>' + esc(u.company || '—') + '</td>' +
             '<td style="white-space:nowrap;">' + esc(fmtDate(u.timestamp)) + '</td>' +
             '<td><span class="badge pending">Pending</span></td>' +
             '<td style="white-space:nowrap;display:flex;gap:8px;">' +
-              '<button class="btn-approve" onclick="approveStaff(\'' + esc(u.id) + '\', this)">Approve</button>' +
-              '<button class="btn-reject"  onclick="rejectStaff(\''  + esc(u.id) + '\', this)">Reject</button>' +
+              '<button class="btn-approve" data-action="approve">Approve</button>' +
+              '<button class="btn-reject"  data-action="reject">Reject</button>' +
             '</td>' +
             '</tr>';
         }).join('');
+
+        // Attach event listeners via delegation
+        tbody.querySelectorAll('tr[data-uid]').forEach(function (row) {
+          var uid = row.dataset.uid;
+          row.querySelector('[data-action="approve"]').addEventListener('click', function () { approveStaff(uid, this); });
+          row.querySelector('[data-action="reject"]').addEventListener('click',  function () { rejectStaff(uid, this); });
+        });
       } catch (e) {
         tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--destructive);">Network error.</td></tr>';
       }
@@ -827,11 +835,11 @@
             return '<option value="' + r + '"' + (r === u.role ? ' selected' : '') + '>' + r + '</option>';
           }).join('');
           changeRoleCell = '<td><div style="display:flex;gap:8px;align-items:center;">' +
-            '<select class="role-select" id="rolesel-' + esc(u.id) + '">' + opts + '</select>' +
-            '<button class="btn-approve" style="font-size:11px;padding:4px 10px;" onclick="changeRole(\'' + esc(u.id) + '\')">Apply</button>' +
+            '<select class="role-select" data-role-select>' + opts + '</select>' +
+            '<button class="btn-approve" data-action="change-role" style="font-size:11px;padding:4px 10px;">Apply</button>' +
             '</div></td>';
         }
-        return '<tr>' +
+        return '<tr data-uid="' + esc(u.id) + '" data-current-role="' + esc(u.role || '') + '">' +
           '<td><strong>' + esc((u.first_name || '') + ' ' + (u.last_name || '')) + '</strong><br>' +
           '<span style="font-size:11px;color:var(--muted-foreground);font-family:monospace;">' + esc(u.id || '') + '</span></td>' +
           '<td>' + esc(u.email || '—') + '</td>' +
@@ -842,22 +850,29 @@
           '</tr>';
       }).join('');
 
+      // Event delegation for role change buttons
+      if (isSuperAdmin) {
+        tbody.querySelectorAll('tr[data-uid]').forEach(function (row) {
+          var applyBtn = row.querySelector('[data-action="change-role"]');
+          if (applyBtn) {
+            applyBtn.addEventListener('click', function () {
+              var sel = row.querySelector('[data-role-select]');
+              changeRole(row.dataset.uid, row.dataset.currentRole, sel ? sel.value : '');
+            });
+          }
+        });
+      }
+
       // Show/hide the change role column header based on super admin
       document.getElementById('changeRoleHeader').style.display = isSuperAdmin ? '' : 'none';
     }
 
-    async function changeRole(userId) {
-      var sel     = document.getElementById('rolesel-' + userId);
-      var newRole = sel ? sel.value : '';
+    async function changeRole(userId, currentRole, newRole) {
       if (!newRole) return;
-
-      // Find current role from allUsers
-      var user = allUsers.find(function (u) { return u.id === userId; });
-      var currentRole = user ? (user.role || '—') : '—';
 
       // Open confirmation modal instead of confirm()
       document.getElementById('rcUserId').textContent      = userId;
-      document.getElementById('rcCurrentRole').textContent = currentRole;
+      document.getElementById('rcCurrentRole').textContent = currentRole || '—';
       document.getElementById('rcNewRole').textContent     = newRole;
       document.getElementById('roleChangeModal').classList.add('open');
       window._rcUserId  = userId;

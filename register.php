@@ -193,7 +193,7 @@
           const email     = document.getElementById('email').value.trim();
           const role      = document.getElementById('role').value || 'shipper';
           this.reset();
-          onRoleChange(); // reset notice visibility
+          onRoleChange(); // update notice visibility after form reset
 
           // For pending_approval accounts, don't store session or redirect to dashboard
           if (data.pending_approval) {

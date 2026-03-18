@@ -116,12 +116,12 @@ if ($method === 'GET') {
         }));
         // Strip password hashes before returning
         $safe = array_map(fn($u) => array_diff_key($u, ['password_hash' => '']), $pending);
-        adminRespond(true, '', ['users' => array_values($safe), 'total' => count($safe)]);
+        adminRespond(true, '', ['users' => $safe, 'total' => count($safe)]);
     }
 
     if ($action === 'users') {
         $safe = array_map(fn($u) => array_diff_key($u, ['password_hash' => '']), $users);
-        adminRespond(true, '', ['users' => array_values($safe), 'total' => count($safe)]);
+        adminRespond(true, '', ['users' => $safe, 'total' => count($safe)]);
     }
 
     adminRespond(false, 'Unknown action.');
