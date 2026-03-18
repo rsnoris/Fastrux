@@ -498,6 +498,47 @@
   <!-- Toast notification -->
   <div id="toast"></div>
 
+  <!-- Reject reason modal -->
+  <div class="modal-overlay" id="rejectModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-title">Reject Staff Application</div>
+      <p style="color:var(--muted-foreground);font-size:14px;margin:-8px 0 16px;">
+        You are about to reject this staff account application.
+        The applicant will not be able to log in.
+      </p>
+      <div class="form-group">
+        <label>Reason <span style="font-weight:400;color:var(--muted-foreground);">(optional — for internal records)</span></label>
+        <textarea id="rejectReason" rows="3" style="width:100%;padding:10px 14px;border-radius:var(--radius-md);border:1px solid var(--border);background:var(--muted);font-size:14px;font-family:inherit;resize:vertical;box-sizing:border-box;" placeholder="e.g. Duplicate account, invalid credentials…"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+        <button class="btn btn-outline" onclick="closeRejectModal()" style="padding:10px 18px;">Cancel</button>
+        <button class="btn-reject" id="rejectConfirmBtn" onclick="confirmReject()" style="padding:10px 18px;border-radius:var(--radius-md);font-size:14px;">Reject Account</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Role change confirmation modal -->
+  <div class="modal-overlay" id="roleChangeModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-title">Confirm Role Change</div>
+      <p style="font-size:14px;margin:-8px 0 16px;">
+        You are about to change the role for:
+      </p>
+      <div style="background:var(--muted);border-radius:var(--radius-md);padding:14px;margin-bottom:16px;font-size:14px;">
+        <div><strong>User:</strong> <span id="rcUserId" style="font-family:monospace;font-size:12px;"></span></div>
+        <div style="margin-top:6px;"><strong>Current role:</strong> <span id="rcCurrentRole"></span></div>
+        <div style="margin-top:6px;"><strong>New role:</strong> <span id="rcNewRole" style="font-weight:700;color:var(--primary);"></span></div>
+      </div>
+      <p style="color:var(--muted-foreground);font-size:13px;margin-bottom:16px;">
+        ⚠️ This immediately changes the user's access level across the platform.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeRoleChangeModal()" style="padding:10px 18px;">Cancel</button>
+        <button class="btn-approve" id="roleChangeConfirmBtn" onclick="confirmRoleChange()" style="padding:10px 18px;border-radius:var(--radius-md);font-size:14px;">Confirm Change</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // ── Auth guard — admin / super_admin only ─────────────────────
     var currentUser = null;
@@ -530,7 +571,10 @@
         document.getElementById('adminRoleBadge').textContent = 'Super-Admin';
         document.getElementById('adminRoleBadge').classList.add('super-admin');
         document.getElementById('adminSubtitle').textContent = 'Super-Admin: full platform control including role management and admin creation.';
-        document.querySelectorAll('.super-only').forEach(function (el) { el.style.display = ''; });
+        // Reveal super-admin-only elements (tabs and panes)
+        document.querySelectorAll('.super-only').forEach(function (el) {
+          el.style.display = el.classList.contains('tab-pane') ? 'block' : 'flex';
+        });
         document.getElementById('changeRoleHeader').style.display = '';
       } else {
         document.getElementById('adminRoleBadge').textContent = 'Admin';
@@ -701,8 +745,27 @@
     }
 
     async function rejectStaff(userId, btn) {
-      var reason = prompt('Reason for rejection (optional):') ?? '';
-      btn.disabled = true; btn.textContent = '…';
+      // Open modal instead of prompt()
+      document.getElementById('rejectModal').classList.add('open');
+      document.getElementById('rejectReason').value = '';
+      window._rejectUserId  = userId;
+      window._rejectBtn     = btn;
+    }
+
+    function closeRejectModal() {
+      document.getElementById('rejectModal').classList.remove('open');
+      if (window._rejectBtn) {
+        window._rejectBtn.disabled    = false;
+        window._rejectBtn.textContent = 'Reject';
+      }
+    }
+
+    async function confirmReject() {
+      var userId = window._rejectUserId;
+      var btn    = window._rejectBtn;
+      var reason = document.getElementById('rejectReason').value.trim();
+      document.getElementById('rejectModal').classList.remove('open');
+      if (btn) { btn.disabled = true; btn.textContent = '…'; }
       try {
         var fd = new FormData();
         fd.append('action',              'reject_staff');
@@ -713,7 +776,7 @@
         var data = await res.json();
         showToast(data.success ? '✓ Application rejected.' : ('✗ ' + data.message), !data.success);
         if (data.success) loadPendingStaff();
-      } catch (e) { showToast('✗ Network error.', true); btn.disabled = false; btn.textContent = 'Reject'; }
+      } catch (e) { showToast('✗ Network error.', true); if (btn) { btn.disabled = false; btn.textContent = 'Reject'; } }
     }
 
     // ── Load all users ─────────────────────────────────────────────
@@ -784,12 +847,31 @@
     }
 
     async function changeRole(userId) {
-      var sel    = document.getElementById('rolesel-' + userId);
+      var sel     = document.getElementById('rolesel-' + userId);
       var newRole = sel ? sel.value : '';
       if (!newRole) return;
 
-      if (!confirm('Change role to "' + newRole + '" for user ' + userId + '?')) return;
+      // Find current role from allUsers
+      var user = allUsers.find(function (u) { return u.id === userId; });
+      var currentRole = user ? (user.role || '—') : '—';
 
+      // Open confirmation modal instead of confirm()
+      document.getElementById('rcUserId').textContent      = userId;
+      document.getElementById('rcCurrentRole').textContent = currentRole;
+      document.getElementById('rcNewRole').textContent     = newRole;
+      document.getElementById('roleChangeModal').classList.add('open');
+      window._rcUserId  = userId;
+      window._rcNewRole = newRole;
+    }
+
+    function closeRoleChangeModal() {
+      document.getElementById('roleChangeModal').classList.remove('open');
+    }
+
+    async function confirmRoleChange() {
+      var userId  = window._rcUserId;
+      var newRole = window._rcNewRole;
+      document.getElementById('roleChangeModal').classList.remove('open');
       try {
         var fd = new FormData();
         fd.append('action',              'change_role');
