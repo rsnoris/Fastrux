@@ -6,9 +6,10 @@
 (function () {
   'use strict';
 
-  var EMPLOYEE_ROLES = ['driver', 'owner_operator', 'corporate_staff'];
-  var SHIPPER_ROLES  = ['shipper', 'customer'];
-  var ADMIN_ROLES    = ['admin', 'super_admin'];
+  var EMPLOYEE_ROLES  = ['driver', 'owner_operator', 'corporate_staff'];
+  var SHIPPER_ROLES   = ['shipper', 'customer'];
+  var ADMIN_ROLES     = ['admin', 'super_admin'];
+  var COMPANY_ROLES   = ['insurance_company', 'trucking_company'];
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -22,15 +23,25 @@
     return ADMIN_ROLES.indexOf(role) !== -1;
   }
 
+  function isCompany(role) {
+    return COMPANY_ROLES.indexOf(role) !== -1;
+  }
+
+  function companyDashHref(role) {
+    return role === 'insurance_company' ? 'insurance-dashboard.php' : 'trucking-dashboard.php';
+  }
+
   function formatRole(role) {
     var map = {
-      customer:        'Shipper',
-      shipper:         'Shipper',
-      driver:          'Owner & Operator / Driver',
-      owner_operator:  'Owner & Operator',
-      corporate_staff: 'Corporate Staff',
-      admin:           'Admin',
-      super_admin:     'Super-Admin',
+      customer:          'Shipper',
+      shipper:           'Shipper',
+      driver:            'Owner & Operator / Driver',
+      owner_operator:    'Owner & Operator',
+      corporate_staff:   'Corporate Staff',
+      admin:             'Admin',
+      super_admin:       'Super-Admin',
+      insurance_company: 'Insurance Company',
+      trucking_company:  'Trucking Company',
     };
     return map[role] || role;
   }
@@ -68,6 +79,17 @@
         if (quoteBtn2) {
           quoteBtn2.href = 'admin-dashboard.php';
           quoteBtn2.textContent = 'Admin Dashboard';
+        }
+      }
+
+      // For company roles: change "Get a Quote" / "Join Marketplace" button to "Dashboard"
+      if (isCompany(role)) {
+        var dashHref = companyDashHref(role);
+        var ctaBtn = headerActions.querySelector('a[href="quote.php"]') ||
+                     headerActions.querySelector('a[href="register.php"]');
+        if (ctaBtn) {
+          ctaBtn.href = dashHref;
+          ctaBtn.textContent = 'My Dashboard';
         }
       }
     }
@@ -110,6 +132,20 @@
           shipperDashLink.href = 'shipper-dashboard.php';
           shipperDashLink.textContent = 'My Dashboard';
           navLinks.appendChild(shipperDashLink);
+        }
+      } else if (isCompany(role)) {
+        // Hide "Drive with Us" for company users
+        var driveLinkCo = navLinks.querySelector('a[href="driver-onboarding.php"]');
+        if (driveLinkCo) driveLinkCo.style.display = 'none';
+
+        // Add "My Dashboard" link for company accounts
+        var coDashHref = companyDashHref(role);
+        if (!navLinks.querySelector('a[href="' + coDashHref + '"]')) {
+          var coDashLink = document.createElement('a');
+          coDashLink.className = 'nav-link';
+          coDashLink.href = coDashHref;
+          coDashLink.textContent = 'My Dashboard';
+          navLinks.appendChild(coDashLink);
         }
       }
     }
@@ -159,6 +195,19 @@
           } else {
             mobileMenu.appendChild(mobileShipperDash);
           }
+        }
+      } else if (isCompany(role)) {
+        // Hide "Drive with Us" in mobile
+        var mobileDriveLinkCo = mobileMenu.querySelector('a[href="driver-onboarding.php"]');
+        if (mobileDriveLinkCo) mobileDriveLinkCo.style.display = 'none';
+
+        // Replace CTA button with "My Dashboard"
+        var mobileCoDashHref = companyDashHref(role);
+        var mobileCoBtn = mobileMenu.querySelector('a[href="quote.php"].btn') ||
+                          mobileMenu.querySelector('a[href="register.php"].btn');
+        if (mobileCoBtn) {
+          mobileCoBtn.href = mobileCoDashHref;
+          mobileCoBtn.textContent = 'My Dashboard';
         }
       }
     }
