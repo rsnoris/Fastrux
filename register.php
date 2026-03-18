@@ -26,6 +26,34 @@
       .name-row { grid-template-columns: 1fr; }
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .role-notice {
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 13px;
+      margin-bottom: 4px;
+      display: none;
+    }
+    .role-notice.info   { background:#eff6ff;border:1px solid #93c5fd;color:#1e40af; }
+    .role-notice.warn   { background:#fffbeb;border:1px solid #fbbf24;color:#92400e; }
+    .coverage-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .coverage-grid label {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 14px; font-weight: 400; cursor: pointer;
+    }
+    .section-divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 20px 0 16px;
+    }
+    .section-heading {
+      font-size: 13px; font-weight: 600; color: var(--muted-foreground);
+      text-transform: uppercase; letter-spacing: .05em;
+      margin-bottom: 12px;
+    }
   </style>
 </head>
 <body>
@@ -40,6 +68,7 @@
         <a class="nav-link" href="index.php">Home</a>
         <a class="nav-link" href="index.php#services">Services</a>
         <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
         <a class="nav-link" href="about.php">About Us</a>
         <a class="nav-link" href="contact.php">Contact</a>
         <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
@@ -57,9 +86,10 @@
     <a class="nav-link" href="index.php">Home</a>
     <a class="nav-link" href="index.php#services">Services</a>
     <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="marketplace.php">Marketplace</a>
     <a class="nav-link" href="about.php">About Us</a>
     <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+    <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
     <div class="header-actions" style="margin-top:8px;">
       <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
@@ -76,7 +106,39 @@
       <div class="form-feedback" id="registerFeedback"></div>
       <form id="registerForm" novalidate>
         <input type="hidden" name="form_type" value="register" />
-        <div class="name-row">
+
+        <!-- ── Account type ── -->
+        <div class="form-group">
+          <label for="role">Account type *</label>
+          <select class="form-control" id="role" name="role" required onchange="onRoleChange()">
+            <optgroup label="Shippers &amp; Carriers">
+              <option value="shipper">Shipper — I need to ship goods</option>
+              <option value="driver">Owner Operator &amp; Driver</option>
+            </optgroup>
+            <optgroup label="Marketplace Partners">
+              <option value="insurance_company">Insurance Company — Offer spot insurance</option>
+              <option value="trucking_company">Trucking Company — List trucks for lease / sale</option>
+            </optgroup>
+            <optgroup label="Fastrux Team">
+              <option value="corporate_staff">Corporate Staff — Fastrux team member</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Staff pending notice -->
+        <div id="staffPendingNotice" class="role-notice warn" style="display:none;">
+          <iconify-icon icon="lucide:info" style="font-size:15px;margin-right:6px;vertical-align:middle;"></iconify-icon>
+          <strong>Corporate Staff accounts require admin approval.</strong> After registering, an administrator will review and activate your account. You will not be able to log in until approved.
+        </div>
+
+        <!-- Insurance / Trucking company info notice -->
+        <div id="companyNotice" class="role-notice info" style="display:none;">
+          <iconify-icon icon="lucide:store" style="font-size:15px;margin-right:6px;vertical-align:middle;"></iconify-icon>
+          <span id="companyNoticeText"></span>
+        </div>
+
+        <!-- ── Base fields ── -->
+        <div class="name-row" style="margin-top:8px;">
           <div class="form-group">
             <label for="firstName">First name</label>
             <input class="form-control" type="text" id="firstName" name="firstName"
@@ -93,24 +155,107 @@
           <input class="form-control" type="email" id="email" name="email"
                  placeholder="you@example.com" required autocomplete="email" />
         </div>
-        <div class="form-group">
-          <label for="company">Company name <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+        <div class="form-group" id="companyField">
+          <label for="company">Company name <span id="companyRequired" style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
           <input class="form-control" type="text" id="company" name="company"
                  placeholder="Acme Corp" autocomplete="organization" />
         </div>
-        <div class="form-group">
-          <label for="role">I am a… *</label>
-          <select class="form-control" id="role" name="role" required onchange="onRoleChange()">
-            <option value="shipper">Shipper — I need to ship goods</option>
-            <option value="driver">Owner Operator &amp; Driver</option>
-            <option value="corporate_staff">Corporate Staff — Fastrux team member</option>
-          </select>
+
+        <!-- ── Insurance company specific fields ── -->
+        <div id="insuranceFields" style="display:none;">
+          <hr class="section-divider" />
+          <p class="section-heading"><iconify-icon icon="lucide:shield-check" style="margin-right:4px;vertical-align:middle;"></iconify-icon>Insurance Company Details</p>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="insurance_license">License / Registration No.</label>
+              <input class="form-control" type="text" id="insurance_license" name="insurance_license"
+                     placeholder="e.g. INS-1234567" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="state_of_incorporation">State of Incorporation</label>
+              <input class="form-control" type="text" id="state_of_incorporation" name="state_of_incorporation"
+                     placeholder="e.g. Texas" autocomplete="off" />
+            </div>
+          </div>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="years_in_business_ins">Years in Business</label>
+              <input class="form-control" type="number" id="years_in_business_ins" name="years_in_business"
+                     placeholder="e.g. 10" min="0" />
+            </div>
+            <div class="form-group">
+              <label for="contact_phone_ins">Phone Number</label>
+              <input class="form-control" type="tel" id="contact_phone_ins" name="contact_phone"
+                     placeholder="+1 (555) 000-0000" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="website_ins">Website <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+            <input class="form-control" type="url" id="website_ins" name="website"
+                   placeholder="https://example.com" autocomplete="url" />
+          </div>
+          <div class="form-group">
+            <label>Types of Coverage Offered</label>
+            <div class="coverage-grid">
+              <label><input type="checkbox" name="coverage_types[]" value="cargo" style="accent-color:var(--primary);"> Cargo Insurance</label>
+              <label><input type="checkbox" name="coverage_types[]" value="liability" style="accent-color:var(--primary);"> Liability</label>
+              <label><input type="checkbox" name="coverage_types[]" value="physical_damage" style="accent-color:var(--primary);"> Physical Damage</label>
+              <label><input type="checkbox" name="coverage_types[]" value="workers_comp" style="accent-color:var(--primary);"> Workers' Comp</label>
+              <label><input type="checkbox" name="coverage_types[]" value="general_liability" style="accent-color:var(--primary);"> General Liability</label>
+              <label><input type="checkbox" name="coverage_types[]" value="occupational_accident" style="accent-color:var(--primary);"> Occupational Accident</label>
+              <label><input type="checkbox" name="coverage_types[]" value="bobtail" style="accent-color:var(--primary);"> Bobtail</label>
+              <label><input type="checkbox" name="coverage_types[]" value="non_trucking" style="accent-color:var(--primary);"> Non-Trucking Liability</label>
+            </div>
+          </div>
         </div>
-        <div id="staffPendingNotice" style="display:none;background:#fffbeb;border:1px solid #fbbf24;border-radius:8px;padding:12px 16px;font-size:13px;color:#92400e;margin-bottom:4px;">
-          <iconify-icon icon="lucide:info" style="font-size:15px;margin-right:6px;vertical-align:middle;"></iconify-icon>
-          <strong>Corporate Staff accounts require admin approval.</strong> After registering, an administrator will review and activate your account. You will not be able to log in until approved.
+
+        <!-- ── Trucking company specific fields ── -->
+        <div id="truckingFields" style="display:none;">
+          <hr class="section-divider" />
+          <p class="section-heading"><iconify-icon icon="lucide:truck" style="margin-right:4px;vertical-align:middle;"></iconify-icon>Trucking Company Details</p>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="dot_number">DOT Number</label>
+              <input class="form-control" type="text" id="dot_number" name="dot_number"
+                     placeholder="e.g. 1234567" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="mc_number">MC Number <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+              <input class="form-control" type="text" id="mc_number" name="mc_number"
+                     placeholder="e.g. MC-123456" autocomplete="off" />
+            </div>
+          </div>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="fleet_size">Fleet Size</label>
+              <input class="form-control" type="number" id="fleet_size" name="fleet_size"
+                     placeholder="e.g. 25" min="1" />
+            </div>
+            <div class="form-group">
+              <label for="contact_phone_trk">Phone Number</label>
+              <input class="form-control" type="tel" id="contact_phone_trk" name="contact_phone"
+                     placeholder="+1 (555) 000-0000" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="truck_types">Types of Trucks in Fleet</label>
+            <input class="form-control" type="text" id="truck_types" name="truck_types"
+                   placeholder="e.g. Semi, Flatbed, Reefer" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="service_area">Primary Service Area</label>
+            <input class="form-control" type="text" id="service_area" name="service_area"
+                   placeholder="e.g. Southeast US, Nationwide" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="website_trk">Website <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+            <input class="form-control" type="url" id="website_trk" name="website"
+                   placeholder="https://example.com" autocomplete="url" />
+          </div>
         </div>
-        <div class="form-group">
+
+        <!-- ── Password ── -->
+        <div class="form-group" style="margin-top:8px;">
           <label for="password">Password</label>
           <div class="password-wrapper">
             <input class="form-control" type="password" id="password" name="password"
@@ -138,6 +283,10 @@
         </button>
       </form>
       <p class="auth-footer-text">Already have an account? <a href="login.php">Sign in</a></p>
+      <p class="auth-footer-text" style="margin-top:6px;font-size:13px;color:var(--muted-foreground);">
+        Insurance company? <a href="insurance-login.php" style="color:var(--primary);">Insurance portal</a> &nbsp;·&nbsp;
+        Trucking company? <a href="trucking-login.php" style="color:var(--primary);">Trucking portal</a>
+      </p>
     </div>
   </div>
 
@@ -159,9 +308,38 @@
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
     function onRoleChange() {
-      const role   = document.getElementById('role').value;
-      const notice = document.getElementById('staffPendingNotice');
-      if (notice) notice.style.display = role === 'corporate_staff' ? 'block' : 'none';
+      const role             = document.getElementById('role').value;
+      const staffNotice      = document.getElementById('staffPendingNotice');
+      const companyNotice    = document.getElementById('companyNotice');
+      const companyNoticeText= document.getElementById('companyNoticeText');
+      const insuranceFields  = document.getElementById('insuranceFields');
+      const truckingFields   = document.getElementById('truckingFields');
+      const companyRequired  = document.getElementById('companyRequired');
+      const companyInput     = document.getElementById('company');
+
+      // Reset all conditional sections
+      staffNotice.style.display    = 'none';
+      companyNotice.style.display  = 'none';
+      insuranceFields.style.display= 'none';
+      truckingFields.style.display = 'none';
+      companyRequired.textContent  = '(optional)';
+      companyInput.required        = false;
+
+      if (role === 'corporate_staff') {
+        staffNotice.style.display = 'block';
+      } else if (role === 'insurance_company') {
+        companyNoticeText.textContent = 'You will be able to post spot insurance offerings in the Fastrux Marketplace after registration.';
+        companyNotice.style.display   = 'block';
+        insuranceFields.style.display = 'block';
+        companyRequired.textContent   = '(required)';
+        companyInput.required         = true;
+      } else if (role === 'trucking_company') {
+        companyNoticeText.textContent = 'You will be able to list trucks for lease or sale in the Fastrux Marketplace after registration.';
+        companyNotice.style.display   = 'block';
+        truckingFields.style.display  = 'block';
+        companyRequired.textContent   = '(required)';
+        companyInput.required         = true;
+      }
     }
 
     const pwd = document.getElementById('password');
@@ -210,9 +388,20 @@
             email:      email,
             role:       data.role || role,
           }));
-          // Redirect to account page (or intended page if specified)
-          const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || 'account.php';
+
+          // Redirect based on role
+          const params   = new URLSearchParams(window.location.search);
+          let redirect   = params.get('redirect');
+          if (!redirect) {
+            const dashMap = {
+              insurance_company: 'insurance-dashboard.php',
+              trucking_company:  'trucking-dashboard.php',
+              driver:            'driver-dashboard.php',
+              owner_operator:    'driver-dashboard.php',
+              shipper:           'shipper-dashboard.php',
+            };
+            redirect = dashMap[data.role || role] || 'account.php';
+          }
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';

@@ -591,9 +591,14 @@ function handleRegister(): void
     }
 
     // Sanitize role — admin/super_admin cannot self-register via public form
-    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'corporate_staff'];
+    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'corporate_staff', 'insurance_company', 'trucking_company'];
     if (!in_array($role, $allowedRegRoles, true)) {
         $role = 'shipper';
+    }
+
+    // Company name is required for company accounts
+    if (in_array($role, ['insurance_company', 'trucking_company'], true) && !$company) {
+        respond(false, 'Company name is required for company accounts.');
     }
 
     // ── Duplicate email check ──
@@ -624,6 +629,38 @@ function handleRegister(): void
         'status'        => $status,
         'password_hash' => password_hash($password, PASSWORD_DEFAULT),
     ];
+
+    // ── Capture role-specific registration fields ──
+    if ($role === 'insurance_company') {
+        $allowedCoverages = ['cargo', 'liability', 'physical_damage', 'workers_comp',
+                             'general_liability', 'occupational_accident', 'bobtail', 'non_trucking'];
+        $rawCoverages = $_POST['coverage_types'] ?? [];
+        $safeCoverages = [];
+        if (is_array($rawCoverages)) {
+            foreach ($rawCoverages as $c) {
+                $c = clean($c);
+                if (in_array($c, $allowedCoverages, true)) {
+                    $safeCoverages[] = $c;
+                }
+            }
+        }
+        $entry['insurance_license']      = clean($_POST['insurance_license']      ?? '');
+        $entry['state_of_incorporation'] = clean($_POST['state_of_incorporation'] ?? '');
+        $entry['coverage_types']         = $safeCoverages;
+        $entry['years_in_business']      = clean($_POST['years_in_business']      ?? '');
+        $entry['contact_phone']          = clean($_POST['contact_phone']          ?? '');
+        $entry['website']                = clean($_POST['website']                ?? '');
+    }
+
+    if ($role === 'trucking_company') {
+        $entry['dot_number']   = clean($_POST['dot_number']   ?? '');
+        $entry['mc_number']    = clean($_POST['mc_number']    ?? '');
+        $entry['fleet_size']   = clean($_POST['fleet_size']   ?? '');
+        $entry['truck_types']  = clean($_POST['truck_types']  ?? '');
+        $entry['service_area'] = clean($_POST['service_area'] ?? '');
+        $entry['contact_phone']= clean($_POST['contact_phone']?? '');
+        $entry['website']      = clean($_POST['website']      ?? '');
+    }
 
     appendJson('registered_users.json', $entry);
 
@@ -661,7 +698,7 @@ function handleKycUpdate(): void
     }
 
     // Sanitize role to a safe directory name
-    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
+    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin', 'insurance_company', 'trucking_company'];
     if (!in_array($role, $allowedRoles, true)) {
         $role = 'shipper';
     }
