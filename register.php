@@ -179,7 +179,7 @@
           </div>
           <div class="name-row">
             <div class="form-group">
-              <label for="years_in_business_ins">Years in Business</label>
+              <label for="years_in_business_ins">Years in Business <span style="color:var(--muted-foreground);font-weight:400;">(0 = new)</span></label>
               <input class="form-control" type="number" id="years_in_business_ins" name="years_in_business"
                      placeholder="e.g. 10" min="0" />
             </div>

@@ -3,8 +3,8 @@
  * Fastrux — Marketplace Data API
  * Handles insurance listings and truck listings for the Marketplace.
  *
- * GET  ?action=list_insurance[&status=active][&coverage_type=cargo]
- * GET  ?action=list_trucks[&status=active][&listing_type=lease|sale]
+ * GET  ?action=list_insurance[&status=active|all][&coverage_type=cargo]
+ * GET  ?action=list_trucks[&status=active|all][&listing_type=lease|sale]
  * GET  ?action=get_listing&type=insurance|truck&id=LST-XXXXXXXX
  * GET  ?action=my_listings&user_id=USR-XXXXXXXX&type=insurance|truck
  * POST action=create_insurance_listing
@@ -31,6 +31,17 @@ require_once __DIR__ . '/audit_helper.php';
 if (!is_dir(MKT_DATA_DIR)) {
     mkdir(MKT_DATA_DIR, 0755, true);
 }
+
+// ── Shared Allowed-Value Lists ────────────────────────────
+define('ALLOWED_COVERAGE_TYPES', [
+    'cargo', 'liability', 'physical_damage', 'workers_comp',
+    'general_liability', 'occupational_accident', 'bobtail', 'non_trucking',
+]);
+
+define('ALLOWED_TRUCK_TYPES', [
+    'semi_truck', 'box_truck', 'flatbed', 'refrigerated',
+    'tanker', 'dump_truck', 'cargo_van', 'other',
+]);
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -245,10 +256,9 @@ function createInsuranceListing(): void {
     }
 
     // Sanitize coverage types
-    $allowedCoverages = ['cargo', 'liability', 'physical_damage', 'workers_comp', 'general_liability', 'occupational_accident', 'bobtail', 'non_trucking'];
     $safeCoverages = array_values(array_filter(
         is_array($coverageTypes) ? $coverageTypes : [$coverageTypes],
-        fn($c) => in_array(mktClean($c), $allowedCoverages, true)
+        fn($c) => in_array(mktClean($c), ALLOWED_COVERAGE_TYPES, true)
     ));
     $safeCoverages = array_map('mktClean', $safeCoverages);
 
@@ -315,11 +325,10 @@ function updateInsuranceListing(): void {
         }
 
         if (isset($_POST['coverage_types'])) {
-            $allowedCoverages = ['cargo', 'liability', 'physical_damage', 'workers_comp', 'general_liability', 'occupational_accident', 'bobtail', 'non_trucking'];
             $raw = is_array($_POST['coverage_types']) ? $_POST['coverage_types'] : [$_POST['coverage_types']];
             $l['coverage_types'] = array_values(array_filter(
                 array_map('mktClean', $raw),
-                fn($c) => in_array($c, $allowedCoverages, true)
+                fn($c) => in_array($c, ALLOWED_COVERAGE_TYPES, true)
             ));
         }
 
@@ -382,8 +391,7 @@ function createTruckListing(): void {
         $listingType = 'sale';
     }
 
-    $allowedTruckTypes = ['semi_truck', 'box_truck', 'flatbed', 'refrigerated', 'tanker', 'dump_truck', 'cargo_van', 'other'];
-    if (!in_array($truckType, $allowedTruckTypes, true)) {
+    if (!in_array($truckType, ALLOWED_TRUCK_TYPES, true)) {
         mktRespond(false, 'Invalid truck type.');
     }
 
