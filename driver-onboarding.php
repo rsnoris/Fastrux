@@ -823,7 +823,6 @@
             <a href="careers.php">Careers</a>
             <a href="driver-onboarding.php">Drive with Us</a>
             <a href="contact.php">Contact</a>
-            <a href="architecture.php">Architecture</a>
           </div>
         </div>
         <div>

@@ -467,7 +467,6 @@
             <a href="driver-onboarding.php">Drive with Us</a>
             <a href="news.php">News &amp; Media</a>
             <a href="contact.php">Contact</a>
-            <a href="architecture.php">Architecture</a>
           </div>
         </div>
         <div>

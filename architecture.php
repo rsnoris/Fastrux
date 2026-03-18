@@ -491,7 +491,6 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
         <a class="nav-link" href="marketplace.php">Marketplace</a>
         <a class="nav-link" href="about.php">About Us</a>
         <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link active" href="architecture.php">Architecture</a>
       </nav>
       <div class="header-actions">
         <a class="nav-link" href="login.php">Login</a>
@@ -509,7 +508,6 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
     <a class="nav-link" href="marketplace.php">Marketplace</a>
     <a class="nav-link" href="about.php">About Us</a>
     <a class="nav-link" href="contact.php">Contact</a>
-    <a class="nav-link active" href="architecture.php">Architecture</a>
     <div class="header-actions" style="margin-top:8px;">
       <a class="btn btn-outline" href="login.php">Login</a>
       <a class="btn btn-primary" href="quote.php">Get a Quote</a>
