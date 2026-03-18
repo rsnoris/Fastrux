@@ -124,6 +124,15 @@
           dashLink.textContent = 'Dashboard';
           navLinks.appendChild(dashLink);
         }
+
+        // Add "Loadboard" link for drivers / owner-operators
+        if ((role === 'driver' || role === 'owner_operator') && !navLinks.querySelector('a[href="loadboard.php"]')) {
+          var loadboardLink = document.createElement('a');
+          loadboardLink.className = 'nav-link';
+          loadboardLink.href = 'loadboard.php';
+          loadboardLink.textContent = 'Loadboard';
+          navLinks.appendChild(loadboardLink);
+        }
       } else if (isShipper(role)) {
         // Add "My Dashboard" link for shippers if not already present
         if (!navLinks.querySelector('a[href="shipper-dashboard.php"]')) {
@@ -180,6 +189,20 @@
         if (mobileQuoteBtn2) {
           mobileQuoteBtn2.href = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
           mobileQuoteBtn2.textContent = 'Dashboard';
+        }
+
+        // Add "Loadboard" link in mobile for drivers / owner-operators
+        if ((role === 'driver' || role === 'owner_operator') && !mobileMenu.querySelector('a[href="loadboard.php"]')) {
+          var mobileLoadboardLink = document.createElement('a');
+          mobileLoadboardLink.className = 'nav-link';
+          mobileLoadboardLink.href = 'loadboard.php';
+          mobileLoadboardLink.textContent = 'Loadboard';
+          var mobileActionsEl = mobileMenu.querySelector('.header-actions');
+          if (mobileActionsEl) {
+            mobileMenu.insertBefore(mobileLoadboardLink, mobileActionsEl);
+          } else {
+            mobileMenu.appendChild(mobileLoadboardLink);
+          }
         }
       } else if (isShipper(role)) {
         // Add "My Dashboard" link in mobile if not already present
