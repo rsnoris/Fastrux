@@ -267,6 +267,12 @@
         Fastrux <span>&nbsp;/ Admin Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:message-circle" style="font-size:14px;margin-right:5px"></iconify-icon>Messages
+        </a>
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:folder-open" style="font-size:14px;margin-right:5px"></iconify-icon>Documents
+        </a>
         <a href="observability.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:activity" style="font-size:14px;margin-right:5px"></iconify-icon>Observability
         </a>

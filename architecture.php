@@ -1621,6 +1621,7 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
             <a href="about.php">About Us</a>
             <a href="careers.php">Careers</a>
             <a href="driver-onboarding.php">Drive with Us</a>
+            <a class="nav-link" href="loadboard.php">Loadboard</a>
             <a href="news.php">News &amp; Media</a>
             <a href="contact.php">Contact</a>
           </div>

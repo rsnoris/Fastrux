@@ -125,6 +125,12 @@
       </a>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
         <span class="dash-badge"><iconify-icon icon="lucide:truck"></iconify-icon> Trucking Partner</span>
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+          <iconify-icon icon="lucide:message-circle" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Messages
+        </a>
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+          <iconify-icon icon="lucide:file-text" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Documents
+        </a>
         <a href="marketplace.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:store" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Marketplace
         </a>

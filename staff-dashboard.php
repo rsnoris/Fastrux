@@ -174,6 +174,12 @@
         <span id="refreshLabel" style="font-size:13px;color:var(--muted-foreground);display:flex;align-items:center;">
           <span class="refresh-dot"></span>Live
         </span>
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:message-circle" style="font-size:14px;margin-right:5px"></iconify-icon>Messages
+        </a>
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:file-text" style="font-size:14px;margin-right:5px"></iconify-icon>Documents
+        </a>
         <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:5px"></iconify-icon>Drivers
         </a>

@@ -358,6 +358,14 @@
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+          <iconify-icon icon="lucide:message-circle" style="font-size:15px;margin-right:6px"></iconify-icon>
+          Messages
+        </a>
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+          <iconify-icon icon="lucide:file-text" style="font-size:15px;margin-right:6px"></iconify-icon>
+          Documents
+        </a>
         <a href="offers-tracking.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Offers Tracking

@@ -6,10 +6,11 @@
 (function () {
   'use strict';
 
-  var EMPLOYEE_ROLES  = ['driver', 'owner_operator', 'corporate_staff'];
-  var SHIPPER_ROLES   = ['shipper', 'customer'];
-  var ADMIN_ROLES     = ['admin', 'super_admin'];
-  var COMPANY_ROLES   = ['insurance_company', 'trucking_company'];
+  var EMPLOYEE_ROLES      = ['driver', 'owner_operator', 'corporate_staff'];
+  var SHIPPER_ROLES       = ['shipper', 'customer'];
+  var ADMIN_ROLES         = ['admin', 'super_admin'];
+  var COMPANY_ROLES       = ['insurance_company', 'trucking_company'];
+  var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -46,12 +47,90 @@
     return map[role] || role;
   }
 
+  // ── Notification bell ──────────────────────────────────────────
+  function injectNotificationBadge(userId) {
+    var headerActions = document.querySelector('.header-actions');
+    if (headerActions && !headerActions.querySelector('.nav-notif-bell')) {
+      var bell = document.createElement('a');
+      bell.href = 'messages.php';
+      bell.className = 'nav-notif-bell';
+      bell.title = 'Messages & Notifications';
+      bell.style.cssText = 'position:relative;display:inline-flex;align-items:center;' +
+        'color:var(--foreground);text-decoration:none;font-size:20px;padding:2px;';
+      bell.innerHTML = '<iconify-icon icon="lucide:bell"></iconify-icon>' +
+        '<span class="nav-notif-count" style="display:none;position:absolute;top:-4px;right:-6px;' +
+        'background:var(--destructive,#e02424);color:#fff;font-size:10px;font-weight:700;' +
+        'padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;line-height:16px;"></span>';
+      var firstChild = headerActions.firstChild;
+      headerActions.insertBefore(bell, firstChild);
+    }
+
+    function refreshCount() {
+      fetch('messages_data.php?action=unread_count&user_id=' + encodeURIComponent(userId))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var cnt   = data.unread_count || 0;
+          var bellEl = document.querySelector('.nav-notif-bell');
+          if (!bellEl) return;
+          var badge = bellEl.querySelector('.nav-notif-count');
+          if (!badge) return;
+          if (cnt > 0) {
+            badge.textContent = cnt > 99 ? '99+' : cnt;
+            badge.style.display = 'block';
+          } else {
+            badge.style.display = 'none';
+          }
+        })
+        .catch(function () {});
+    }
+
+    refreshCount();
+    setInterval(refreshCount, NOTIF_POLL_INTERVAL);
+  }
+
+  // ── Add Messages & Documents links for all logged-in users ────
+  function addAuthNavLinks(container, isMobile) {
+    if (!container.querySelector('a[href="messages.php"]')) {
+      var msgLink = document.createElement('a');
+      msgLink.className = 'nav-link';
+      msgLink.href = 'messages.php';
+      msgLink.textContent = 'Messages';
+      if (isMobile) {
+        var mobileActionsMsg = container.querySelector('.header-actions');
+        if (mobileActionsMsg) {
+          container.insertBefore(msgLink, mobileActionsMsg);
+        } else {
+          container.appendChild(msgLink);
+        }
+      } else {
+        container.appendChild(msgLink);
+      }
+    }
+    if (!container.querySelector('a[href="documents.php"]')) {
+      var docLink = document.createElement('a');
+      docLink.className = 'nav-link';
+      docLink.href = 'documents.php';
+      docLink.textContent = 'Documents';
+      if (isMobile) {
+        var mobileActionsDoc = container.querySelector('.header-actions');
+        if (mobileActionsDoc) {
+          container.insertBefore(docLink, mobileActionsDoc);
+        } else {
+          container.appendChild(docLink);
+        }
+      } else {
+        container.appendChild(docLink);
+      }
+    }
+  }
+
   function updateNav() {
     var user = null;
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
     if (!user || !user.id) return;
 
-    var role = user.role || 'shipper';
+    var role   = user.role || 'shipper';
+    var userId = user.id;
 
     // ── Desktop header ──────────────────────────────────────────
     var headerActions = document.querySelector('.header-actions');
@@ -233,7 +312,18 @@
           mobileCoBtn.textContent = 'My Dashboard';
         }
       }
+
+      // Add Messages & Documents for all logged-in users in mobile
+      addAuthNavLinks(mobileMenu, true);
     }
+
+    // Add Messages & Documents for all logged-in users in desktop nav
+    if (navLinks) {
+      addAuthNavLinks(navLinks, false);
+    }
+
+    // ── Notification bell ────────────────────────────────────────
+    injectNotificationBadge(userId);
   }
 
   // Run after DOM is ready
