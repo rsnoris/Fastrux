@@ -114,6 +114,8 @@
         <a class="nav-link" href="about.php">About Us</a>
         <a class="nav-link" href="contact.php">Contact</a>
         <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
       </nav>
       <div class="header-actions">
         <a class="nav-link" href="login.php">Login</a>
@@ -131,6 +133,8 @@
     <a class="nav-link" href="about.php">About Us</a>
     <a class="nav-link" href="contact.php">Contact</a>
         <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
     <div class="header-actions" style="margin-top:8px;">
       <a class="btn btn-outline" href="login.php">Login</a>
       <a class="btn btn-primary" href="quote.php">Get a Quote</a>
@@ -254,6 +258,8 @@
             <a href="about.php">About Us</a>
             <a href="careers.php">Careers</a>
             <a href="driver-onboarding.php">Drive with Us</a>
+            <a class="nav-link" href="loadboard.php">Loadboard</a>
+            <a class="nav-link" href="marketplace.php">Marketplace</a>
             <a href="news.php">News &amp; Media</a>
             <a href="contact.php">Contact</a>
           </div>

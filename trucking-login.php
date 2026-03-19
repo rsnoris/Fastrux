@@ -54,6 +54,7 @@
       <nav class="nav-links">
         <a class="nav-link" href="index.php">Home</a>
         <a class="nav-link" href="marketplace.php">Marketplace</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
         <a class="nav-link" href="about.php">About Us</a>
         <a class="nav-link" href="contact.php">Contact</a>
       </nav>
@@ -69,9 +70,11 @@
   <nav class="mobile-menu" id="mobileMenu">
     <a class="nav-link" href="index.php">Home</a>
     <a class="nav-link" href="marketplace.php">Marketplace</a>
+    <a class="nav-link" href="loadboard.php">Loadboard</a>
     <a class="nav-link" href="about.php">About Us</a>
     <a class="nav-link" href="contact.php">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
+      <a class="btn btn-outline" href="login.php">Sign In</a>
       <a class="btn btn-primary" href="register.php?role=trucking_company">List Your Trucks</a>
     </div>
   </nav>
