@@ -47,20 +47,20 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="index.php" class="logo">
+      <a href="/" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="marketplace.php">Marketplace</a>
-        <a class="nav-link" href="loadboard.php">Loadboard</a>
-        <a class="nav-link" href="about.php">About Us</a>
-        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
+
+        <a class="nav-link" href="contact">Contact</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.php">General Login</a>
-        <a class="btn btn-primary" href="register.php?role=trucking_company">List Your Trucks</a>
+        <a class="nav-link" href="login">General Login</a>
+        <a class="btn btn-primary" href="register?role=trucking_company">List Your Trucks</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -68,14 +68,14 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.php">Home</a>
-    <a class="nav-link" href="marketplace.php">Marketplace</a>
-    <a class="nav-link" href="loadboard.php">Loadboard</a>
-    <a class="nav-link" href="about.php">About Us</a>
-    <a class="nav-link" href="contact.php">Contact</a>
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="loadboard">Loadboard</a>
+
+    <a class="nav-link" href="contact">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.php">Sign In</a>
-      <a class="btn btn-primary" href="register.php?role=trucking_company">List Your Trucks</a>
+      <a class="btn btn-outline" href="login">Sign In</a>
+      <a class="btn btn-primary" href="register?role=trucking_company">List Your Trucks</a>
     </div>
   </nav>
 
@@ -106,7 +106,7 @@
           <div class="form-group">
             <label for="password">
               Password
-              <a class="forgot-link" href="forgot-password.php">Forgot password?</a>
+              <a class="forgot-link" href="forgot-password">Forgot password?</a>
             </label>
             <div class="password-wrapper">
               <input class="form-control" type="password" id="password" name="password"
@@ -121,9 +121,9 @@
             Sign In to Trucking Portal
           </button>
         </form>
-        <p class="auth-footer-text">Don't have an account? <a href="register.php">Register your trucking company</a></p>
+        <p class="auth-footer-text">Don't have an account? <a href="register">Register your trucking company</a></p>
         <p class="auth-footer-text" style="font-size:13px;color:var(--muted-foreground);">
-          Not a trucking company? <a href="login.php">General login</a>
+          Not a trucking company? <a href="login">General login</a>
         </p>
       </div>
 
@@ -163,8 +163,8 @@
       <div class="footer-bottom" style="border-top:none;padding-top:0;">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>
@@ -218,7 +218,7 @@
             email:      data.user?.email      || document.getElementById('email').value.trim(),
             role:       role,
           }));
-          const redirect = params.get('redirect') || 'trucking-dashboard.php';
+          const redirect = params.get('redirect') || 'trucking-dashboard';
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';

@@ -175,11 +175,11 @@
   <!-- Header -->
   <header class="loc-header">
     <div class="loc-header-inner">
-      <a href="index.php" class="loc-brand">
+      <a href="/" class="loc-brand">
         <iconify-icon icon="lucide:truck" style="font-size:22px"></iconify-icon>
         Fastrux <span>&nbsp;/ My Location</span>
       </a>
-      <a href="offers-tracking.php" class="btn btn-outline" style="padding:7px 14px;font-size:13px;">
+      <a href="offers-tracking" class="btn btn-outline" style="padding:7px 14px;font-size:13px;">
         <iconify-icon icon="lucide:map" style="font-size:14px;margin-right:6px"></iconify-icon>
         Offers Board
       </a>
@@ -280,7 +280,7 @@
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
       var employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
       if (!user || !user.id || employeeRoles.indexOf(user.role) === -1) {
-        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
       }
     })();
 
