@@ -6,10 +6,11 @@
 (function () {
   'use strict';
 
-  var EMPLOYEE_ROLES  = ['driver', 'owner_operator', 'corporate_staff'];
-  var SHIPPER_ROLES   = ['shipper', 'customer'];
-  var ADMIN_ROLES     = ['admin', 'super_admin'];
-  var COMPANY_ROLES   = ['insurance_company', 'trucking_company'];
+  var EMPLOYEE_ROLES      = ['driver', 'owner_operator', 'corporate_staff'];
+  var SHIPPER_ROLES       = ['shipper', 'customer'];
+  var ADMIN_ROLES         = ['admin', 'super_admin'];
+  var COMPANY_ROLES       = ['insurance_company', 'trucking_company'];
+  var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -84,7 +85,7 @@
     }
 
     refreshCount();
-    setInterval(refreshCount, 60000);
+    setInterval(refreshCount, NOTIF_POLL_INTERVAL);
   }
 
   // ── Add Messages & Documents links for all logged-in users ────

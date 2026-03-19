@@ -20,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 define('DOC_DATA_DIR',  __DIR__ . '/data/documents/');
 define('DOC_INDEX',     __DIR__ . '/data/documents_index.json');
+define('DOC_MAX_SIZE',  20 * 1024 * 1024); // 20 MB
 
 require_once __DIR__ . '/audit_helper.php';
 
@@ -198,7 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $file    = $_FILES['document'];
-        $maxSize = 20 * 1024 * 1024; // 20 MB
+        $maxSize = DOC_MAX_SIZE;
         $allowedMimes = [
             'image/jpeg', 'image/png', 'image/gif', 'image/webp',
             'application/pdf',

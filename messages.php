@@ -219,8 +219,9 @@
   (function () {
     'use strict';
 
-    var API  = 'messages_data.php';
-    var UAPI = 'admin_api.php';
+    var API          = 'messages_data.php';
+    var UAPI         = 'admin_api.php';
+    var POLL_INTERVAL = 60000; // ms — how often to refresh messages
 
     var user = null;
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
@@ -446,7 +447,7 @@
     loadMessages();
 
     // Auto-refresh every 60 seconds
-    setInterval(loadMessages, 60000);
+    setInterval(loadMessages, POLL_INTERVAL);
   })();
   </script>
 </body>

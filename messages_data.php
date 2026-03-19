@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 define('MSG_DATA_DIR', __DIR__ . '/data/');
 define('MSG_JSON',     MSG_DATA_DIR . 'messages.json');
 define('USERS_JSON',   MSG_DATA_DIR . 'registered_users.json');
+define('MSG_MAX_STORE', 50000);
 
 require_once __DIR__ . '/audit_helper.php';
 
@@ -56,7 +57,7 @@ function readMessages(): array {
 function writeMessages(array $data): void {
     if (!is_dir(MSG_DATA_DIR)) mkdir(MSG_DATA_DIR, 0755, true);
     // Keep most recent 50,000 messages
-    if (count($data) > 50000) $data = array_slice($data, -50000);
+    if (count($data) > MSG_MAX_STORE) $data = array_slice($data, -MSG_MAX_STORE);
     file_put_contents(MSG_JSON, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 }
 
