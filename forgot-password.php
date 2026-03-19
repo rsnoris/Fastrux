@@ -15,23 +15,23 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="index.php" class="logo">
+      <a href="/" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="index.php#services">Services</a>
-        <a class="nav-link" href="track.php">Tracking</a>
-        <a class="nav-link" href="about.php">About Us</a>
-        <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-        <a class="nav-link" href="loadboard.php">Loadboard</a>
-        <a class="nav-link" href="marketplace.php">Marketplace</a>
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="/#services">Services</a>
+        <a class="nav-link" href="track">Tracking</a>
+
+        <a class="nav-link" href="contact">Contact</a>
+        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
+        <a class="nav-link" href="marketplace">Marketplace</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link active" href="login.php">Login</a>
-        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+        <a class="nav-link active" href="login">Login</a>
+        <a class="btn btn-primary" href="quote">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -39,16 +39,16 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.php">Home</a>
-    <a class="nav-link" href="index.php#services">Services</a>
-    <a class="nav-link" href="track.php">Tracking</a>
-    <a class="nav-link" href="about.php">About Us</a>
-    <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-        <a class="nav-link" href="loadboard.php">Loadboard</a>
-        <a class="nav-link" href="marketplace.php">Marketplace</a>
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/#services">Services</a>
+    <a class="nav-link" href="track">Tracking</a>
+
+    <a class="nav-link" href="contact">Contact</a>
+        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
+        <a class="nav-link" href="marketplace">Marketplace</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+      <a class="btn btn-primary" href="quote">Get a Quote</a>
     </div>
   </nav>
 
@@ -71,7 +71,7 @@
           Send Reset Link
         </button>
       </form>
-      <p class="auth-footer-text"><a href="login.php">← Back to Sign In</a></p>
+      <p class="auth-footer-text"><a href="login">← Back to Sign In</a></p>
     </div>
 
     <div class="auth-card" id="confirmCard" style="display:none;">
@@ -83,7 +83,7 @@
         We've sent a password reset link to <strong id="sentTo"></strong>.
         If it doesn't appear within a few minutes, check your spam folder.
       </p>
-      <a href="login.php" class="btn btn-primary"
+      <a href="login" class="btn btn-primary"
          style="display:block;width:100%;padding:14px;font-size:16px;text-align:center;margin-top:8px;">
         Back to Sign In
       </a>
@@ -95,8 +95,8 @@
       <div class="footer-bottom" style="border-top:none;padding-top:0;">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>

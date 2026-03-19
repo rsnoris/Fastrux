@@ -501,20 +501,20 @@
   ══════════════════════════════════ -->
   <header class="header">
     <div class="container header-content">
-      <a href="index.php" class="logo">
+      <a href="/" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link active" href="index.php">Home</a>
+        <a class="nav-link active" href="/">Home</a>
         <a class="nav-link" href="#services">Services</a>
-        <a class="nav-link" href="track.php">Tracking</a>
-        <a class="nav-link" href="about.php">About Us</a>
+        <a class="nav-link" href="track">Tracking</a>
+
         <a class="nav-link" href="#contact">Contact</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.php">Login</a>
-        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+        <a class="nav-link" href="login">Login</a>
+        <a class="btn btn-primary" href="quote">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -522,14 +522,14 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link active" href="index.php">Home</a>
+    <a class="nav-link active" href="/">Home</a>
     <a class="nav-link" href="#services">Services</a>
-    <a class="nav-link" href="track.php">Tracking</a>
-    <a class="nav-link" href="about.php">About Us</a>
+    <a class="nav-link" href="track">Tracking</a>
+
     <a class="nav-link" href="#contact">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.php">Login</a>
-      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+      <a class="btn btn-outline" href="login">Login</a>
+      <a class="btn btn-primary" href="quote">Get a Quote</a>
     </div>
   </nav>
 
@@ -542,7 +542,7 @@
         <h1>Global Logistics &amp; Freight Management</h1>
         <p>Streamline your supply chain with our fast, reliable, and secure transportation solutions. We deliver your cargo on time, every time, anywhere in the world.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="track.php">Track Shipment</a>
+          <a class="btn btn-primary" href="track">Track Shipment</a>
           <a class="btn btn-outline" href="#services">Explore Services</a>
         </div>
       </div>
@@ -598,7 +598,7 @@
           </div>
           <h3 class="service-title">Ocean Freight</h3>
           <p class="service-desc">Cost-effective maritime transport solutions for large-volume cargo across global shipping routes.</p>
-          <a class="service-link" href="ocean-freight.php">
+          <a class="service-link" href="ocean-freight">
             Learn more
             <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
           </a>
@@ -609,7 +609,7 @@
           </div>
           <h3 class="service-title">Air Freight</h3>
           <p class="service-desc">Rapid delivery for time-sensitive shipments with our expansive network of 200+ airline partners.</p>
-          <a class="service-link" href="air-freight.php">
+          <a class="service-link" href="air-freight">
             Learn more
             <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
           </a>
@@ -620,7 +620,7 @@
           </div>
           <h3 class="service-title">Ground Transport</h3>
           <p class="service-desc">Reliable road freight services featuring a modern fleet of 1,200+ trucks for regional and national deliveries.</p>
-          <a class="service-link" href="ground-transport.php">
+          <a class="service-link" href="ground-transport">
             Learn more
             <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
           </a>
@@ -631,7 +631,7 @@
           </div>
           <h3 class="service-title">Warehousing</h3>
           <p class="service-desc">Secure storage, inventory management, and order fulfilment across 12 strategic global locations.</p>
-          <a class="service-link" href="warehousing.php">
+          <a class="service-link" href="warehousing">
             Learn more
             <iconify-icon icon="lucide:arrow-right" style="font-size:16px"></iconify-icon>
           </a>
@@ -647,7 +647,7 @@
     <div class="container tracking-container">
       <h2 class="tracking-title">Track Your Shipment</h2>
       <p class="tracking-subtitle">Enter your tracking number to get real-time updates on your cargo's location and status.</p>
-      <form class="tracking-form" action="track.php" method="GET">
+      <form class="tracking-form" action="track" method="GET">
         <input
           class="tracking-input"
           type="text"
@@ -728,11 +728,11 @@
         </div>
 
         <div style="margin-top:32px;">
-          <a class="btn btn-primary" href="quote.php" style="margin-right:12px;">
+          <a class="btn btn-primary" href="quote" style="margin-right:12px;">
             <iconify-icon icon="lucide:file-text" style="font-size:16px;margin-right:8px"></iconify-icon>
             Get a Quote
           </a>
-          <a class="btn btn-outline" href="contact.php">Full Contact Page</a>
+          <a class="btn btn-outline" href="contact">Full Contact Page</a>
         </div>
       </div>
 
@@ -795,7 +795,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="index.php" class="logo">
+          <a href="/" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -804,22 +804,22 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight.php">Ocean Freight</a>
-            <a href="air-freight.php">Air Freight</a>
-            <a href="ground-transport.php">Ground Transport</a>
-            <a href="warehousing.php">Warehousing</a>
+            <a href="ocean-freight">Ocean Freight</a>
+            <a href="air-freight">Air Freight</a>
+            <a href="ground-transport">Ground Transport</a>
+            <a href="warehousing">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-            <a href="about.php">About Us</a>
-            <a href="careers.php">Careers</a>
-            <a href="driver-onboarding.php">Drive with Us</a>
-            <a class="nav-link" href="loadboard.php">Loadboard</a>
-            <a class="nav-link" href="marketplace.php">Marketplace</a>
-            <a href="news.php">News &amp; Media</a>
-            <a href="contact.php">Contact</a>
+
+            <a href="careers">Careers</a>
+            <a href="driver-onboarding">Drive with Us</a>
+            <a class="nav-link" href="loadboard">Loadboard</a>
+            <a class="nav-link" href="marketplace">Marketplace</a>
+            <a href="news">News &amp; Media</a>
+            <a href="contact">Contact</a>
           </div>
         </div>
         <div>

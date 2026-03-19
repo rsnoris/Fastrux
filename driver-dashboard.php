@@ -353,28 +353,28 @@
   <!-- ── Dashboard Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="/" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Driver Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
-        <a href="messages.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+        <a href="messages" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:message-circle" style="font-size:15px;margin-right:6px"></iconify-icon>
           Messages
         </a>
-        <a href="documents.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+        <a href="documents" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:file-text" style="font-size:15px;margin-right:6px"></iconify-icon>
           Documents
         </a>
-        <a href="offers-tracking.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+        <a href="offers-tracking" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Offers Tracking
         </a>
-        <a href="driver-onboarding.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
+        <a href="driver-onboarding" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:plus" style="font-size:15px;margin-right:6px"></iconify-icon>
           New Application
         </a>
-        <a href="index.php" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">
+        <a href="/" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
@@ -431,7 +431,7 @@
       <button class="btn btn-outline" id="refreshBtn" style="padding:10px 16px;font-size:14px;" title="Refresh data">
         <iconify-icon icon="lucide:refresh-cw" style="font-size:15px"></iconify-icon>
       </button>
-      <a href="dashboard_data.php?export=csv" class="btn btn-outline" style="padding:10px 16px;font-size:14px;" title="Export CSV">
+      <a href="dashboard_data?export=csv" class="btn btn-outline" style="padding:10px 16px;font-size:14px;" title="Export CSV">
         <iconify-icon icon="lucide:download" style="font-size:15px;margin-right:6px"></iconify-icon>
         Export CSV
       </a>
@@ -505,7 +505,7 @@
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
       var allowedRoles = ['driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
       if (!user || !user.id || allowedRoles.indexOf(user.role) === -1) {
-        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
       }
     })();
 

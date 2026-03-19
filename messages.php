@@ -161,16 +161,16 @@
   <!-- Header -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="/" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Messages</span>
       </a>
       <div style="display:flex;align-items:center;gap:10px;">
-        <a href="documents.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="documents" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:file-text" style="font-size:15px;margin-right:6px"></iconify-icon>
           Documents
         </a>
-        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="/" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
@@ -225,7 +225,7 @@
 
     var user = null;
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
-    if (!user || !user.id) { window.location.href = 'login.php'; return; }
+    if (!user || !user.id) { window.location.href = 'login'; return; }
 
     var userId   = user.id;
     var messages = [];

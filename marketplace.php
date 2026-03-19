@@ -148,23 +148,23 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="index.php" class="logo">
+      <a href="/" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="index.php#services">Services</a>
-        <a class="nav-link" href="track.php">Tracking</a>
-        <a class="nav-link active" href="marketplace.php">Marketplace</a>
-        <a class="nav-link" href="about.php">About Us</a>
-        <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="/">Home</a>
+        <a class="nav-link" href="/#services">Services</a>
+        <a class="nav-link" href="track">Tracking</a>
+        <a class="nav-link active" href="marketplace">Marketplace</a>
+
+        <a class="nav-link" href="contact">Contact</a>
+        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.php">Login</a>
-        <a class="btn btn-primary" href="register.php">Join Marketplace</a>
+        <a class="nav-link" href="login">Login</a>
+        <a class="btn btn-primary" href="register">Join Marketplace</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -172,17 +172,17 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.php">Home</a>
-    <a class="nav-link" href="index.php#services">Services</a>
-    <a class="nav-link" href="track.php">Tracking</a>
-    <a class="nav-link active" href="marketplace.php">Marketplace</a>
-    <a class="nav-link" href="about.php">About Us</a>
-    <a class="nav-link" href="contact.php">Contact</a>
-    <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-    <a class="nav-link" href="loadboard.php">Loadboard</a>
+    <a class="nav-link" href="/">Home</a>
+    <a class="nav-link" href="/#services">Services</a>
+    <a class="nav-link" href="track">Tracking</a>
+    <a class="nav-link active" href="marketplace">Marketplace</a>
+
+    <a class="nav-link" href="contact">Contact</a>
+    <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+    <a class="nav-link" href="loadboard">Loadboard</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login.php">Sign In</a>
-      <a class="btn btn-primary" href="register.php">Join Marketplace</a>
+      <a class="btn btn-outline" href="login">Sign In</a>
+      <a class="btn btn-primary" href="register">Join Marketplace</a>
     </div>
   </nav>
 
@@ -289,19 +289,19 @@
         <iconify-icon icon="lucide:shield-check" style="color:#1d4ed8;"></iconify-icon>
         <h3>Insurance Company?</h3>
         <p>Offer spot insurance to the thousands of carriers and shippers on Fastrux. Reach qualified customers instantly.</p>
-        <a href="insurance-login.php" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Insurance Portal</a>
+        <a href="insurance-login" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Insurance Portal</a>
       </div>
       <div class="cta-card">
         <iconify-icon icon="lucide:truck" style="color:#15803d;"></iconify-icon>
         <h3>Trucking Company?</h3>
         <p>List your idle trucks for lease or sale and connect with owner-operators and fleets looking to grow.</p>
-        <a href="trucking-login.php" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Trucking Portal</a>
+        <a href="trucking-login" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Trucking Portal</a>
       </div>
       <div class="cta-card">
         <iconify-icon icon="lucide:user-plus" style="color:var(--primary);"></iconify-icon>
         <h3>New to Fastrux?</h3>
         <p>Register your company in minutes. Insurance and trucking partners get instant access to the marketplace.</p>
-        <a href="register.php" class="btn btn-outline" style="align-self:flex-start;padding:10px 20px;">Create Account</a>
+        <a href="register" class="btn btn-outline" style="align-self:flex-start;padding:10px 20px;">Create Account</a>
       </div>
     </div>
 
@@ -321,24 +321,24 @@
         </div>
         <div>
           <div class="footer-heading">Marketplace</div>
-          <a href="marketplace.php#insurance" class="footer-link">Spot Insurance</a>
-          <a href="marketplace.php#trucks" class="footer-link">Trucks for Lease/Sale</a>
-          <a href="insurance-login.php" class="footer-link">Insurance Portal</a>
-          <a href="trucking-login.php" class="footer-link">Trucking Portal</a>
+          <a href="marketplace#insurance" class="footer-link">Spot Insurance</a>
+          <a href="marketplace#trucks" class="footer-link">Trucks for Lease/Sale</a>
+          <a href="insurance-login" class="footer-link">Insurance Portal</a>
+          <a href="trucking-login" class="footer-link">Trucking Portal</a>
         </div>
         <div>
           <div class="footer-heading">Quick Links</div>
-          <a href="index.php" class="footer-link">Home</a>
-          <a href="track.php" class="footer-link">Tracking</a>
-          <a href="register.php" class="footer-link">Register</a>
-          <a href="contact.php" class="footer-link">Contact</a>
+          <a href="/" class="footer-link">Home</a>
+          <a href="track" class="footer-link">Tracking</a>
+          <a href="register" class="footer-link">Register</a>
+          <a href="contact" class="footer-link">Contact</a>
         </div>
       </div>
       <div class="footer-bottom">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>
@@ -400,7 +400,7 @@
           '<iconify-icon icon="lucide:shield-check"></iconify-icon>' +
           '<h3>No insurance listings yet</h3>' +
           '<p>Insurance companies can register and post their offerings here.</p>' +
-          '<a href="register.php" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Insurer</a>' +
+          '<a href="register" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Insurer</a>' +
           '</div>';
         return;
       }
@@ -438,7 +438,7 @@
           '<iconify-icon icon="lucide:truck"></iconify-icon>' +
           '<h3>No truck listings yet</h3>' +
           '<p>Trucking companies can register and list their fleet for lease or sale.</p>' +
-          '<a href="register.php" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Trucking Co.</a>' +
+          '<a href="register" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Trucking Co.</a>' +
           '</div>';
         return;
       }

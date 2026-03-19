@@ -448,7 +448,7 @@
   <!-- ── Header ───────────────────────────────────────────── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="/" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Loadboard</span>
       </a>
@@ -457,11 +457,11 @@
           <iconify-icon icon="lucide:refresh-cw" style="font-size:15px;margin-right:6px"></iconify-icon>
           Refresh
         </button>
-        <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>
           Dashboard
         </a>
-        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="/" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
@@ -715,7 +715,7 @@
       <div id="myLoadsAuthWarn" style="display:none;">
         <div class="empty-state">
           <iconify-icon icon="lucide:lock"></iconify-icon>
-          <p>Please <a href="login.php" style="color:var(--primary);font-weight:600;">log in</a> to view your saved loads.</p>
+          <p>Please <a href="login" style="color:var(--primary);font-weight:600;">log in</a> to view your saved loads.</p>
         </div>
       </div>
 
