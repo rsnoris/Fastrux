@@ -88,6 +88,15 @@
     setInterval(refreshCount, NOTIF_POLL_INTERVAL);
   }
 
+  // ── Hide public-only nav links for logged-in users ───────────
+  function hidePublicNavLinks(container) {
+    ['a[href="index.php"]', 'a[href="#services"]', 'a[href="index.php#services"]',
+     'a[href="contact.php"]', 'a[href="#contact"]'].forEach(function (sel) {
+      var el = container.querySelector(sel);
+      if (el) el.style.display = 'none';
+    });
+  }
+
   // ── Add Messages & Documents links for all logged-in users ────
   function addAuthNavLinks(container, isMobile) {
     if (!container.querySelector('a[href="messages.php"]')) {
@@ -176,6 +185,9 @@
     // ── Desktop nav links ───────────────────────────────────────
     var navLinks = document.querySelector('.nav-links');
     if (navLinks) {
+      // Hide public-only links for logged-in users
+      hidePublicNavLinks(navLinks);
+
       if (isAdmin(role)) {
         // Hide "Drive with Us" for admins
         var driveLink = navLinks.querySelector('a[href="driver-onboarding.php"]');
@@ -241,6 +253,9 @@
     // ── Mobile menu ─────────────────────────────────────────────
     var mobileMenu = document.getElementById('mobileMenu');
     if (mobileMenu) {
+      // Hide public-only links for logged-in users
+      hidePublicNavLinks(mobileMenu);
+
       // Replace any Login links in mobile menu
       mobileMenu.querySelectorAll('a[href="login.php"]').forEach(function (el) {
         el.href = 'account.php';
