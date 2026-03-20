@@ -198,23 +198,22 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="/" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="/">Home</a>
-        <a class="nav-link" href="/#services">Services</a>
-        <a class="nav-link" href="track">Tracking</a>
-
-        <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link active" href="account" id="navAccountLink">My Account</a>
-        <a class="btn btn-primary" href="quote">Get a Quote</a>
+        <a class="nav-link active" href="account.php" id="navAccountLink">My Account</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -222,17 +221,16 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="/">Home</a>
-    <a class="nav-link" href="/#services">Services</a>
-    <a class="nav-link" href="track">Tracking</a>
-
-    <a class="nav-link" href="contact">Contact</a>
-    <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-    <a class="nav-link" href="loadboard">Loadboard</a>
-    <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+    <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+    <a class="nav-link" href="loadboard.php">Loadboard</a>
+    <a class="nav-link" href="marketplace.php">Marketplace</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="account">My Account</a>
-      <a class="btn btn-primary" href="quote">Get a Quote</a>
+      <a class="btn btn-outline" href="account.php">My Account</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -688,8 +686,8 @@
         <p style="font-size:18px;font-weight:700;margin-bottom:8px;">Sign in to access your account</p>
         <p style="font-size:14px;color:var(--muted-foreground);margin-bottom:24px;">You need to be logged in to view your account details and complete KYC verification.</p>
         <div style="display:flex;gap:12px;justify-content:center;">
-          <a href="login?redirect=account" class="btn btn-primary">Sign In</a>
-          <a href="register?redirect=account" class="btn btn-outline">Create Account</a>
+          <a href="login.php?redirect=account.php" class="btn btn-primary">Sign In</a>
+          <a href="register.php?redirect=account.php" class="btn btn-outline">Create Account</a>
         </div>
       </div>
     </div>
@@ -700,7 +698,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="/" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -709,22 +707,21 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight">Ocean Freight</a>
-            <a href="air-freight">Air Freight</a>
-            <a href="ground-transport">Ground Transport</a>
-            <a href="warehousing">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-
-            <a href="careers">Careers</a>
-            <a href="driver-onboarding">Drive with Us</a>
-            <a class="nav-link" href="loadboard">Loadboard</a>
-            <a class="nav-link" href="marketplace">Marketplace</a>
-            <a href="news">News &amp; Media</a>
-            <a href="contact">Contact</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a class="nav-link" href="loadboard.php">Loadboard</a>
+            <a class="nav-link" href="marketplace.php">Marketplace</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>
@@ -956,7 +953,7 @@
     // ── Sign out ─────────────────────────────────────────────────
     function logout() {
       localStorage.removeItem('fx_user');
-      window.location.href = 'login';
+      window.location.href = 'login.php';
     }
 
     // Spin animation for loader icon

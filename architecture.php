@@ -447,7 +447,6 @@ $fileDescriptions = [
   'offers_tracking_data.php'=> 'API — load requests, matching, notifications',
   'audit.php'               => 'API — audit event log (GET/POST)',
   'audit_helper.php'        => 'Helper — centralised auditLog() function',
-
   'careers.php'             => 'Careers — open positions',
   'contact.php'             => 'Contact — enquiry form',
   'news.php'                => 'News & media articles',
@@ -480,21 +479,20 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="/" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="/">Home</a>
-        <a class="nav-link" href="/#services">Services</a>
-        <a class="nav-link" href="track">Tracking</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
-
-        <a class="nav-link" href="contact">Contact</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
+        <a class="nav-link" href="contact.php">Contact</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login">Login</a>
-        <a class="btn btn-primary" href="quote">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -502,15 +500,14 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="/">Home</a>
-    <a class="nav-link" href="/#services">Services</a>
-    <a class="nav-link" href="track">Tracking</a>
-    <a class="nav-link" href="marketplace">Marketplace</a>
-
-    <a class="nav-link" href="contact">Contact</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="marketplace.php">Marketplace</a>
+    <a class="nav-link" href="contact.php">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login">Login</a>
-      <a class="btn btn-primary" href="quote">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -1600,7 +1597,7 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="/" class="logo" style="margin-bottom:12px;">
+          <a href="index.php" class="logo" style="margin-bottom:12px;">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -1609,21 +1606,20 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight">Ocean Freight</a>
-            <a href="air-freight">Air Freight</a>
-            <a href="ground-transport">Ground Transport</a>
-            <a href="warehousing">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-
-            <a href="careers">Careers</a>
-            <a href="driver-onboarding">Drive with Us</a>
-            <a class="nav-link" href="loadboard">Loadboard</a>
-            <a href="news">News &amp; Media</a>
-            <a href="contact">Contact</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a class="nav-link" href="loadboard.php">Loadboard</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>

@@ -261,23 +261,22 @@
   <!-- ── HEADER ── -->
   <header class="header">
     <div class="container header-content">
-      <a href="/" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="/">Home</a>
-        <a class="nav-link active" href="/#services">Services</a>
-        <a class="nav-link" href="track">Tracking</a>
-
-        <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link active" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login">Login</a>
-        <a class="btn btn-primary" href="quote">Get a Quote</a>
+        <a class="nav-link" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -285,17 +284,16 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="/">Home</a>
-    <a class="nav-link active" href="/#services">Services</a>
-    <a class="nav-link" href="track">Tracking</a>
-
-    <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link active" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-outline" href="login">Login</a>
-      <a class="btn btn-primary" href="quote">Get a Quote</a>
+      <a class="btn btn-outline" href="login.php">Login</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -314,9 +312,9 @@
   <div style="background:var(--card);border-bottom:1px solid var(--border);padding:12px 0;">
     <div class="container">
       <nav style="font-size:13px;color:var(--muted-foreground);display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-        <a href="/" style="color:var(--primary);">Home</a>
+        <a href="index.php" style="color:var(--primary);">Home</a>
         <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
-        <a href="/#services" style="color:var(--primary);">Services</a>
+        <a href="index.php#services" style="color:var(--primary);">Services</a>
         <iconify-icon icon="lucide:chevron-right" style="font-size:14px"></iconify-icon>
         <span>Warehousing</span>
       </nav>
@@ -331,8 +329,8 @@
         <p>Fastrux operates 12 strategically located warehouse facilities totalling over 4 million square feet across North America, Europe, and Asia-Pacific. Each site is equipped with 24/7 CCTV, biometric access control, fire suppression systems, and climate control zones.</p>
         <p>Whether you need short-term overflow storage, a fully outsourced third-party logistics (3PL) solution, or a dedicated e-commerce fulfilment centre, we scale with your business — paying only for the space and services you actually use.</p>
         <div style="display:flex;gap:16px;margin-top:24px;flex-wrap:wrap;">
-          <a class="btn btn-primary" href="quote">Get Warehousing Quote</a>
-          <a class="btn btn-outline" href="contact">Speak to a Specialist</a>
+          <a class="btn btn-primary" href="quote.php">Get Warehousing Quote</a>
+          <a class="btn btn-outline" href="contact.php">Speak to a Specialist</a>
         </div>
       </div>
       <img
@@ -451,7 +449,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Monthly billing</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Email support</li>
           </ul>
-          <a class="btn btn-outline" href="quote" style="width:100%;">Get a Quote</a>
+          <a class="btn btn-outline" href="quote.php" style="width:100%;">Get a Quote</a>
         </div>
 
         <!-- Business — featured -->
@@ -468,7 +466,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Dedicated account manager</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Priority support 24/7</li>
           </ul>
-          <a class="btn btn-primary" href="quote" style="width:100%;">Get a Quote</a>
+          <a class="btn btn-primary" href="quote.php" style="width:100%;">Get a Quote</a>
         </div>
 
         <!-- Enterprise -->
@@ -483,7 +481,7 @@
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>SLA-backed performance</li>
             <li><iconify-icon icon="lucide:check" style="font-size:15px;color:var(--primary)"></iconify-icon>Dedicated 24/7 ops team</li>
           </ul>
-          <a class="btn btn-outline" href="contact" style="width:100%;">Contact Sales</a>
+          <a class="btn btn-outline" href="contact.php" style="width:100%;">Contact Sales</a>
         </div>
 
       </div>
@@ -495,7 +493,7 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <a href="/" class="logo">
+          <a href="index.php" class="logo">
             <iconify-icon icon="lucide:truck" style="font-size:24px;color:var(--primary)"></iconify-icon>
             Fastrux
           </a>
@@ -504,22 +502,21 @@
         <div>
           <h4 class="footer-heading">Services</h4>
           <div class="footer-links">
-            <a href="ocean-freight">Ocean Freight</a>
-            <a href="air-freight">Air Freight</a>
-            <a href="ground-transport">Ground Transport</a>
-            <a href="warehousing">Warehousing</a>
+            <a href="ocean-freight.php">Ocean Freight</a>
+            <a href="air-freight.php">Air Freight</a>
+            <a href="ground-transport.php">Ground Transport</a>
+            <a href="warehousing.php">Warehousing</a>
           </div>
         </div>
         <div>
           <h4 class="footer-heading">Company</h4>
           <div class="footer-links">
-
-            <a href="careers">Careers</a>
-            <a href="driver-onboarding">Drive with Us</a>
-            <a class="nav-link" href="loadboard">Loadboard</a>
-            <a class="nav-link" href="marketplace">Marketplace</a>
-            <a href="news">News &amp; Media</a>
-            <a href="contact">Contact</a>
+            <a href="careers.php">Careers</a>
+            <a href="driver-onboarding.php">Drive with Us</a>
+            <a class="nav-link" href="loadboard.php">Loadboard</a>
+            <a class="nav-link" href="marketplace.php">Marketplace</a>
+            <a href="news.php">News &amp; Media</a>
+            <a href="contact.php">Contact</a>
           </div>
         </div>
         <div>
