@@ -119,19 +119,19 @@
 
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="/" class="dash-brand">
+      <a href="index.php" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>/ Trucking Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
         <span class="dash-badge"><iconify-icon icon="lucide:truck"></iconify-icon> Trucking Partner</span>
-        <a href="messages" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:message-circle" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Messages
         </a>
-        <a href="documents" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:file-text" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Documents
         </a>
-        <a href="marketplace" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="marketplace.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:store" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Marketplace
         </a>
         <span id="userGreeting" style="font-size:14px;color:var(--muted-foreground);"></span>
@@ -308,7 +308,7 @@
     var user = null;
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e){}
     if (!user || !user.id || user.role !== 'trucking_company') {
-      window.location.href = 'trucking-login?redirect=' + encodeURIComponent(window.location.href);
+      window.location.href = 'trucking-login.php?redirect=' + encodeURIComponent(window.location.href);
     }
 
     document.getElementById('userGreeting').textContent = 'Hi, ' + (user.first_name || user.email);
@@ -484,7 +484,7 @@
 
     function logout() {
       localStorage.removeItem('fx_user');
-      window.location.href = 'trucking-login';
+      window.location.href = 'trucking-login.php';
     }
 
     document.getElementById('listingModal').addEventListener('click', function(e) {

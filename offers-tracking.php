@@ -424,7 +424,7 @@
   <!-- ── Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="/" class="dash-brand">
+      <a href="index.php" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Offers Tracking</span>
       </a>
@@ -437,15 +437,15 @@
           <iconify-icon icon="lucide:message-square" style="font-size:15px;margin-right:6px"></iconify-icon>
           SMS
         </button>
-        <a href="driver-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:users" style="font-size:15px;margin-right:6px"></iconify-icon>
           Drivers
         </a>
-        <a href="driver-location" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-location.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:locate" style="font-size:15px;margin-right:6px"></iconify-icon>
           My Location
         </a>
-        <a href="/" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
@@ -1429,7 +1429,7 @@
   function requireAuth() {
     const user = getCurrentUser();
     if (!user) {
-      window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
       return false;
     }
     return true;
@@ -1440,7 +1440,7 @@
     const user = getCurrentUser();
     const employeeRoles = ['driver', 'owner_operator', 'corporate_staff'];
     if (!user || !user.id || !employeeRoles.includes(user.role)) {
-      window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
+      window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
     }
   })();
 

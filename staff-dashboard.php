@@ -166,7 +166,7 @@
   <!-- ── Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="/" class="dash-brand">
+      <a href="index.php" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Staff Dashboard</span>
       </a>
@@ -174,19 +174,19 @@
         <span id="refreshLabel" style="font-size:13px;color:var(--muted-foreground);display:flex;align-items:center;">
           <span class="refresh-dot"></span>Live
         </span>
-        <a href="messages" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="messages.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:message-circle" style="font-size:14px;margin-right:5px"></iconify-icon>Messages
         </a>
-        <a href="documents" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="documents.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:file-text" style="font-size:14px;margin-right:5px"></iconify-icon>Documents
         </a>
-        <a href="driver-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:5px"></iconify-icon>Drivers
         </a>
-        <a href="quote-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="quote-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:file-text" style="font-size:14px;margin-right:5px"></iconify-icon>Quotes
         </a>
-        <a href="/" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:14px;margin-right:5px"></iconify-icon>Main Site
         </a>
       </div>
@@ -290,17 +290,17 @@
     (function () {
       try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
       if (!currentUser || !currentUser.id) {
-        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
         return;
       }
       if (currentUser.role !== 'corporate_staff') {
         // Redirect admins to admin dashboard, others to their own dashboard
         if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
-          window.location.href = 'admin-dashboard';
+          window.location.href = 'admin-dashboard.php';
         } else if (currentUser.role === 'driver' || currentUser.role === 'owner_operator') {
-          window.location.href = 'driver-dashboard';
+          window.location.href = 'driver-dashboard.php';
         } else {
-          window.location.href = 'shipper-dashboard';
+          window.location.href = 'shipper-dashboard.php';
         }
       }
     })();

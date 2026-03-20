@@ -25,23 +25,22 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="/" class="logo">
+      <a href="index.php" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="/">Home</a>
-        <a class="nav-link" href="/#services">Services</a>
-        <a class="nav-link" href="track">Tracking</a>
-
-        <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="index.php">Home</a>
+        <a class="nav-link" href="index.php#services">Services</a>
+        <a class="nav-link" href="track.php">Tracking</a>
+        <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link active" href="login">Login</a>
-        <a class="btn btn-primary" href="quote">Get a Quote</a>
+        <a class="nav-link active" href="login.php">Login</a>
+        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -49,16 +48,15 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="/">Home</a>
-    <a class="nav-link" href="/#services">Services</a>
-    <a class="nav-link" href="track">Tracking</a>
-
-    <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
-        <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="index.php">Home</a>
+    <a class="nav-link" href="index.php#services">Services</a>
+    <a class="nav-link" href="track.php">Tracking</a>
+    <a class="nav-link" href="contact.php">Contact</a>
+        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
+        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="marketplace.php">Marketplace</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-primary" href="quote">Get a Quote</a>
+      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
     </div>
   </nav>
 
@@ -81,7 +79,7 @@
         <div class="form-group">
           <label for="password">
             Password
-            <a class="forgot-link" href="forgot-password">Forgot password?</a>
+            <a class="forgot-link" href="forgot-password.php">Forgot password?</a>
           </label>
           <div class="password-wrapper">
             <input class="form-control" type="password" id="password" name="password"
@@ -96,7 +94,7 @@
           Sign In
         </button>
       </form>
-      <p class="auth-footer-text">Don't have an account? <a href="register">Create one free</a></p>
+      <p class="auth-footer-text">Don't have an account? <a href="register.php">Create one free</a></p>
     </div>
   </div>
 
@@ -105,8 +103,8 @@
       <div class="footer-bottom" style="border-top:none;padding-top:0;">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>
@@ -150,7 +148,7 @@
           }));
           // Redirect to intended page or home after short delay
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || '/';
+          const redirect = params.get('redirect') || 'index.php';
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';
