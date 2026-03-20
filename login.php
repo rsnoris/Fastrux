@@ -146,9 +146,22 @@
             email:      data.user?.email      || document.getElementById('email').value.trim(),
             role:       data.user?.role       || 'shipper',
           }));
-          // Redirect to intended page or home after short delay
+          // Redirect to intended page or role-specific dashboard after short delay
           const params = new URLSearchParams(window.location.search);
-          const redirect = params.get('redirect') || 'index.php';
+          const role = data.user?.role || 'shipper';
+          const dashboardMap = {
+            shipper:           'shipper-dashboard.php',
+            customer:          'shipper-dashboard.php',
+            driver:            'driver-dashboard.php',
+            owner_operator:    'driver-dashboard.php',
+            corporate_staff:   'staff-dashboard.php',
+            admin:             'admin-dashboard.php',
+            super_admin:       'admin-dashboard.php',
+            insurance_company: 'insurance-dashboard.php',
+            trucking_company:  'trucking-dashboard.php',
+          };
+          const defaultDash = dashboardMap[role] || 'index.php';
+          const redirect = params.get('redirect') || defaultDash;
           setTimeout(() => { window.location.href = redirect; }, 800);
         } else {
           feedback.className   = 'form-feedback error';
