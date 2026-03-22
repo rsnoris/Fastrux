@@ -10,6 +10,9 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="shared.css" />
   <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
+  <style>
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
 </head>
 <body>
 
@@ -81,6 +84,11 @@
         We've sent a password reset link to <strong id="sentTo"></strong>.
         If it doesn't appear within a few minutes, check your spam folder.
       </p>
+      <!-- Dev/staging: show the reset link directly when no email server is configured -->
+      <div id="resetLinkWrap" style="display:none;margin:16px 0;padding:12px 16px;background:var(--muted);border:1px solid var(--border);border-radius:var(--radius-md);word-break:break-all;font-size:13px;">
+        <strong>Reset link:</strong><br/>
+        <a id="resetLink" href="#" style="color:var(--primary);">—</a>
+      </div>
       <a href="login.php" class="btn btn-primary"
          style="display:block;width:100%;padding:14px;font-size:16px;text-align:center;margin-top:8px;">
         Back to Sign In
@@ -105,12 +113,61 @@
     const mob = document.getElementById('mobileMenu');
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
-    document.getElementById('resetForm').addEventListener('submit', function(e) {
+    document.getElementById('resetForm').addEventListener('submit', async function(e) {
       e.preventDefault();
-      const email = document.getElementById('email').value.trim();
-      document.getElementById('sentTo').textContent = email;
-      document.getElementById('requestCard').style.display = 'none';
-      document.getElementById('confirmCard').style.display  = 'block';
+      const btn      = this.querySelector('button[type="submit"]');
+      const email    = document.getElementById('email').value.trim();
+      const origHTML = btn.innerHTML;
+      btn.disabled   = true;
+      btn.innerHTML  = '<iconify-icon icon="lucide:loader-circle" style="font-size:18px;margin-right:8px;animation:spin 1s linear infinite"></iconify-icon>Sending…';
+
+      try {
+        const fd = new FormData();
+        fd.append('form_type', 'forgot_password');
+        fd.append('email', email);
+        const res  = await fetch('process_form.php', { method: 'POST', body: fd });
+        const data = await res.json();
+
+        if (data.success) {
+          document.getElementById('sentTo').textContent = email;
+          document.getElementById('requestCard').style.display = 'none';
+
+          // If the API returns a reset token (dev/staging mode), build the link directly.
+          if (data.reset_token && data.user_id) {
+            const resetUrl = 'reset-password.php?token=' + encodeURIComponent(data.reset_token) + '&user_id=' + encodeURIComponent(data.user_id);
+            document.getElementById('resetLinkWrap').style.display = 'block';
+            document.getElementById('resetLink').href        = resetUrl;
+            document.getElementById('resetLink').textContent = resetUrl;
+          }
+
+          document.getElementById('confirmCard').style.display = 'block';
+        } else {
+          // Show inline error
+          let fb = document.getElementById('resetFeedback');
+          if (!fb) {
+            fb = document.createElement('div');
+            fb.id        = 'resetFeedback';
+            fb.className = 'form-feedback error';
+            this.prepend(fb);
+          }
+          fb.textContent     = '✗ ' + data.message;
+          fb.style.display   = 'flex';
+          btn.disabled  = false;
+          btn.innerHTML = origHTML;
+        }
+      } catch {
+        let fb = document.getElementById('resetFeedback');
+        if (!fb) {
+          fb = document.createElement('div');
+          fb.id        = 'resetFeedback';
+          fb.className = 'form-feedback error';
+          this.prepend(fb);
+        }
+        fb.textContent   = '✗ Network error — please try again.';
+        fb.style.display = 'flex';
+        btn.disabled  = false;
+        btn.innerHTML = origHTML;
+      }
     });
   </script>
 </body>

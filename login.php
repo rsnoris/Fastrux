@@ -159,6 +159,8 @@
             super_admin:       'admin-dashboard.php',
             insurance_company: 'insurance-dashboard.php',
             trucking_company:  'trucking-dashboard.php',
+            gas_station:       'gas-station-dashboard.php',
+            hotel:             'hotel-dashboard.php',
           };
           const defaultDash = dashboardMap[role] || 'index.php';
           const redirect = params.get('redirect') || defaultDash;

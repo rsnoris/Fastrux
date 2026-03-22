@@ -89,6 +89,16 @@ function validEmail(string $email): bool {
 }
 
 // ── Route by form type ────────────────────────────────────
+
+// Handle CORS preflight (OPTIONS) requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    header('Access-Control-Allow-Origin: *');
+    header('Access-Control-Allow-Methods: POST, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type');
+    http_response_code(200);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     respond(false, 'Method not allowed.');
 }
@@ -119,6 +129,12 @@ switch ($type) {
         break;
     case 'kyc_load':
         handleKycLoad();
+        break;
+    case 'forgot_password':
+        handleForgotPassword();
+        break;
+    case 'reset_password':
+        handleResetPassword();
         break;
     default:
         respond(false, 'Unknown form type.');
@@ -553,6 +569,20 @@ function handleLogin(): void
     if (($user['status'] ?? 'active') === 'rejected') {
         auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account rejected: {$email}");
         respond(false, 'Your account application was not approved. Please contact support for more information.');
+    }
+
+    // If the login form specifies an expected role (portal-specific logins), enforce it
+    $expectedRole = clean($_POST['expected_role'] ?? '');
+    if ($expectedRole !== '' && ($user['role'] ?? 'shipper') !== $expectedRole) {
+        $portalNames = [
+            'gas_station'      => 'Gas Station',
+            'hotel'            => 'Hotel',
+            'insurance_company'=> 'Insurance Company',
+            'trucking_company' => 'Trucking Company',
+        ];
+        $portalLabel = $portalNames[$expectedRole] ?? ucfirst(str_replace('_', ' ', $expectedRole));
+        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — wrong portal ({$expectedRole}) for role ({$user['role']}) for {$email}");
+        respond(false, "This portal is for {$portalLabel} partners only. Please use the general login page.");
     }
 
     auditLog('user.login', $user['id'] ?? '', 'user', $user['id'] ?? '', "User logged in: {$email} (role: " . ($user['role'] ?? 'shipper') . ')');
@@ -1009,7 +1039,8 @@ function handleKycLoad(): void
     }
 
     // Search across all role folders
-    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
+    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin',
+              'insurance_company', 'trucking_company', 'gas_station', 'hotel'];
     foreach ($roles as $role) {
         $kycFile = DATA_DIR . 'users/' . $role . '/' . $safeId . '/kyc.json';
         if (file_exists($kycFile)) {
@@ -1020,4 +1051,151 @@ function handleKycLoad(): void
 
     // No data yet — return empty
     respond(true, 'No KYC data found.', ['kyc' => []]);
+}
+
+// ══════════════════════════════════════════════════════════
+//  FORGOT PASSWORD HANDLER
+//  Generates a reset token and stores it for later use
+// ══════════════════════════════════════════════════════════
+
+function handleForgotPassword(): void
+{
+    $email = clean($_POST['email'] ?? '');
+
+    if (!$email) {
+        respond(false, 'Email address is required.');
+    }
+    if (!validEmail($email)) {
+        respond(false, 'Please enter a valid email address.');
+    }
+
+    $usersPath = DATA_DIR . 'registered_users.json';
+
+    // Always respond with the same message regardless of whether email exists
+    // (prevents user enumeration)
+    $genericMsg = 'If that email address is registered, a password reset link has been sent.';
+
+    if (!file_exists($usersPath)) {
+        respond(true, $genericMsg);
+    }
+
+    $users = json_decode(file_get_contents($usersPath), true) ?? [];
+    $user  = null;
+    foreach ($users as $u) {
+        if (isset($u['email']) && strtolower($u['email']) === strtolower($email)) {
+            $user = $u;
+            break;
+        }
+    }
+
+    if (!$user) {
+        respond(true, $genericMsg);
+    }
+
+    // Generate a secure reset token (valid for 1 hour)
+    $token     = bin2hex(random_bytes(32));
+    $expiry    = date('Y-m-d H:i:s', strtotime('+1 hour'));
+    $userId    = $user['id'];
+
+    $tokensPath = DATA_DIR . 'password_reset_tokens.json';
+    $tokens     = [];
+    if (file_exists($tokensPath)) {
+        $tokens = json_decode(file_get_contents($tokensPath), true) ?? [];
+    }
+
+    // Remove expired tokens first (cleanup), then remove any existing tokens for this user
+    $now    = date('Y-m-d H:i:s');
+    $tokens = array_values(array_filter($tokens, fn($t) => ($t['expires_at'] ?? '') > $now));
+    $tokens = array_values(array_filter($tokens, fn($t) => ($t['user_id'] ?? '') !== $userId));
+
+    $tokens[] = [
+        'token'      => $token,
+        'user_id'    => $userId,
+        'email'      => $user['email'],
+        'expires_at' => $expiry,
+        'created_at' => date('Y-m-d H:i:s'),
+    ];
+
+    file_put_contents($tokensPath, json_encode($tokens, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    auditLog('user.password_reset_requested', $userId, 'user', $userId, "Password reset requested for: {$email}");
+
+    // Return the reset token in the response so the frontend can build the link.
+    // NOTE: In a production system with an email server configured, remove 'reset_token'
+    // and 'user_id' from this response and send the link via email to $user['email'] only.
+    respond(true, $genericMsg, ['reset_token' => $token, 'user_id' => $userId]);
+}
+
+// ══════════════════════════════════════════════════════════
+//  RESET PASSWORD HANDLER
+//  Validates a reset token and updates the user's password
+// ══════════════════════════════════════════════════════════
+
+function handleResetPassword(): void
+{
+    $token           = clean($_POST['token']            ?? '');
+    $newPassword     = $_POST['new_password']            ?? '';
+    $confirmPassword = $_POST['confirm_password']        ?? '';
+
+    if (!$token || !$newPassword || !$confirmPassword) {
+        respond(false, 'All fields are required.');
+    }
+    if (strlen($newPassword) < 8) {
+        respond(false, 'Password must be at least 8 characters long.');
+    }
+    if ($newPassword !== $confirmPassword) {
+        respond(false, 'Passwords do not match.');
+    }
+
+    $tokensPath = DATA_DIR . 'password_reset_tokens.json';
+    if (!file_exists($tokensPath)) {
+        respond(false, 'Invalid or expired reset link. Please request a new one.');
+    }
+
+    $tokens  = json_decode(file_get_contents($tokensPath), true) ?? [];
+    $now     = date('Y-m-d H:i:s');
+    $matched = null;
+    foreach ($tokens as $t) {
+        if (isset($t['token']) && hash_equals($t['token'], $token) && ($t['expires_at'] ?? '') > $now) {
+            $matched = $t;
+            break;
+        }
+    }
+
+    if (!$matched) {
+        respond(false, 'Invalid or expired reset link. Please request a new one.');
+    }
+
+    $userId    = $matched['user_id'];
+    $usersPath = DATA_DIR . 'registered_users.json';
+    if (!file_exists($usersPath)) {
+        respond(false, 'User account not found.');
+    }
+
+    $users = json_decode(file_get_contents($usersPath), true) ?? [];
+    $found = false;
+    foreach ($users as &$u) {
+        if (($u['id'] ?? '') === $userId) {
+            $u['password_hash'] = password_hash($newPassword, PASSWORD_DEFAULT);
+            $u['updated_at']    = date('Y-m-d H:i:s');
+            $found = true;
+            break;
+        }
+    }
+    unset($u);
+
+    if (!$found) {
+        respond(false, 'User account not found.');
+    }
+
+    file_put_contents(
+        $usersPath,
+        json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+    );
+
+    // Invalidate the used token
+    $tokens = array_values(array_filter($tokens, fn($t) => ($t['token'] ?? '') !== $token));
+    file_put_contents($tokensPath, json_encode($tokens, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
+    auditLog('user.password_reset', $userId, 'user', $userId, "Password successfully reset for user {$userId}");
+    respond(true, 'Your password has been updated. You can now sign in with your new password.');
 }
