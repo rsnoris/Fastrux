@@ -304,6 +304,9 @@
     <button class="tab-item super-only" data-tab="create-admin" onclick="switchTab('create-admin')" id="createAdminTab">
       <iconify-icon icon="lucide:shield-plus"></iconify-icon> Create Admin
     </button>
+    <button class="tab-item super-only" data-tab="reset-wallets" onclick="switchTab('reset-wallets')" id="resetWalletsTab">
+      <iconify-icon icon="lucide:wallet"></iconify-icon> Reset Wallets
+    </button>
   </div>
 
   <!-- ── Main Content ── -->
@@ -500,6 +503,30 @@
       </div>
     </div><!-- /tab-create-admin -->
 
+    <!-- ── TAB: Reset Wallets (Super-Admin only) ── -->
+    <div class="tab-pane super-only" id="tab-reset-wallets">
+      <div class="card" style="max-width:560px;">
+        <div class="card-title" style="color:#dc2626;">
+          <iconify-icon icon="lucide:alert-triangle"></iconify-icon>
+          Reset All Wallet Balances
+        </div>
+        <p style="color:var(--muted-foreground);font-size:14px;margin-top:-10px;margin-bottom:16px;">
+          This action will permanently set <strong>every user's wallet balance to $0.00</strong>.
+          A record of each reset (including the previous balance) will be written to the wallet's
+          transaction history and the audit log. This action cannot be undone.
+        </p>
+        <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:var(--radius-md);padding:14px 16px;margin-bottom:20px;font-size:13px;color:#991b1b;">
+          ⚠️ <strong>Warning:</strong> Only use this in authorised circumstances (e.g. end-of-period
+          reconciliation, compliance mandate). All reset events are permanently recorded in the audit log.
+        </div>
+        <div id="resetWalletsFeedback" class="form-feedback" style="display:none;margin-bottom:16px;"></div>
+        <button id="resetWalletsBtn" class="btn" onclick="openResetWalletsModal()"
+                style="background:#dc2626;color:#fff;border:none;padding:12px 24px;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;width:100%;">
+          Reset All Wallet Balances to $0.00
+        </button>
+      </div>
+    </div><!-- /tab-reset-wallets -->
+
   </main>
 
   <!-- Toast notification -->
@@ -542,6 +569,27 @@
       <div style="display:flex;gap:10px;justify-content:flex-end;">
         <button class="btn btn-outline" onclick="closeRoleChangeModal()" style="padding:10px 18px;">Cancel</button>
         <button class="btn-approve" id="roleChangeConfirmBtn" onclick="confirmRoleChange()" style="padding:10px 18px;border-radius:var(--radius-md);font-size:14px;">Confirm Change</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reset Wallets confirmation modal -->
+  <div class="modal-overlay" id="resetWalletsModal">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-title" style="color:#dc2626;">⚠️ Confirm Wallet Reset</div>
+      <p style="font-size:14px;margin:-8px 0 16px;">
+        You are about to <strong>reset all user wallet balances to $0.00</strong>.
+        Each reset will be recorded in the wallet transaction history and audit log.
+      </p>
+      <p style="color:#991b1b;font-size:13px;background:#fef2f2;border:1px solid #fca5a5;padding:10px 14px;border-radius:var(--radius-md);margin-bottom:16px;">
+        This action is <strong>irreversible</strong>. Confirm only if you are authorised to perform this operation.
+      </p>
+      <div style="display:flex;gap:10px;justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeResetWalletsModal()" style="padding:10px 18px;">Cancel</button>
+        <button id="resetWalletsConfirmBtn" onclick="confirmResetWallets()"
+                style="background:#dc2626;color:#fff;border:none;padding:10px 18px;border-radius:var(--radius-md);font-size:14px;font-weight:600;cursor:pointer;">
+          Yes, Reset All Balances
+        </button>
       </div>
     </div>
   </div>
@@ -962,6 +1010,45 @@
         }
       } catch (e) {}
     })();
+
+    // ── Reset wallets ──────────────────────────────────────────────
+    function openResetWalletsModal() {
+      document.getElementById('resetWalletsModal').classList.add('open');
+    }
+    function closeResetWalletsModal() {
+      document.getElementById('resetWalletsModal').classList.remove('open');
+    }
+    async function confirmResetWallets() {
+      closeResetWalletsModal();
+      var btn      = document.getElementById('resetWalletsBtn');
+      var feedback = document.getElementById('resetWalletsFeedback');
+      btn.disabled    = true;
+      btn.textContent = 'Resetting…';
+      feedback.style.display = 'none';
+      try {
+        var fd = new FormData();
+        fd.append('action',             'reset_all_wallets');
+        fd.append('requesting_user_id', currentUser.id);
+        var res  = await fetch('admin_api.php', { method: 'POST', body: fd });
+        var data = await res.json();
+        feedback.style.display = 'flex';
+        if (data.success) {
+          feedback.className   = 'form-feedback success';
+          feedback.textContent = '✓ ' + data.message + ' (' + (data.wallets_reset || 0) + ' wallets reset)';
+        } else {
+          feedback.className   = 'form-feedback error';
+          feedback.textContent = '✗ ' + data.message;
+        }
+        showToast(data.success ? '✓ ' + data.message : ('✗ ' + data.message), !data.success);
+      } catch (e) {
+        feedback.style.display = 'flex';
+        feedback.className     = 'form-feedback error';
+        feedback.textContent   = '✗ Network error.';
+        showToast('✗ Network error.', true);
+      }
+      btn.disabled    = false;
+      btn.textContent = 'Reset All Wallet Balances to $0.00';
+    }
 
     setInterval(loadStats, 60000);
   </script>

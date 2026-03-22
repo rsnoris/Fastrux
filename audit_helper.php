@@ -27,9 +27,16 @@ function auditLog(
 ): void {
     $logFile = AUDIT_DATA_DIR . 'audit_log.json';
 
-    // Derive IP — trust first hop of forwarded header, fall back to REMOTE_ADDR
-    $rawIp = $_SERVER['HTTP_X_FORWARDED_FOR'] ?? $_SERVER['REMOTE_ADDR'] ?? '';
-    $ip    = trim(explode(',', $rawIp)[0]);
+    // Derive IP — only use X-Forwarded-For when it contains a valid IP address,
+    // to prevent log-injection via spoofed headers; fall back to REMOTE_ADDR.
+    $rawIp = $_SERVER['REMOTE_ADDR'] ?? '';
+    if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $forwarded = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        if (filter_var($forwarded, FILTER_VALIDATE_IP)) {
+            $rawIp = $forwarded;
+        }
+    }
+    $ip = $rawIp;
 
     $entry = [
         'id'          => 'AUD-' . strtoupper(substr(md5(uniqid('', true)), 0, 8)),

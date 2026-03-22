@@ -15,9 +15,15 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+// Restrict CORS to same origin — payment APIs must not be callable cross-site (PCI-DSS Req 6.4)
+$allowedOrigin = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '');
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -80,7 +86,7 @@ function writeJson(string $file, array $data): void
     if (!is_dir(DATA_DIR)) {
         mkdir(DATA_DIR, 0755, true);
     }
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 /** Load a user's wallet; create default if none exists. */
@@ -105,12 +111,12 @@ function loadWallet(string $userId): array
     ];
 }
 
-/** Save a user's wallet to disk. */
+/** Save a user's wallet to disk atomically (LOCK_EX prevents concurrent-write corruption). */
 function saveWallet(string $userId, array $wallet): void
 {
     $wallet['updated_at'] = date('Y-m-d H:i:s');
     $path = WALLETS_DIR . $userId . '.json';
-    file_put_contents($path, json_encode($wallet, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    file_put_contents($path, json_encode($wallet, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 // ── GET ───────────────────────────────────────────────────────────────────────
@@ -243,8 +249,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($paymentMethod === 'wallet') {
-        // Verify the user has sufficient balance
-        $wallet = loadWallet($userId);
+        // Load wallet once and re-validate balance before deducting (single-load to avoid TOCTOU race)
+        $wallet  = loadWallet($userId);
         $balance = round((float)($wallet['balance'] ?? 0), 2);
         if ($balance < $amount) {
             respond(false, sprintf(
@@ -279,7 +285,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($paymentMethod === 'card') {
         $payment['card_name']       = $cardName;
         $payment['card_last4']      = $cardLast4;
-        $payment['card_expiry']     = $cardExpiry;
+        // card_expiry is NOT stored post-authorisation (PCI-DSS Req 3.3 — minimise stored cardholder data)
         $payment['billing_address'] = $billingAddress;
     }
 
@@ -304,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // ── Deduct from wallet when paying by wallet ──────────────────────────────
 
     if ($paymentMethod === 'wallet') {
-        $wallet           = loadWallet($userId);
+        // $wallet was already loaded above for the balance check; deduct from it now
         $wallet['balance'] = round((float)($wallet['balance'] ?? 0) - $amount, 2);
 
         $txId = 'TXN-' . strtoupper(bin2hex(random_bytes(4)));
@@ -325,7 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         // Card payment: record a card-payment transaction in the wallet
         // (for a complete transaction history, even when not using wallet balance)
-        $wallet           = loadWallet($userId);
+        $wallet = loadWallet($userId);
         $txId = 'TXN-' . strtoupper(bin2hex(random_bytes(4)));
         $wallet['transactions'][] = [
             'id'          => $txId,
