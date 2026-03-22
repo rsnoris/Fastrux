@@ -591,13 +591,13 @@ function handleRegister(): void
     }
 
     // Sanitize role — admin/super_admin/corporate_staff cannot self-register via public form
-    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'insurance_company', 'trucking_company'];
+    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'insurance_company', 'trucking_company', 'gas_station', 'hotel'];
     if (!in_array($role, $allowedRegRoles, true)) {
         $role = 'shipper';
     }
 
     // Company name is required for company accounts
-    if (in_array($role, ['insurance_company', 'trucking_company'], true) && !$company) {
+    if (in_array($role, ['insurance_company', 'trucking_company', 'gas_station', 'hotel'], true) && !$company) {
         respond(false, 'Company name is required for company accounts.');
     }
 
@@ -682,6 +682,37 @@ function handleRegister(): void
         $entry['website']      = clean($_POST['website']      ?? '');
     }
 
+    if ($role === 'gas_station') {
+        $allowedFuelTypes = ['regular', 'premium', 'diesel', 'e85', 'ev_charging', 'def_fluid'];
+        $rawFuels = $_POST['gs_fuel_types'] ?? [];
+        $safeFuels = [];
+        if (is_array($rawFuels)) {
+            foreach ($rawFuels as $f) {
+                $f = clean($f);
+                if (in_array($f, $allowedFuelTypes, true)) {
+                    $safeFuels[] = $f;
+                }
+            }
+        }
+        $entry['fuel_types']    = $safeFuels;
+        $entry['gs_location']   = clean($_POST['gs_location']      ?? '');
+        $entry['gs_hours']      = clean($_POST['gs_hours']         ?? '');
+        $entry['contact_phone'] = clean($_POST['gs_contact_phone'] ?? '');
+        $entry['website']       = clean($_POST['gs_website']       ?? '');
+    }
+
+    if ($role === 'hotel') {
+        $rawStars = trim($_POST['hotel_star_rating'] ?? '');
+        $starInt  = (int) $rawStars;
+        if ($rawStars !== '' && ($starInt < 1 || $starInt > 5)) {
+            respond(false, 'Star rating must be between 1 and 5.');
+        }
+        $entry['star_rating']   = $rawStars !== '' ? $starInt : '';
+        $entry['hotel_location']= clean($_POST['hotel_location']      ?? '');
+        $entry['contact_phone'] = clean($_POST['hotel_contact_phone'] ?? '');
+        $entry['website']       = clean($_POST['hotel_website']       ?? '');
+    }
+
     appendJson('registered_users.json', $entry);
 
     $headers = ['id', 'timestamp', 'first_name', 'last_name', 'email', 'company', 'role', 'status'];
@@ -738,7 +769,7 @@ function handleKycUpdate(): void
         respond(false, 'User account not found.');
     }
 
-    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin', 'insurance_company', 'trucking_company'];
+    $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin', 'insurance_company', 'trucking_company', 'gas_station', 'hotel'];
     if (!in_array($role, $allowedRoles, true)) {
         $role = 'shipper';
     }
