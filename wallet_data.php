@@ -11,9 +11,20 @@
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: GET, POST');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+// Restrict CORS to same origin — wallet/payment APIs must not be callable cross-site (PCI-DSS Req 6.4)
+$allowedOrigin = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '');
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
+header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
 
 define('DATA_DIR', __DIR__ . '/data/');
 define('PAYMENTS_JSON', DATA_DIR . 'payments.json');
@@ -65,14 +76,15 @@ function loadWallet(string $safeUserId): array
 }
 
 /**
- * Save a wallet to disk.
+ * Save a wallet to disk atomically (LOCK_EX prevents concurrent-write corruption).
  */
 function saveWallet(string $safeUserId, array $wallet): void
 {
     $wallet['updated_at'] = date('Y-m-d H:i:s');
     file_put_contents(
         walletPath($safeUserId),
-        json_encode($wallet, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        json_encode($wallet, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        LOCK_EX
     );
 }
 
@@ -105,7 +117,7 @@ function writeJson(string $file, array $data): void
     if (!is_dir(DATA_DIR)) {
         mkdir(DATA_DIR, 0755, true);
     }
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
 }
 
 // ── Route ─────────────────────────────────────────────────────────────────────
@@ -202,7 +214,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'payment_method'  => 'card',
             'card_name'       => $cardName,
             'card_last4'      => $cardLast4,
-            'card_expiry'     => $cardExpiry,
+            // card_expiry is NOT stored post-authorisation (PCI-DSS Req 3.3 — minimise stored cardholder data)
             'billing_address' => $billingAddress,
             'status'          => 'completed',
             'created_at'      => date('Y-m-d H:i:s'),

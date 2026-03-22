@@ -12,12 +12,19 @@
  * POST action=reject_staff            → reject a staff account (admin+)
  * POST action=change_role             → change a user's role (super_admin only)
  * POST action=create_admin            → create an admin/super_admin account (super_admin only)
+ * POST action=reset_all_wallets       → reset all wallet balances to $0.00 (super_admin only)
  */
 
 header('Content-Type: application/json');
-header('Access-Control-Allow-Origin: *');
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: DENY');
+header('Referrer-Policy: strict-origin-when-cross-origin');
+// Restrict CORS to same origin — admin APIs must not be callable cross-site
+$allowedOrigin = (isset($_SERVER['HTTPS']) ? 'https' : 'http') . '://' . ($_SERVER['HTTP_HOST'] ?? '');
+header('Access-Control-Allow-Origin: ' . $allowedOrigin);
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Credentials: true');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -28,6 +35,7 @@ require_once __DIR__ . '/audit_helper.php';
 
 define('ADMIN_DATA_DIR', __DIR__ . '/data/');
 define('USERS_FILE',     ADMIN_DATA_DIR . 'registered_users.json');
+define('WALLETS_DIR',    ADMIN_DATA_DIR . 'wallets/');
 
 // ── Helpers ───────────────────────────────────────────────────────
 
@@ -55,7 +63,8 @@ function saveUsersFile(array $users): void
 {
     file_put_contents(
         USERS_FILE,
-        json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE)
+        json_encode(array_values($users), JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+        LOCK_EX
     );
 }
 
@@ -325,6 +334,70 @@ if ($method === 'POST') {
             "Admin account created: {$email} (role: {$newRole}) by {$requestingUserId}"
         );
         adminRespond(true, "Admin account created successfully.", ['id' => $newId, 'role' => $newRole]);
+    }
+
+    // ── Reset all wallet balances (super_admin only) ───────────────
+    if ($action === 'reset_all_wallets') {
+        $actor   = requireRole($requestingUserId, 'super_admin');
+        // Use the verified actor ID from the user store to prevent any injection via the request field
+        $actorId = $actor['id'] ?? $requestingUserId;
+
+        $resetAt  = date('Y-m-d H:i:s');
+        $count    = 0;
+        $skipped  = 0;
+
+        if (is_dir(WALLETS_DIR)) {
+            $files = glob(WALLETS_DIR . '*.json');
+            if (is_array($files)) {
+                foreach ($files as $file) {
+                    $raw  = file_get_contents($file);
+                    $data = json_decode($raw, true);
+                    if (!is_array($data)) {
+                        $skipped++;
+                        continue;
+                    }
+
+                    $prevBalance = round((float)($data['balance'] ?? 0), 2);
+
+                    // Append an admin-reset marker to the transaction history for audit purposes
+                    $data['transactions'][] = [
+                        'id'          => 'TXN-' . strtoupper(bin2hex(random_bytes(4))),
+                        'type'        => 'admin_reset',
+                        'amount'      => $prevBalance,
+                        'description' => "Balance reset to \$0.00 by administrator ({$actorId})",
+                        'timestamp'   => $resetAt,
+                    ];
+
+                    // Cap transaction history at 500
+                    if (count($data['transactions']) > 500) {
+                        $data['transactions'] = array_slice($data['transactions'], -500);
+                    }
+
+                    $data['balance']    = 0.00;
+                    $data['updated_at'] = $resetAt;
+
+                    file_put_contents(
+                        $file,
+                        json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE),
+                        LOCK_EX
+                    );
+                    $count++;
+                }
+            }
+        }
+
+        auditLog(
+            'wallet.all_balances_reset',
+            $actorId,
+            'wallet',
+            'ALL',
+            "All wallet balances reset to \$0.00 by {$actorId}. Wallets reset: {$count}, skipped: {$skipped}."
+        );
+
+        adminRespond(true, "All wallet balances have been reset to \$0.00.", [
+            'wallets_reset'   => $count,
+            'wallets_skipped' => $skipped,
+        ]);
     }
 
     adminRespond(false, 'Unknown action.');

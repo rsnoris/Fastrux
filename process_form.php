@@ -654,8 +654,27 @@ function handleRegister(): void
     }
 
     if ($role === 'trucking_company') {
-        $entry['dot_number']   = clean($_POST['dot_number']   ?? '');
-        $entry['mc_number']    = clean($_POST['mc_number']    ?? '');
+        $rawDot  = trim($_POST['dot_number'] ?? '');
+        $rawMc   = trim($_POST['mc_number']  ?? '');
+
+        // FMCSA USDOT numbers are 1–7 digits (numeric only)
+        if ($rawDot !== '' && !preg_match('/^\d{1,7}$/', $rawDot)) {
+            respond(false, 'DOT Number must be 1–7 digits (e.g. 1234567).');
+        }
+        // FMCSA MC numbers: optional "MC-" prefix followed by up to 7 digits
+        if ($rawMc !== '' && !preg_match('/^(MC-)?\d{1,7}$/i', $rawMc)) {
+            respond(false, 'MC Number must be in the format MC-XXXXXX or plain digits (e.g. MC-123456 or 123456).');
+        }
+
+        // Normalise MC number to canonical MC-XXXXXX form
+        $normMc = '';
+        if ($rawMc !== '') {
+            $digits = preg_replace('/^MC-/i', '', $rawMc);
+            $normMc = 'MC-' . $digits;
+        }
+
+        $entry['dot_number']   = clean($rawDot);
+        $entry['mc_number']    = $normMc;
         $entry['fleet_size']   = clean($_POST['fleet_size']   ?? '');
         $entry['truck_types']  = clean($_POST['truck_types']  ?? '');
         $entry['service_area'] = clean($_POST['service_area'] ?? '');
@@ -820,8 +839,19 @@ function handleKycUpdate(): void
             $kycData['years_experience'] = clean($_POST['years_experience'] ?? '');
             $kycData['operating_areas']  = clean($_POST['operating_areas']  ?? '');
         } elseif ($role === 'owner_operator') {
+            $rawOoMc = trim($_POST['mc_number'] ?? '');
+            // FMCSA MC number validation for owner-operators
+            if ($rawOoMc !== '' && !preg_match('/^(MC-)?\d{1,7}$/i', $rawOoMc)) {
+                respond(false, 'MC Number must be in the format MC-XXXXXX or plain digits (e.g. MC-123456 or 123456).');
+            }
+            // Normalise MC number to canonical MC-XXXXXX form
+            $normOoMc = '';
+            if ($rawOoMc !== '') {
+                $digits   = preg_replace('/^MC-/i', '', $rawOoMc);
+                $normOoMc = 'MC-' . $digits;
+            }
             $kycData['business_name']       = clean($_POST['business_name']       ?? '');
-            $kycData['mc_number']           = clean($_POST['mc_number']           ?? '');
+            $kycData['mc_number']           = $normOoMc;
             $kycData['fleet_size']          = clean($_POST['fleet_size']          ?? '');
             $kycData['oo_tax_id']           = clean($_POST['oo_tax_id']           ?? '');
             $kycData['oo_license_number']   = clean($_POST['oo_license_number']   ?? '');
