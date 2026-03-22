@@ -6,8 +6,8 @@
  *   → { success, balance, transactions[] }
  *
  * POST action=add_funds
- *   body: user_id, amount, description
- *   → { success, message, balance, transactions[] }
+ *   body: user_id, amount, description, card_name, card_last4, card_expiry, billing_address
+ *   → { success, message, balance, transactions[], payment_id }
  */
 
 header('Content-Type: application/json');
@@ -16,6 +16,7 @@ header('Access-Control-Allow-Methods: GET, POST');
 header('Access-Control-Allow-Headers: Content-Type');
 
 define('DATA_DIR', __DIR__ . '/data/');
+define('PAYMENTS_JSON', DATA_DIR . 'payments.json');
 
 require_once __DIR__ . '/audit_helper.php';
 
@@ -89,6 +90,24 @@ function sanitizeUserId(string $raw): string
     return '';
 }
 
+function readJson(string $file): array
+{
+    if (!file_exists($file)) {
+        return [];
+    }
+    $raw  = file_get_contents($file);
+    $data = json_decode($raw, true);
+    return is_array($data) ? $data : [];
+}
+
+function writeJson(string $file, array $data): void
+{
+    if (!is_dir(DATA_DIR)) {
+        mkdir(DATA_DIR, 0755, true);
+    }
+    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+}
+
 // ── Route ─────────────────────────────────────────────────────────────────────
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -135,6 +154,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             respond(false, 'Maximum single deposit is $10,000.');
         }
 
+        // ── Validate card payment details ─────────────────────────────────────
+
+        $cardName       = clean($_POST['card_name']       ?? '');
+        $cardLast4      = clean($_POST['card_last4']      ?? '');
+        $cardExpiry     = clean($_POST['card_expiry']     ?? '');
+        $billingAddress = clean($_POST['billing_address'] ?? '');
+
+        if (!$cardName) {
+            respond(false, 'Cardholder name is required.');
+        }
+        if (!preg_match('/^\d{4}$/', $cardLast4)) {
+            respond(false, 'card_last4 must be exactly 4 digits.');
+        }
+        if (!preg_match('/^\d{2}\/\d{2}$/', $cardExpiry)) {
+            respond(false, 'card_expiry must be in MM/YY format.');
+        }
+        [$expMm, $expYy] = explode('/', $cardExpiry);
+        $expMm   = (int)$expMm;
+        $expYy   = (int)$expYy;
+        $expYear = $expYy < 50 ? 2000 + $expYy : 2050 + ($expYy - 50);
+        $nowYear = (int)date('Y');
+        $nowMon  = (int)date('n');
+        if ($expMm < 1 || $expMm > 12 || $expYear < $nowYear || ($expYear === $nowYear && $expMm < $nowMon)) {
+            respond(false, 'The card expiry date is invalid or the card has expired.');
+        }
+        if (!$billingAddress) {
+            respond(false, 'Billing address is required.');
+        }
+
+        // ── Generate a unique payment ID ──────────────────────────────────────
+
+        $payments    = readJson(PAYMENTS_JSON);
+        $existingIds = array_column($payments, 'id');
+        do {
+            $paymentId = 'PAY-' . strtoupper(bin2hex(random_bytes(8)));
+        } while (in_array($paymentId, $existingIds, true));
+
+        // ── Record payment ────────────────────────────────────────────────────
+
+        $payment = [
+            'id'              => $paymentId,
+            'type'            => 'wallet_topup',
+            'user_id'         => $userId,
+            'amount'          => $amount,
+            'currency'        => 'USD',
+            'payment_method'  => 'card',
+            'card_name'       => $cardName,
+            'card_last4'      => $cardLast4,
+            'card_expiry'     => $cardExpiry,
+            'billing_address' => $billingAddress,
+            'status'          => 'completed',
+            'created_at'      => date('Y-m-d H:i:s'),
+        ];
+        $payments[] = $payment;
+        writeJson(PAYMENTS_JSON, $payments);
+
+        // ── Credit wallet ─────────────────────────────────────────────────────
+
         $wallet = loadWallet($userId);
 
         $txId = 'TXN-' . strtoupper(bin2hex(random_bytes(4)));
@@ -142,7 +219,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'id'          => $txId,
             'type'        => 'deposit',
             'amount'      => $amount,
-            'description' => $description ?: 'Funds added',
+            'description' => $description ?: "Card deposit (**** {$cardLast4})",
+            'reference'   => $paymentId,
             'timestamp'   => date('Y-m-d H:i:s'),
         ];
 
@@ -155,11 +233,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         saveWallet($userId, $wallet);
-        auditLog('wallet.funds_added', $userId, 'wallet', $userId, "Added \${$amount} to wallet for user {$userId}");
+        auditLog('wallet.funds_added', $userId, 'wallet', $userId, "Added \${$amount} to wallet via card **** {$cardLast4} for user {$userId} (payment {$paymentId})");
 
         respond(true, 'Funds added successfully.', [
             'balance'      => $wallet['balance'],
             'transactions' => $wallet['transactions'],
+            'payment_id'   => $paymentId,
         ]);
     }
 
