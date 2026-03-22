@@ -12,4 +12,14 @@
 
     # 308 preserves the request method (POST stays POST, GET stays GET)
     RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=308]
+
+    # ── Extensionless PHP URLs ─────────────────────────────────────────────────
+    # Serve /page as /page.php when the requested path has no extension,
+    # is not an existing file or directory, and a matching .php file exists.
+    # This fixes 404 errors for clean URLs like /track, /loadboard, /login, etc.
+    # ──────────────────────────────────────────────────────────────────────────
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME}.php -f
+    RewriteRule ^([^.]+)$ $1.php [NC,L]
 </IfModule>
