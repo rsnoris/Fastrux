@@ -78,6 +78,8 @@
     }
     .listing-card-icon.ins { background: #eff6ff; color: #1d4ed8; }
     .listing-card-icon.trk { background: #f0fdf4; color: #15803d; }
+    .listing-card-icon.gas { background: #fefce8; color: #92400e; }
+    .listing-card-icon.htl { background: #fdf4ff; color: #6b21a8; }
 
     .listing-card h3 { font-size: 15px; font-weight: 700; margin-bottom: 2px; line-height: 1.3; }
     .listing-card .company { font-size: 13px; color: var(--muted-foreground); }
@@ -188,13 +190,19 @@
   <section class="mkt-hero">
     <div class="container">
       <h1>Fastrux Marketplace</h1>
-      <p>Find spot insurance for your cargo and discover trucks available for lease or purchase — all in one place.</p>
+      <p>Find spot insurance, discover trucks for lease or purchase, locate driver-friendly gas stations, and book lodging — all in one place.</p>
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
         <a href="#insurance" class="btn" style="background:#fff;color:var(--primary);padding:12px 24px;font-size:15px;font-weight:700;">
           <iconify-icon icon="lucide:shield-check" style="margin-right:8px;vertical-align:middle;"></iconify-icon>Browse Insurance
         </a>
         <a href="#trucks" class="btn" style="background:rgba(255,255,255,.15);color:#fff;padding:12px 24px;font-size:15px;font-weight:700;border:2px solid rgba(255,255,255,.4);">
           <iconify-icon icon="lucide:truck" style="margin-right:8px;vertical-align:middle;"></iconify-icon>Browse Trucks
+        </a>
+        <a href="#gas-stations" class="btn" style="background:rgba(255,255,255,.15);color:#fff;padding:12px 24px;font-size:15px;font-weight:700;border:2px solid rgba(255,255,255,.4);">
+          <iconify-icon icon="lucide:fuel" style="margin-right:8px;vertical-align:middle;"></iconify-icon>Gas Stations
+        </a>
+        <a href="#hotels" class="btn" style="background:rgba(255,255,255,.15);color:#fff;padding:12px 24px;font-size:15px;font-weight:700;border:2px solid rgba(255,255,255,.4);">
+          <iconify-icon icon="lucide:hotel" style="margin-right:8px;vertical-align:middle;"></iconify-icon>Hotels
         </a>
       </div>
     </div>
@@ -212,6 +220,10 @@
       <div><span id="trkLeaseCount" style="font-size:24px;font-weight:900;color:#1d4ed8;">—</span> <span style="font-size:14px;color:var(--muted-foreground);">For Lease</span></div>
       <div style="width:1px;background:var(--border);"></div>
       <div><span id="trkSaleCount" style="font-size:24px;font-weight:900;color:#92400e;">—</span> <span style="font-size:14px;color:var(--muted-foreground);">For Sale</span></div>
+      <div style="width:1px;background:var(--border);"></div>
+      <div><span id="gasCount" style="font-size:24px;font-weight:900;color:#d97706;">—</span> <span style="font-size:14px;color:var(--muted-foreground);">Gas Stations</span></div>
+      <div style="width:1px;background:var(--border);"></div>
+      <div><span id="hotelCount" style="font-size:24px;font-weight:900;color:#6b21a8;">—</span> <span style="font-size:14px;color:var(--muted-foreground);">Hotels</span></div>
     </div>
 
     <!-- Insurance section -->
@@ -281,6 +293,66 @@
       </div>
     </section>
 
+    <!-- Gas Stations section -->
+    <section id="gas-stations">
+      <div class="tab-strip" style="margin-bottom:0;border-radius:var(--radius-xl) var(--radius-xl) 0 0;overflow:hidden;">
+        <div style="padding:16px 24px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;">
+          <iconify-icon icon="lucide:fuel" style="color:#d97706;font-size:22px;"></iconify-icon>
+          Gas Stations &amp; Fuel Stops
+        </div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-xl) var(--radius-xl);padding:24px;margin-bottom:40px;">
+        <div class="filter-bar">
+          <input type="text" id="gasSearch" placeholder="Search gas stations…" oninput="filterGasStations()" />
+          <select id="gasFuelFilter" onchange="filterGasStations()">
+            <option value="">All Fuel Types</option>
+            <option value="regular">Regular</option>
+            <option value="premium">Premium</option>
+            <option value="diesel">Diesel</option>
+            <option value="e85">E85 / Ethanol</option>
+            <option value="ev_charging">EV Charging</option>
+            <option value="def_fluid">DEF Fluid</option>
+          </select>
+        </div>
+        <div class="listing-grid" id="gasGrid">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <iconify-icon icon="lucide:loader-circle" style="animation:spin 1s linear infinite;color:var(--primary);"></iconify-icon>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Hotels section -->
+    <section id="hotels">
+      <div class="tab-strip" style="margin-bottom:0;border-radius:var(--radius-xl) var(--radius-xl) 0 0;overflow:hidden;">
+        <div style="padding:16px 24px;font-size:18px;font-weight:800;display:flex;align-items:center;gap:10px;">
+          <iconify-icon icon="lucide:hotel" style="color:#6b21a8;font-size:22px;"></iconify-icon>
+          Hotels &amp; Lodging
+        </div>
+      </div>
+      <div style="background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-xl) var(--radius-xl);padding:24px;margin-bottom:40px;">
+        <div class="filter-bar">
+          <input type="text" id="hotelSearch" placeholder="Search hotels…" oninput="filterHotels()" />
+          <select id="hotelAmenityFilter" onchange="filterHotels()">
+            <option value="">All Amenities</option>
+            <option value="truck_parking">Truck Parking</option>
+            <option value="parking">Free Parking</option>
+            <option value="wifi">Free Wi-Fi</option>
+            <option value="breakfast">Breakfast Included</option>
+            <option value="laundry">Laundry</option>
+            <option value="restaurant">Restaurant</option>
+            <option value="pet_friendly">Pet Friendly</option>
+            <option value="pool">Pool</option>
+          </select>
+        </div>
+        <div class="listing-grid" id="hotelsGrid">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <iconify-icon icon="lucide:loader-circle" style="animation:spin 1s linear infinite;color:var(--primary);"></iconify-icon>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- CTA section -->
     <div class="cta-grid">
       <div class="cta-card">
@@ -296,9 +368,21 @@
         <a href="trucking-login.php" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Trucking Portal</a>
       </div>
       <div class="cta-card">
+        <iconify-icon icon="lucide:fuel" style="color:#d97706;"></iconify-icon>
+        <h3>Gas Station?</h3>
+        <p>Connect with thousands of truckers and drivers looking for fuel, DEF fluid, and driver amenities along their routes.</p>
+        <a href="gas-station-login.php" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Gas Station Portal</a>
+      </div>
+      <div class="cta-card">
+        <iconify-icon icon="lucide:hotel" style="color:#6b21a8;"></iconify-icon>
+        <h3>Hotel or Motel?</h3>
+        <p>Attract drivers and logistics professionals who need rest stops and overnight stays. Highlight truck parking and driver-friendly facilities.</p>
+        <a href="hotel-login.php" class="btn btn-primary" style="align-self:flex-start;padding:10px 20px;">Hotel Portal</a>
+      </div>
+      <div class="cta-card">
         <iconify-icon icon="lucide:user-plus" style="color:var(--primary);"></iconify-icon>
         <h3>New to Fastrux?</h3>
-        <p>Register your company in minutes. Insurance and trucking partners get instant access to the marketplace.</p>
+        <p>Register your company in minutes. All marketplace partners get instant access after registration.</p>
         <a href="register.php" class="btn btn-outline" style="align-self:flex-start;padding:10px 20px;">Create Account</a>
       </div>
     </div>
@@ -314,15 +398,19 @@
             Fastrux
           </div>
           <p style="font-size:14px;color:var(--muted-foreground);max-width:260px;line-height:1.6;margin-top:8px;">
-            The logistics marketplace connecting shippers, carriers, insurance companies, and trucking fleets.
+            The logistics marketplace connecting shippers, carriers, insurance companies, trucking fleets, gas stations, and hotels.
           </p>
         </div>
         <div>
           <div class="footer-heading">Marketplace</div>
           <a href="marketplace.php#insurance" class="footer-link">Spot Insurance</a>
           <a href="marketplace.php#trucks" class="footer-link">Trucks for Lease/Sale</a>
+          <a href="marketplace.php#gas-stations" class="footer-link">Gas Stations</a>
+          <a href="marketplace.php#hotels" class="footer-link">Hotels &amp; Lodging</a>
           <a href="insurance-login.php" class="footer-link">Insurance Portal</a>
           <a href="trucking-login.php" class="footer-link">Trucking Portal</a>
+          <a href="gas-station-login.php" class="footer-link">Gas Station Portal</a>
+          <a href="hotel-login.php" class="footer-link">Hotel Portal</a>
         </div>
         <div>
           <div class="footer-heading">Quick Links</div>
@@ -349,8 +437,10 @@
     ham.addEventListener('click', () => { ham.classList.toggle('open'); mob.classList.toggle('open'); });
 
     // ── Data ──────────────────────────────────────────────────
-    var allInsurance = [];
-    var allTrucks    = [];
+    var allInsurance   = [];
+    var allTrucks      = [];
+    var allGasStations = [];
+    var allHotels      = [];
 
     const COVERAGE_LABELS = {
       cargo: 'Cargo', liability: 'Liability', physical_damage: 'Physical Damage',
@@ -362,32 +452,49 @@
       refrigerated: 'Refrigerated', tanker: 'Tanker', dump_truck: 'Dump Truck',
       cargo_van: 'Cargo Van', other: 'Other'
     };
+    const FUEL_LABELS = {
+      regular: 'Regular', premium: 'Premium', diesel: 'Diesel',
+      e85: 'E85', ev_charging: 'EV Charging', def_fluid: 'DEF Fluid'
+    };
+    const HOTEL_AMENITY_LABELS = {
+      parking: 'Parking', truck_parking: 'Truck Parking', wifi: 'Wi-Fi',
+      breakfast: 'Breakfast', gym: 'Gym', laundry: 'Laundry',
+      restaurant: 'Restaurant', pet_friendly: 'Pets OK', pool: 'Pool', spa: 'Spa'
+    };
 
     function esc(str) {
       var d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML;
     }
 
-    // ── Load both data sets in parallel ───────────────────────
+    // ── Load all data sets in parallel ────────────────────────
     Promise.all([
       fetch('marketplace_data.php?action=list_insurance&status=active').then(r => r.json()),
       fetch('marketplace_data.php?action=list_trucks&status=active').then(r => r.json()),
-    ]).then(function([ins, trk]) {
-      allInsurance = ins.listings || [];
-      allTrucks    = trk.listings || [];
+      fetch('marketplace_data.php?action=list_gas_stations&status=active').then(r => r.json()),
+      fetch('marketplace_data.php?action=list_hotels&status=active').then(r => r.json()),
+    ]).then(function([ins, trk, gas, htl]) {
+      allInsurance   = ins.listings || [];
+      allTrucks      = trk.listings || [];
+      allGasStations = gas.listings || [];
+      allHotels      = htl.listings || [];
 
       // Stats bar
-      document.getElementById('insCount').textContent   = allInsurance.length;
-      document.getElementById('trkCount').textContent   = allTrucks.length;
+      document.getElementById('insCount').textContent      = allInsurance.length;
+      document.getElementById('trkCount').textContent      = allTrucks.length;
       document.getElementById('trkLeaseCount').textContent = allTrucks.filter(l => l.listing_type === 'lease').length;
       document.getElementById('trkSaleCount').textContent  = allTrucks.filter(l => l.listing_type === 'sale').length;
+      document.getElementById('gasCount').textContent      = allGasStations.length;
+      document.getElementById('hotelCount').textContent    = allHotels.length;
 
       renderInsurance(allInsurance);
       renderTrucks(allTrucks);
+      renderGasStations(allGasStations);
+      renderHotels(allHotels);
     }).catch(function() {
-      document.getElementById('insuranceGrid').innerHTML =
-        '<div class="empty-state" style="grid-column:1/-1;"><iconify-icon icon="lucide:alert-circle"></iconify-icon><h3>Could not load listings</h3><p>Please try refreshing the page.</p></div>';
-      document.getElementById('trucksGrid').innerHTML =
-        '<div class="empty-state" style="grid-column:1/-1;"><iconify-icon icon="lucide:alert-circle"></iconify-icon><h3>Could not load listings</h3><p>Please try refreshing the page.</p></div>';
+      ['insuranceGrid','trucksGrid','gasGrid','hotelsGrid'].forEach(function(id) {
+        document.getElementById(id).innerHTML =
+          '<div class="empty-state" style="grid-column:1/-1;"><iconify-icon icon="lucide:alert-circle"></iconify-icon><h3>Could not load listings</h3><p>Please try refreshing the page.</p></div>';
+      });
     });
 
     // ── Render insurance ──────────────────────────────────────
@@ -501,6 +608,115 @@
         return matchQ && matchL && matchV;
       });
       renderTrucks(filtered);
+    }
+
+    function filterGasStations() {
+      var query    = document.getElementById('gasSearch').value.toLowerCase();
+      var fuelType = document.getElementById('gasFuelFilter').value;
+      var filtered = allGasStations.filter(function(l) {
+        var matchQ = !query ||
+          (l.title        || '').toLowerCase().includes(query) ||
+          (l.company_name || '').toLowerCase().includes(query) ||
+          (l.location     || '').toLowerCase().includes(query) ||
+          (l.description  || '').toLowerCase().includes(query);
+        var matchF = !fuelType || (l.fuel_types || []).includes(fuelType);
+        return matchQ && matchF;
+      });
+      renderGasStations(filtered);
+    }
+
+    function filterHotels() {
+      var query   = document.getElementById('hotelSearch').value.toLowerCase();
+      var amenity = document.getElementById('hotelAmenityFilter').value;
+      var filtered = allHotels.filter(function(l) {
+        var matchQ = !query ||
+          (l.title        || '').toLowerCase().includes(query) ||
+          (l.company_name || '').toLowerCase().includes(query) ||
+          (l.location     || '').toLowerCase().includes(query) ||
+          (l.description  || '').toLowerCase().includes(query);
+        var matchA = !amenity || (l.amenities || []).includes(amenity);
+        return matchQ && matchA;
+      });
+      renderHotels(filtered);
+    }
+
+    // ── Render gas stations ───────────────────────────────────
+    function renderGasStations(listings) {
+      var grid = document.getElementById('gasGrid');
+      if (!listings.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">' +
+          '<iconify-icon icon="lucide:fuel"></iconify-icon>' +
+          '<h3>No gas station listings yet</h3>' +
+          '<p>Gas station partners can register and list their fuel stops here.</p>' +
+          '<a href="register.php?role=gas_station" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Gas Station</a>' +
+          '</div>';
+        return;
+      }
+      grid.innerHTML = listings.map(function(l) {
+        var fuelTags = (l.fuel_types||[]).map(t => '<span class="coverage-tag" style="background:#fefce8;color:#92400e;">' + esc(FUEL_LABELS[t]||t) + '</span>').join('');
+        var emailLink = l.contact_email ? '<a href="mailto:' + esc(l.contact_email) + '"><iconify-icon icon="lucide:mail"></iconify-icon>' + esc(l.contact_email) + '</a>' : '';
+        var phoneLink = l.contact_phone ? '<a href="tel:' + esc(l.contact_phone) + '"><iconify-icon icon="lucide:phone"></iconify-icon>' + esc(l.contact_phone) + '</a>' : '';
+        var webLink   = l.website       ? '<a href="' + esc(l.website) + '" target="_blank" rel="noopener"><iconify-icon icon="lucide:external-link"></iconify-icon>Website</a>' : '';
+        return '<div class="listing-card">' +
+          '<div class="listing-card-header">' +
+            '<div style="flex:1;">' +
+              '<h3>' + esc(l.title) + '</h3>' +
+              '<div class="company">' + esc(l.company_name) + '</div>' +
+            '</div>' +
+            '<div class="listing-card-icon gas"><iconify-icon icon="lucide:fuel"></iconify-icon></div>' +
+          '</div>' +
+          (l.description ? '<p style="font-size:14px;color:var(--muted-foreground);line-height:1.5;margin:0;">' + esc(l.description) + '</p>' : '') +
+          '<div>' + (fuelTags || '<span style="color:var(--muted-foreground);font-size:13px;">Fuel types not specified</span>') + '</div>' +
+          '<div class="listing-meta">' +
+            (l.location     ? '<div class="meta-item"><iconify-icon icon="lucide:map-pin"></iconify-icon>' + esc(l.location) + '</div>' : '') +
+            (l.hours        ? '<div class="meta-item"><iconify-icon icon="lucide:clock"></iconify-icon>' + esc(l.hours) + '</div>' : '') +
+            (l.price_regular? '<div class="meta-item"><iconify-icon icon="lucide:dollar-sign"></iconify-icon>Regular: $' + esc(l.price_regular) + '/gal</div>' : '') +
+            (l.price_diesel ? '<div class="meta-item"><iconify-icon icon="lucide:dollar-sign"></iconify-icon>Diesel: $' + esc(l.price_diesel) + '/gal</div>' : '') +
+          '</div>' +
+          (l.notes ? '<p style="font-size:13px;color:var(--muted-foreground);margin:0;border-top:1px solid var(--border);padding-top:10px;">' + esc(l.notes) + '</p>' : '') +
+          '<div class="contact-row">' + emailLink + phoneLink + webLink + '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    // ── Render hotels ─────────────────────────────────────────
+    function renderHotels(listings) {
+      var grid = document.getElementById('hotelsGrid');
+      if (!listings.length) {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;">' +
+          '<iconify-icon icon="lucide:hotel"></iconify-icon>' +
+          '<h3>No hotel listings yet</h3>' +
+          '<p>Hotel partners can register and list their properties here.</p>' +
+          '<a href="register.php?role=hotel" class="btn btn-primary" style="display:inline-flex;padding:10px 20px;">Register as Hotel</a>' +
+          '</div>';
+        return;
+      }
+      grid.innerHTML = listings.map(function(l) {
+        var stars = l.star_rating ? '★'.repeat(parseInt(l.star_rating)) : '';
+        var amenTags = (l.amenities||[]).slice(0,4).map(a => '<span class="coverage-tag" style="background:#fdf4ff;color:#6b21a8;">' + esc(HOTEL_AMENITY_LABELS[a]||a) + '</span>').join('');
+        if ((l.amenities||[]).length > 4) amenTags += '<span class="coverage-tag" style="background:#fdf4ff;color:#6b21a8;">+' + ((l.amenities||[]).length - 4) + '</span>';
+        var emailLink = l.contact_email ? '<a href="mailto:' + esc(l.contact_email) + '"><iconify-icon icon="lucide:mail"></iconify-icon>' + esc(l.contact_email) + '</a>' : '';
+        var phoneLink = l.contact_phone ? '<a href="tel:' + esc(l.contact_phone) + '"><iconify-icon icon="lucide:phone"></iconify-icon>' + esc(l.contact_phone) + '</a>' : '';
+        var webLink   = l.website       ? '<a href="' + esc(l.website) + '" target="_blank" rel="noopener"><iconify-icon icon="lucide:external-link"></iconify-icon>Website</a>' : '';
+        return '<div class="listing-card">' +
+          '<div class="listing-card-header">' +
+            '<div style="flex:1;">' +
+              '<h3>' + esc(l.title) + (stars ? ' <span style="color:#f59e0b;font-size:13px;">' + stars + '</span>' : '') + '</h3>' +
+              '<div class="company">' + esc(l.company_name) + '</div>' +
+            '</div>' +
+            '<div class="listing-card-icon htl"><iconify-icon icon="lucide:hotel"></iconify-icon></div>' +
+          '</div>' +
+          (l.description ? '<p style="font-size:14px;color:var(--muted-foreground);line-height:1.5;margin:0;">' + esc(l.description) + '</p>' : '') +
+          '<div>' + (amenTags || '<span style="color:var(--muted-foreground);font-size:13px;">Amenities not specified</span>') + '</div>' +
+          '<div class="listing-meta">' +
+            (l.location        ? '<div class="meta-item"><iconify-icon icon="lucide:map-pin"></iconify-icon>' + esc(l.location) + '</div>' : '') +
+            (l.price_per_night ? '<div class="meta-item"><iconify-icon icon="lucide:dollar-sign"></iconify-icon>From $' + esc(l.price_per_night) + '/night</div>' : '') +
+            (l.check_in_time   ? '<div class="meta-item"><iconify-icon icon="lucide:log-in"></iconify-icon>Check-in: ' + esc(l.check_in_time) + '</div>' : '') +
+          '</div>' +
+          (l.notes ? '<p style="font-size:13px;color:var(--muted-foreground);margin:0;border-top:1px solid var(--border);padding-top:10px;">' + esc(l.notes) + '</p>' : '') +
+          '<div class="contact-row">' + emailLink + phoneLink + webLink + '</div>' +
+        '</div>';
+      }).join('');
     }
   </script>
 </body>

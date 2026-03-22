@@ -9,7 +9,7 @@
   var EMPLOYEE_ROLES      = ['driver', 'owner_operator', 'corporate_staff'];
   var SHIPPER_ROLES       = ['shipper', 'customer'];
   var ADMIN_ROLES         = ['admin', 'super_admin'];
-  var COMPANY_ROLES       = ['insurance_company', 'trucking_company'];
+  var COMPANY_ROLES       = ['insurance_company', 'trucking_company', 'gas_station', 'hotel'];
   var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
 
   function isEmployee(role) {
@@ -29,7 +29,11 @@
   }
 
   function companyDashHref(role) {
-    return role === 'insurance_company' ? 'insurance-dashboard.php' : 'trucking-dashboard.php';
+    if (role === 'insurance_company') return 'insurance-dashboard.php';
+    if (role === 'trucking_company')  return 'trucking-dashboard.php';
+    if (role === 'gas_station')       return 'gas-station-dashboard.php';
+    if (role === 'hotel')             return 'hotel-dashboard.php';
+    return 'marketplace.php';
   }
 
   function formatRole(role) {
@@ -43,6 +47,8 @@
       super_admin:       'Super-Admin',
       insurance_company: 'Insurance Company',
       trucking_company:  'Trucking Company',
+      gas_station:       'Gas Station',
+      hotel:             'Hotel',
     };
     return map[role] || role;
   }

@@ -119,6 +119,8 @@
             <optgroup label="Marketplace Partners">
               <option value="insurance_company">Insurance Company — Offer spot insurance</option>
               <option value="trucking_company">Trucking Company — List trucks for lease / sale</option>
+              <option value="gas_station">Gas Station — List fuel and amenities for drivers</option>
+              <option value="hotel">Hotel — List lodging for drivers and logistics teams</option>
             </optgroup>
           </select>
         </div>
@@ -252,7 +254,80 @@
           </div>
         </div>
 
-        <!-- ── Password ── -->
+        <!-- ── Gas Station specific fields ── -->
+        <div id="gasStationFields" style="display:none;">
+          <hr class="section-divider" />
+          <p class="section-heading"><iconify-icon icon="lucide:fuel" style="margin-right:4px;vertical-align:middle;"></iconify-icon>Gas Station Details</p>
+          <div class="form-group">
+            <label>Fuel Types Available</label>
+            <div class="coverage-grid">
+              <label><input type="checkbox" name="gs_fuel_types[]" value="regular" style="accent-color:var(--primary);"> Regular (87)</label>
+              <label><input type="checkbox" name="gs_fuel_types[]" value="premium" style="accent-color:var(--primary);"> Premium</label>
+              <label><input type="checkbox" name="gs_fuel_types[]" value="diesel" style="accent-color:var(--primary);"> Diesel</label>
+              <label><input type="checkbox" name="gs_fuel_types[]" value="e85" style="accent-color:var(--primary);"> E85 / Ethanol</label>
+              <label><input type="checkbox" name="gs_fuel_types[]" value="ev_charging" style="accent-color:var(--primary);"> EV Charging</label>
+              <label><input type="checkbox" name="gs_fuel_types[]" value="def_fluid" style="accent-color:var(--primary);"> DEF Fluid</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="gs_location">Primary Location / Address</label>
+            <input class="form-control" type="text" id="gs_location" name="gs_location"
+                   placeholder="e.g. 4200 I-40 W, Amarillo, TX" autocomplete="off" />
+          </div>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="gs_hours">Operating Hours</label>
+              <input class="form-control" type="text" id="gs_hours" name="gs_hours"
+                     placeholder="e.g. 24/7" autocomplete="off" />
+            </div>
+            <div class="form-group">
+              <label for="gs_contact_phone">Phone Number</label>
+              <input class="form-control" type="tel" id="gs_contact_phone" name="gs_contact_phone"
+                     placeholder="+1 (555) 000-0000" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="gs_website">Website <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+            <input class="form-control" type="url" id="gs_website" name="gs_website"
+                   placeholder="https://example.com" autocomplete="url" />
+          </div>
+        </div>
+
+        <!-- ── Hotel specific fields ── -->
+        <div id="hotelFields" style="display:none;">
+          <hr class="section-divider" />
+          <p class="section-heading"><iconify-icon icon="lucide:hotel" style="margin-right:4px;vertical-align:middle;"></iconify-icon>Hotel Details</p>
+          <div class="name-row">
+            <div class="form-group">
+              <label for="hotel_star_rating">Star Rating <span style="color:var(--muted-foreground);font-weight:400;">(1–5)</span></label>
+              <select class="form-control" id="hotel_star_rating" name="hotel_star_rating">
+                <option value="">— Select —</option>
+                <option value="1">1 ★</option>
+                <option value="2">2 ★★</option>
+                <option value="3">3 ★★★</option>
+                <option value="4">4 ★★★★</option>
+                <option value="5">5 ★★★★★</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="hotel_contact_phone">Phone Number</label>
+              <input class="form-control" type="tel" id="hotel_contact_phone" name="hotel_contact_phone"
+                     placeholder="+1 (555) 000-0000" autocomplete="tel" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="hotel_location">Primary Location / Address</label>
+            <input class="form-control" type="text" id="hotel_location" name="hotel_location"
+                   placeholder="e.g. 1200 Hwy 40, Elk City, OK" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label for="hotel_website">Website <span style="color:var(--muted-foreground);font-weight:400;">(optional)</span></label>
+            <input class="form-control" type="url" id="hotel_website" name="hotel_website"
+                   placeholder="https://example.com" autocomplete="url" />
+          </div>
+        </div>
+
+
         <div class="form-group" style="margin-top:8px;">
           <label for="password">Password</label>
           <div class="password-wrapper">
@@ -283,7 +358,9 @@
       <p class="auth-footer-text">Already have an account? <a href="login.php">Sign in</a></p>
       <p class="auth-footer-text" style="margin-top:6px;font-size:13px;color:var(--muted-foreground);">
         Insurance company? <a href="insurance-login.php" style="color:var(--primary);">Insurance portal</a> &nbsp;·&nbsp;
-        Trucking company? <a href="trucking-login.php" style="color:var(--primary);">Trucking portal</a>
+        Trucking company? <a href="trucking-login.php" style="color:var(--primary);">Trucking portal</a> &nbsp;·&nbsp;
+        Gas station? <a href="gas-station-login.php" style="color:var(--primary);">Gas Station portal</a> &nbsp;·&nbsp;
+        Hotel? <a href="hotel-login.php" style="color:var(--primary);">Hotel portal</a>
       </p>
     </div>
   </div>
@@ -312,6 +389,8 @@
       const companyNoticeText= document.getElementById('companyNoticeText');
       const insuranceFields  = document.getElementById('insuranceFields');
       const truckingFields   = document.getElementById('truckingFields');
+      const gasStationFields = document.getElementById('gasStationFields');
+      const hotelFields      = document.getElementById('hotelFields');
       const companyRequired  = document.getElementById('companyRequired');
       const companyInput     = document.getElementById('company');
 
@@ -320,6 +399,8 @@
       companyNotice.style.display  = 'none';
       insuranceFields.style.display= 'none';
       truckingFields.style.display = 'none';
+      gasStationFields.style.display = 'none';
+      hotelFields.style.display    = 'none';
       companyRequired.textContent  = '(optional)';
       companyInput.required        = false;
 
@@ -337,6 +418,18 @@
         truckingFields.style.display  = 'block';
         companyRequired.textContent   = '(required)';
         companyInput.required         = true;
+      } else if (role === 'gas_station') {
+        companyNoticeText.textContent = 'You will be able to list your gas station with fuel types, prices, and amenities in the Fastrux Marketplace after registration.';
+        companyNotice.style.display     = 'block';
+        gasStationFields.style.display  = 'block';
+        companyRequired.textContent     = '(required)';
+        companyInput.required           = true;
+      } else if (role === 'hotel') {
+        companyNoticeText.textContent = 'You will be able to list your hotel or lodging property in the Fastrux Marketplace after registration.';
+        companyNotice.style.display  = 'block';
+        hotelFields.style.display    = 'block';
+        companyRequired.textContent  = '(required)';
+        companyInput.required        = true;
       }
     }
 
@@ -394,6 +487,8 @@
             const dashMap = {
               insurance_company: 'insurance-dashboard.php',
               trucking_company:  'trucking-dashboard.php',
+              gas_station:       'gas-station-dashboard.php',
+              hotel:             'hotel-dashboard.php',
               driver:            'driver-dashboard.php',
               owner_operator:    'driver-dashboard.php',
               shipper:           'shipper-dashboard.php',

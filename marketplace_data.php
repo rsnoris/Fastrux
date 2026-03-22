@@ -1,17 +1,23 @@
 <?php
 /**
  * Fastrux — Marketplace Data API
- * Handles insurance listings and truck listings for the Marketplace.
+ * Handles insurance listings, truck listings, gas station listings, and hotel listings.
  *
  * GET  ?action=list_insurance[&status=active|all][&coverage_type=cargo]
  * GET  ?action=list_trucks[&status=active|all][&listing_type=lease|sale]
- * GET  ?action=get_listing&type=insurance|truck&id=LST-XXXXXXXX
- * GET  ?action=my_listings&user_id=USR-XXXXXXXX&type=insurance|truck
+ * GET  ?action=list_gas_stations[&status=active|all][&fuel_type=diesel]
+ * GET  ?action=list_hotels[&status=active|all][&amenity=truck_parking]
+ * GET  ?action=get_listing&type=insurance|truck|gas_station|hotel&id=LST-XXXXXXXX
+ * GET  ?action=my_listings&user_id=USR-XXXXXXXX&type=insurance|truck|gas_station|hotel
  * POST action=create_insurance_listing
  * POST action=update_insurance_listing
  * POST action=delete_listing
  * POST action=create_truck_listing
  * POST action=update_truck_listing
+ * POST action=create_gas_station_listing
+ * POST action=update_gas_station_listing
+ * POST action=create_hotel_listing
+ * POST action=update_hotel_listing
  */
 
 header('Content-Type: application/json');
@@ -41,6 +47,20 @@ define('ALLOWED_COVERAGE_TYPES', [
 define('ALLOWED_TRUCK_TYPES', [
     'semi_truck', 'box_truck', 'flatbed', 'refrigerated',
     'tanker', 'dump_truck', 'cargo_van', 'other',
+]);
+
+define('ALLOWED_FUEL_TYPES', [
+    'regular', 'premium', 'diesel', 'e85', 'ev_charging', 'def_fluid',
+]);
+
+define('ALLOWED_GAS_STATION_AMENITIES', [
+    'convenience_store', 'restrooms', 'atm', 'car_wash',
+    'truck_accessible', 'tire_service', 'scales', 'shower',
+]);
+
+define('ALLOWED_HOTEL_AMENITIES', [
+    'parking', 'truck_parking', 'wifi', 'breakfast',
+    'gym', 'laundry', 'restaurant', 'pet_friendly', 'pool', 'spa',
 ]);
 
 // ── Helpers ───────────────────────────────────────────────
@@ -103,6 +123,12 @@ if ($method === 'GET') {
         case 'list_trucks':
             listTruckListings();
             break;
+        case 'list_gas_stations':
+            listGasStationListings();
+            break;
+        case 'list_hotels':
+            listHotelListings();
+            break;
         case 'get_listing':
             getListing();
             break;
@@ -125,6 +151,18 @@ if ($method === 'GET') {
             break;
         case 'update_truck_listing':
             updateTruckListing();
+            break;
+        case 'create_gas_station_listing':
+            createGasStationListing();
+            break;
+        case 'update_gas_station_listing':
+            updateGasStationListing();
+            break;
+        case 'create_hotel_listing':
+            createHotelListing();
+            break;
+        case 'update_hotel_listing':
+            updateHotelListing();
             break;
         case 'delete_listing':
             deleteListing();
@@ -192,7 +230,16 @@ function getListing(): void {
         mktRespond(false, 'Listing ID is required.');
     }
 
-    $file     = $type === 'truck' ? 'truck_listings.json' : 'insurance_listings.json';
+    if ($type === 'truck') {
+        $file = 'truck_listings.json';
+    } elseif ($type === 'gas_station') {
+        $file = 'gas_station_listings.json';
+    } elseif ($type === 'hotel') {
+        $file = 'hotel_listings.json';
+    } else {
+        $file = 'insurance_listings.json';
+    }
+
     $listings = loadJson($file);
 
     foreach ($listings as $l) {
@@ -212,7 +259,16 @@ function myListings(): void {
         mktRespond(false, 'user_id is required.');
     }
 
-    $file     = $type === 'truck' ? 'truck_listings.json' : 'insurance_listings.json';
+    if ($type === 'truck') {
+        $file = 'truck_listings.json';
+    } elseif ($type === 'gas_station') {
+        $file = 'gas_station_listings.json';
+    } elseif ($type === 'hotel') {
+        $file = 'hotel_listings.json';
+    } else {
+        $file = 'insurance_listings.json';
+    }
+
     $listings = loadJson($file);
 
     $mine = array_values(array_filter($listings, fn($l) => ($l['user_id'] ?? '') === $userId));
@@ -484,22 +540,31 @@ function updateTruckListing(): void {
 function deleteListing(): void {
     $userId    = mktClean($_POST['user_id']    ?? '');
     $listingId = mktClean($_POST['listing_id'] ?? '');
-    $listType  = mktClean($_POST['list_type']  ?? 'insurance'); // insurance | truck
+    $listType  = mktClean($_POST['list_type']  ?? 'insurance'); // insurance | truck | gas_station | hotel
 
     if (!$userId || !$listingId) {
         mktRespond(false, 'user_id and listing_id are required.');
     }
 
-    $allowedRoles = $listType === 'truck'
-        ? ['trucking_company', 'admin', 'super_admin']
-        : ['insurance_company', 'admin', 'super_admin'];
+    if ($listType === 'truck') {
+        $allowedRoles = ['trucking_company', 'admin', 'super_admin'];
+        $file         = 'truck_listings.json';
+    } elseif ($listType === 'gas_station') {
+        $allowedRoles = ['gas_station', 'admin', 'super_admin'];
+        $file         = 'gas_station_listings.json';
+    } elseif ($listType === 'hotel') {
+        $allowedRoles = ['hotel', 'admin', 'super_admin'];
+        $file         = 'hotel_listings.json';
+    } else {
+        $allowedRoles = ['insurance_company', 'admin', 'super_admin'];
+        $file         = 'insurance_listings.json';
+    }
 
     $user = verifyUserRole($userId, $allowedRoles);
     if (!$user) {
         mktRespond(false, 'Access denied.');
     }
 
-    $file     = $listType === 'truck' ? 'truck_listings.json' : 'insurance_listings.json';
     $listings = loadJson($file);
     $original = count($listings);
 
@@ -519,4 +584,335 @@ function deleteListing(): void {
     auditLog('marketplace.listing_deleted', $userId, $listType . '_listing', $listingId, "Listing deleted: {$listingId}");
 
     mktRespond(true, 'Listing deleted successfully.');
+}
+
+// ══════════════════════════════════════════════════════════
+//  POST HANDLERS — Gas Stations
+// ══════════════════════════════════════════════════════════
+
+function createGasStationListing(): void {
+    $userId = mktClean($_POST['user_id'] ?? '');
+    if (!$userId) {
+        mktRespond(false, 'user_id is required.');
+    }
+
+    $user = verifyUserRole($userId, ['gas_station', 'admin', 'super_admin']);
+    if (!$user) {
+        mktRespond(false, 'Access denied. Only gas station partners can create gas station listings.');
+    }
+
+    $title        = mktClean($_POST['title']         ?? '');
+    $description  = mktClean($_POST['description']   ?? '');
+    $location     = mktClean($_POST['location']      ?? '');
+    $fuelTypes    = $_POST['fuel_types']              ?? [];
+    $amenities    = $_POST['amenities']               ?? [];
+    $priceRegular = mktClean($_POST['price_regular']  ?? '');
+    $priceDiesel  = mktClean($_POST['price_diesel']   ?? '');
+    $priceEv      = mktClean($_POST['price_ev']       ?? '');
+    $hours        = mktClean($_POST['hours']          ?? '');
+    $contactEmail = mktClean($_POST['contact_email']  ?? '');
+    $contactPhone = mktClean($_POST['contact_phone']  ?? '');
+    $website      = mktClean($_POST['website']        ?? '');
+    $notes        = mktClean($_POST['notes']          ?? '');
+
+    if (!$title) {
+        mktRespond(false, 'Listing title is required.');
+    }
+    if (!$location) {
+        mktRespond(false, 'Location is required.');
+    }
+    if (empty($fuelTypes)) {
+        mktRespond(false, 'At least one fuel type is required.');
+    }
+
+    $safeFuelTypes = array_values(array_filter(
+        is_array($fuelTypes) ? $fuelTypes : [$fuelTypes],
+        fn($f) => in_array(mktClean($f), ALLOWED_FUEL_TYPES, true)
+    ));
+    $safeFuelTypes = array_map('mktClean', $safeFuelTypes);
+
+    $safeAmenities = array_values(array_filter(
+        is_array($amenities) ? $amenities : [$amenities],
+        fn($a) => in_array(mktClean($a), ALLOWED_GAS_STATION_AMENITIES, true)
+    ));
+    $safeAmenities = array_map('mktClean', $safeAmenities);
+
+    $id  = 'GAS-' . strtoupper(substr(md5(uniqid()), 0, 8));
+    $now = date('Y-m-d H:i:s');
+
+    $entry = [
+        'id'            => $id,
+        'type'          => 'gas_station',
+        'user_id'       => $userId,
+        'company_name'  => $user['company'] ?? ($user['first_name'] . ' ' . $user['last_name']),
+        'title'         => $title,
+        'description'   => $description,
+        'location'      => $location,
+        'fuel_types'    => $safeFuelTypes,
+        'amenities'     => $safeAmenities,
+        'price_regular' => $priceRegular,
+        'price_diesel'  => $priceDiesel,
+        'price_ev'      => $priceEv,
+        'hours'         => $hours,
+        'contact_email' => $contactEmail ?: ($user['email'] ?? ''),
+        'contact_phone' => $contactPhone,
+        'website'       => $website,
+        'notes'         => $notes,
+        'status'        => 'active',
+        'created_at'    => $now,
+        'updated_at'    => $now,
+    ];
+
+    appendToJson('gas_station_listings.json', $entry);
+    auditLog('marketplace.gas_station_listing_created', $userId, 'gas_station_listing', $id, "Gas station listing created: {$title}");
+
+    mktRespond(true, 'Gas station listing created successfully.', ['id' => $id]);
+}
+
+function updateGasStationListing(): void {
+    $userId    = mktClean($_POST['user_id']    ?? '');
+    $listingId = mktClean($_POST['listing_id'] ?? '');
+
+    if (!$userId || !$listingId) {
+        mktRespond(false, 'user_id and listing_id are required.');
+    }
+
+    $user = verifyUserRole($userId, ['gas_station', 'admin', 'super_admin']);
+    if (!$user) {
+        mktRespond(false, 'Access denied.');
+    }
+
+    $listings = loadJson('gas_station_listings.json');
+    $found    = false;
+
+    foreach ($listings as &$l) {
+        if (($l['id'] ?? '') !== $listingId) continue;
+
+        if (($l['user_id'] ?? '') !== $userId && !in_array($user['role'] ?? '', ['admin', 'super_admin'], true)) {
+            mktRespond(false, 'You do not own this listing.');
+        }
+
+        $fields = ['title', 'description', 'location', 'price_regular', 'price_diesel',
+                   'price_ev', 'hours', 'contact_email', 'contact_phone', 'website', 'notes', 'status'];
+        foreach ($fields as $f) {
+            if (isset($_POST[$f])) {
+                $l[$f] = mktClean($_POST[$f]);
+            }
+        }
+
+        if (isset($_POST['fuel_types'])) {
+            $raw = is_array($_POST['fuel_types']) ? $_POST['fuel_types'] : [$_POST['fuel_types']];
+            $l['fuel_types'] = array_values(array_filter(
+                array_map('mktClean', $raw),
+                fn($f) => in_array($f, ALLOWED_FUEL_TYPES, true)
+            ));
+        }
+
+        if (isset($_POST['amenities'])) {
+            $raw = is_array($_POST['amenities']) ? $_POST['amenities'] : [$_POST['amenities']];
+            $l['amenities'] = array_values(array_filter(
+                array_map('mktClean', $raw),
+                fn($a) => in_array($a, ALLOWED_GAS_STATION_AMENITIES, true)
+            ));
+        }
+
+        $l['updated_at'] = date('Y-m-d H:i:s');
+        $found = true;
+        break;
+    }
+    unset($l);
+
+    if (!$found) {
+        mktRespond(false, 'Listing not found.');
+    }
+
+    saveJson('gas_station_listings.json', $listings);
+    auditLog('marketplace.gas_station_listing_updated', $userId, 'gas_station_listing', $listingId, "Gas station listing updated: {$listingId}");
+
+    mktRespond(true, 'Listing updated successfully.');
+}
+
+// ══════════════════════════════════════════════════════════
+//  GET HANDLERS — Gas Stations & Hotels
+// ══════════════════════════════════════════════════════════
+
+function listGasStationListings(): void {
+    $status   = mktClean($_GET['status']    ?? 'active');
+    $fuelType = mktClean($_GET['fuel_type'] ?? '');
+
+    $listings = loadJson('gas_station_listings.json');
+
+    if ($status !== 'all') {
+        $listings = array_values(array_filter($listings, fn($l) => ($l['status'] ?? 'active') === $status));
+    }
+
+    if ($fuelType !== '') {
+        $listings = array_values(array_filter($listings, function ($l) use ($fuelType) {
+            return in_array($fuelType, $l['fuel_types'] ?? [], true);
+        }));
+    }
+
+    usort($listings, fn($a, $b) => strcmp($b['created_at'] ?? '', $a['created_at'] ?? ''));
+
+    mktRespond(true, 'OK', ['listings' => $listings, 'total' => count($listings)]);
+}
+
+function listHotelListings(): void {
+    $status  = mktClean($_GET['status']  ?? 'active');
+    $amenity = mktClean($_GET['amenity'] ?? '');
+
+    $listings = loadJson('hotel_listings.json');
+
+    if ($status !== 'all') {
+        $listings = array_values(array_filter($listings, fn($l) => ($l['status'] ?? 'active') === $status));
+    }
+
+    if ($amenity !== '') {
+        $listings = array_values(array_filter($listings, function ($l) use ($amenity) {
+            return in_array($amenity, $l['amenities'] ?? [], true);
+        }));
+    }
+
+    usort($listings, fn($a, $b) => strcmp($b['created_at'] ?? '', $a['created_at'] ?? ''));
+
+    mktRespond(true, 'OK', ['listings' => $listings, 'total' => count($listings)]);
+}
+
+// ══════════════════════════════════════════════════════════
+//  POST HANDLERS — Hotels
+// ══════════════════════════════════════════════════════════
+
+function createHotelListing(): void {
+    $userId = mktClean($_POST['user_id'] ?? '');
+    if (!$userId) {
+        mktRespond(false, 'user_id is required.');
+    }
+
+    $user = verifyUserRole($userId, ['hotel', 'admin', 'super_admin']);
+    if (!$user) {
+        mktRespond(false, 'Access denied. Only hotel partners can create hotel listings.');
+    }
+
+    $title         = mktClean($_POST['title']          ?? '');
+    $description   = mktClean($_POST['description']    ?? '');
+    $location      = mktClean($_POST['location']       ?? '');
+    $starRating    = mktClean($_POST['star_rating']     ?? '');
+    $amenities     = $_POST['amenities']                ?? [];
+    $pricePerNight = mktClean($_POST['price_per_night'] ?? '');
+    $checkIn       = mktClean($_POST['check_in_time']   ?? '');
+    $checkOut      = mktClean($_POST['check_out_time']  ?? '');
+    $contactEmail  = mktClean($_POST['contact_email']   ?? '');
+    $contactPhone  = mktClean($_POST['contact_phone']   ?? '');
+    $website       = mktClean($_POST['website']         ?? '');
+    $notes         = mktClean($_POST['notes']           ?? '');
+
+    if (!$title) {
+        mktRespond(false, 'Listing title is required.');
+    }
+    if (!$location) {
+        mktRespond(false, 'Location is required.');
+    }
+
+    // Validate star rating (1-5)
+    $starInt = (int) $starRating;
+    if ($starRating !== '' && ($starInt < 1 || $starInt > 5)) {
+        mktRespond(false, 'Star rating must be between 1 and 5.');
+    }
+
+    $safeAmenities = array_values(array_filter(
+        is_array($amenities) ? $amenities : [$amenities],
+        fn($a) => in_array(mktClean($a), ALLOWED_HOTEL_AMENITIES, true)
+    ));
+    $safeAmenities = array_map('mktClean', $safeAmenities);
+
+    $id  = 'HTL-' . strtoupper(substr(md5(uniqid()), 0, 8));
+    $now = date('Y-m-d H:i:s');
+
+    $entry = [
+        'id'             => $id,
+        'type'           => 'hotel',
+        'user_id'        => $userId,
+        'company_name'   => $user['company'] ?? ($user['first_name'] . ' ' . $user['last_name']),
+        'title'          => $title,
+        'description'    => $description,
+        'location'       => $location,
+        'star_rating'    => $starRating !== '' ? $starInt : '',
+        'amenities'      => $safeAmenities,
+        'price_per_night'=> $pricePerNight,
+        'check_in_time'  => $checkIn,
+        'check_out_time' => $checkOut,
+        'contact_email'  => $contactEmail ?: ($user['email'] ?? ''),
+        'contact_phone'  => $contactPhone,
+        'website'        => $website,
+        'notes'          => $notes,
+        'status'         => 'active',
+        'created_at'     => $now,
+        'updated_at'     => $now,
+    ];
+
+    appendToJson('hotel_listings.json', $entry);
+    auditLog('marketplace.hotel_listing_created', $userId, 'hotel_listing', $id, "Hotel listing created: {$title}");
+
+    mktRespond(true, 'Hotel listing created successfully.', ['id' => $id]);
+}
+
+function updateHotelListing(): void {
+    $userId    = mktClean($_POST['user_id']    ?? '');
+    $listingId = mktClean($_POST['listing_id'] ?? '');
+
+    if (!$userId || !$listingId) {
+        mktRespond(false, 'user_id and listing_id are required.');
+    }
+
+    $user = verifyUserRole($userId, ['hotel', 'admin', 'super_admin']);
+    if (!$user) {
+        mktRespond(false, 'Access denied.');
+    }
+
+    $listings = loadJson('hotel_listings.json');
+    $found    = false;
+
+    foreach ($listings as &$l) {
+        if (($l['id'] ?? '') !== $listingId) continue;
+
+        if (($l['user_id'] ?? '') !== $userId && !in_array($user['role'] ?? '', ['admin', 'super_admin'], true)) {
+            mktRespond(false, 'You do not own this listing.');
+        }
+
+        $fields = ['title', 'description', 'location', 'star_rating', 'price_per_night',
+                   'check_in_time', 'check_out_time', 'contact_email', 'contact_phone',
+                   'website', 'notes', 'status'];
+        foreach ($fields as $f) {
+            if (isset($_POST[$f])) {
+                $val = mktClean($_POST[$f]);
+                if ($f === 'star_rating' && $val !== '') {
+                    $starInt = (int) $val;
+                    $val = ($starInt >= 1 && $starInt <= 5) ? $starInt : ($l[$f] ?? '');
+                }
+                $l[$f] = $val;
+            }
+        }
+
+        if (isset($_POST['amenities'])) {
+            $raw = is_array($_POST['amenities']) ? $_POST['amenities'] : [$_POST['amenities']];
+            $l['amenities'] = array_values(array_filter(
+                array_map('mktClean', $raw),
+                fn($a) => in_array($a, ALLOWED_HOTEL_AMENITIES, true)
+            ));
+        }
+
+        $l['updated_at'] = date('Y-m-d H:i:s');
+        $found = true;
+        break;
+    }
+    unset($l);
+
+    if (!$found) {
+        mktRespond(false, 'Listing not found.');
+    }
+
+    saveJson('hotel_listings.json', $listings);
+    auditLog('marketplace.hotel_listing_updated', $userId, 'hotel_listing', $listingId, "Hotel listing updated: {$listingId}");
+
+    mktRespond(true, 'Listing updated successfully.');
 }
