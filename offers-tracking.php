@@ -1661,7 +1661,8 @@
       }
       const mm = parseInt(expiryClean.substring(0, 2), 10);
       const twoDigitYear = parseInt(expiryClean.substring(2), 10);
-      const yy = twoDigitYear <= 49 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
+      // Map 2-digit year: 00-49 → 2000-2049, 50-99 → 2050-2099
+      const yy = twoDigitYear < 50 ? 2000 + twoDigitYear : 2050 + (twoDigitYear - 50);
       const now = new Date();
       if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
         showPayAlert('Your card appears to be expired.'); return;
@@ -1673,7 +1674,7 @@
         showPayAlert('Please enter a billing address.'); return;
       }
 
-      // Only send last 4 digits — never send full card details to our server
+      // Only send last 4 digits — never send the full card number or CVV to our server
       fd.append('card_name',       cardName);
       fd.append('card_last4',      cardNumber.slice(-4));
       fd.append('card_expiry',     expiryClean.substring(0, 2) + '/' + expiryClean.substring(2));

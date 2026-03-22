@@ -24,10 +24,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-define('DATA_DIR',     __DIR__ . '/data/');
-define('PAYMENTS_JSON', DATA_DIR . 'payments.json');
-define('LOADS_JSON',    DATA_DIR . 'load_requests.json');
-define('WALLETS_DIR',   DATA_DIR . 'wallets/');
+define('DATA_DIR',          __DIR__ . '/data/');
+define('PAYMENTS_JSON',     DATA_DIR . 'payments.json');
+define('LOADS_JSON',        DATA_DIR . 'load_requests.json');
+define('WALLETS_DIR',       DATA_DIR . 'wallets/');
+define('MAX_PAYMENT_AMOUNT', 1000000);
 
 require_once __DIR__ . '/audit_helper.php';
 
@@ -177,7 +178,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($amount <= 0) {
         respond(false, 'Amount must be greater than zero.');
     }
-    if ($amount > 1000000) {
+    if ($amount > MAX_PAYMENT_AMOUNT) {
         respond(false, 'Amount exceeds the maximum allowed value.');
     }
 
@@ -224,6 +225,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         if (!preg_match('/^\d{2}\/\d{2}$/', $cardExpiry)) {
             respond(false, 'card_expiry must be in MM/YY format.');
+        }
+        // Server-side expiry check — prevent expired cards from being accepted
+        [$expMm, $expYy] = explode('/', $cardExpiry);
+        $expMm = (int)$expMm;
+        $expYy = (int)$expYy;
+        // Map 2-digit year: 00-49 → 2000-2049, 50-99 → 2050-2099
+        $expYear = $expYy < 50 ? 2000 + $expYy : 2050 + ($expYy - 50);
+        $nowYear = (int)date('Y');
+        $nowMon  = (int)date('n');
+        if ($expMm < 1 || $expMm > 12 || $expYear < $nowYear || ($expYear === $nowYear && $expMm < $nowMon)) {
+            respond(false, 'The card expiry date is invalid or the card has expired.');
         }
         if (!$billingAddress) {
             respond(false, 'Billing address is required.');
