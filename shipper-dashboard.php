@@ -267,6 +267,10 @@
           <iconify-icon icon="lucide:file-text" style="font-size:16px"></iconify-icon>
           Documents
         </a>
+        <a href="maps.php" class="btn btn-outline" style="display:flex;align-items:center;gap:7px;font-size:14px;padding:9px 18px;">
+          <iconify-icon icon="lucide:map" style="font-size:16px"></iconify-icon>
+          Live Map
+        </a>
         <a class="btn btn-primary" href="quote.php" style="display:flex;align-items:center;gap:7px;font-size:14px;padding:9px 18px;">
           <iconify-icon icon="lucide:plus" style="font-size:16px"></iconify-icon>
           Request Quote

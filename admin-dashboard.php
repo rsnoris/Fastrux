@@ -295,7 +295,7 @@
       <iconify-icon icon="lucide:layout-dashboard"></iconify-icon> Overview
     </button>
     <button class="tab-item" data-tab="staff-approval" onclick="switchTab('staff-approval')">
-      <iconify-icon icon="lucide:user-check"></iconify-icon> Staff Approvals
+      <iconify-icon icon="lucide:user-check"></iconify-icon> Account Approvals
       <span id="pendingBadge" style="display:none;background:#ef4444;color:#fff;border-radius:999px;padding:1px 7px;font-size:11px;font-weight:700;"></span>
     </button>
     <button class="tab-item" data-tab="users" onclick="switchTab('users')">
@@ -382,13 +382,13 @@
 
     </div><!-- /tab-overview -->
 
-    <!-- ── TAB: Staff Approvals ── -->
+    <!-- ── TAB: Account Approvals ── -->
     <div class="tab-pane" id="tab-staff-approval">
       <div class="card">
         <div class="card-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
           <span style="display:flex;align-items:center;gap:8px;">
             <iconify-icon icon="lucide:user-check"></iconify-icon>
-            Pending Staff Account Approvals
+            Pending Account Approvals
           </span>
           <button class="btn btn-outline" style="font-size:13px;padding:8px 14px;" onclick="loadPendingStaff()">
             <iconify-icon icon="lucide:refresh-cw" style="font-size:13px;margin-right:4px"></iconify-icon>Refresh
@@ -404,6 +404,7 @@
               <tr>
                 <th>Name</th>
                 <th>Email</th>
+                <th>Role</th>
                 <th>Company</th>
                 <th>Registered</th>
                 <th>Status</th>
@@ -411,7 +412,7 @@
               </tr>
             </thead>
             <tbody id="pendingBody">
-              <tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted-foreground);">Loading…</td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted-foreground);">Loading…</td></tr>
             </tbody>
           </table>
         </div>
@@ -507,9 +508,9 @@
   <!-- Reject reason modal -->
   <div class="modal-overlay" id="rejectModal">
     <div class="modal-box" style="max-width:440px;">
-      <div class="modal-title">Reject Staff Application</div>
+      <div class="modal-title">Reject Account Application</div>
       <p style="color:var(--muted-foreground);font-size:14px;margin:-8px 0 16px;">
-        You are about to reject this staff account application.
+        You are about to reject this account application.
         The applicant will not be able to log in.
       </p>
       <div class="form-group">
@@ -686,7 +687,7 @@
     // ── Load pending staff ─────────────────────────────────────────
     async function loadPendingStaff() {
       var tbody = document.getElementById('pendingBody');
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted-foreground);">Loading…</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted-foreground);">Loading…</td></tr>';
 
       try {
         var url  = 'admin_api.php?action=pending_staff&requesting_user_id=' + encodeURIComponent(currentUser.id) + '&t=' + Date.now();
@@ -694,7 +695,7 @@
         var data = await res.json();
 
         if (!data.success) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--destructive);">Error: ' + esc(data.message) + '</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--destructive);">Error: ' + esc(data.message) + '</td></tr>';
           return;
         }
 
@@ -708,21 +709,23 @@
           var alertEl   = document.getElementById('pendingAlert');
           var alertText = document.getElementById('pendingAlertText');
           alertEl.style.display = 'flex';
-          alertText.textContent = users.length + ' staff account' + (users.length > 1 ? 's are' : ' is') + ' waiting for approval.';
+          alertText.textContent = users.length + ' account' + (users.length > 1 ? 's are' : ' is') + ' waiting for approval.';
         } else {
           badge.style.display = 'none';
           document.getElementById('pendingAlert').style.display = 'none';
         }
 
         if (!users.length) {
-          tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--muted-foreground);">No pending staff applications.</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--muted-foreground);">No pending account applications.</td></tr>';
           return;
         }
 
         tbody.innerHTML = users.map(function (u) {
+          var roleLabel = { driver: 'Driver', owner_operator: 'Owner Operator', corporate_staff: 'Corporate Staff' }[u.role] || esc(u.role || '—');
           return '<tr data-uid="' + esc(u.id) + '">' +
             '<td><strong>' + esc((u.first_name || '') + ' ' + (u.last_name || '')) + '</strong></td>' +
             '<td>' + esc(u.email || '—') + '</td>' +
+            '<td>' + roleLabel + '</td>' +
             '<td>' + esc(u.company || '—') + '</td>' +
             '<td style="white-space:nowrap;">' + esc(fmtDate(u.timestamp)) + '</td>' +
             '<td><span class="badge pending">Pending</span></td>' +
@@ -740,7 +743,7 @@
           row.querySelector('[data-action="reject"]').addEventListener('click',  function () { rejectStaff(uid, this); });
         });
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--destructive);">Network error.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--destructive);">Network error.</td></tr>';
       }
     }
 

@@ -36,8 +36,8 @@
     var map = {
       customer:          'Shipper',
       shipper:           'Shipper',
-      driver:            'Owner & Operator / Driver',
-      owner_operator:    'Owner & Operator',
+      driver:            'Driver',
+      owner_operator:    'Owner Operator',
       corporate_staff:   'Corporate Staff',
       admin:             'Admin',
       super_admin:       'Super-Admin',
