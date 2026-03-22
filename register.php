@@ -113,22 +113,20 @@
           <select class="form-control" id="role" name="role" required onchange="onRoleChange()">
             <optgroup label="Shippers &amp; Carriers">
               <option value="shipper">Shipper — I need to ship goods</option>
-              <option value="driver">Owner Operator &amp; Driver</option>
+              <option value="owner_operator">Owner Operator — I own and operate my truck</option>
+              <option value="driver">Driver — I am a contracted driver</option>
             </optgroup>
             <optgroup label="Marketplace Partners">
               <option value="insurance_company">Insurance Company — Offer spot insurance</option>
               <option value="trucking_company">Trucking Company — List trucks for lease / sale</option>
             </optgroup>
-            <optgroup label="Fastrux Team">
-              <option value="corporate_staff">Corporate Staff — Fastrux team member</option>
-            </optgroup>
           </select>
         </div>
 
-        <!-- Staff pending notice -->
+        <!-- Pending approval notice (driver / owner_operator) -->
         <div id="staffPendingNotice" class="role-notice warn" style="display:none;">
           <iconify-icon icon="lucide:info" style="font-size:15px;margin-right:6px;vertical-align:middle;"></iconify-icon>
-          <strong>Corporate Staff accounts require admin approval.</strong> After registering, an administrator will review and activate your account. You will not be able to log in until approved.
+          <strong>Driver and Owner Operator accounts require admin approval.</strong> After registering, an administrator will review and activate your account. You will not be able to log in until approved.
         </div>
 
         <!-- Insurance / Trucking company info notice -->
@@ -325,7 +323,7 @@
       companyRequired.textContent  = '(optional)';
       companyInput.required        = false;
 
-      if (role === 'corporate_staff') {
+      if (role === 'driver' || role === 'owner_operator') {
         staffNotice.style.display = 'block';
       } else if (role === 'insurance_company') {
         companyNoticeText.textContent = 'You will be able to post spot insurance offerings in the Fastrux Marketplace after registration.';

@@ -590,8 +590,8 @@ function handleRegister(): void
         respond(false, 'Password must be at least 8 characters long.');
     }
 
-    // Sanitize role — admin/super_admin cannot self-register via public form
-    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'corporate_staff', 'insurance_company', 'trucking_company'];
+    // Sanitize role — admin/super_admin/corporate_staff cannot self-register via public form
+    $allowedRegRoles = ['shipper', 'driver', 'owner_operator', 'insurance_company', 'trucking_company'];
     if (!in_array($role, $allowedRegRoles, true)) {
         $role = 'shipper';
     }
@@ -615,8 +615,9 @@ function handleRegister(): void
     $timestamp = date('Y-m-d H:i:s');
     $id        = 'USR-' . strtoupper(substr(md5(uniqid()), 0, 8));
 
-    // corporate_staff accounts require admin approval before they can log in
-    $status = ($role === 'corporate_staff') ? 'pending_approval' : 'active';
+    // driver and owner_operator accounts require admin approval before they can log in
+    $pendingRoles = ['driver', 'owner_operator'];
+    $status = in_array($role, $pendingRoles, true) ? 'pending_approval' : 'active';
 
     $entry = [
         'id'            => $id,

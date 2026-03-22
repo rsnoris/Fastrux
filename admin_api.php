@@ -144,12 +144,14 @@ if ($method === 'POST') {
             adminRespond(false, 'target_user_id is required.');
         }
 
+        $approvableRoles = ['corporate_staff', 'driver', 'owner_operator'];
+
         $users   = readUsersFile();
         $updated = false;
         foreach ($users as &$u) {
             if (($u['id'] ?? '') === $targetUserId) {
-                if (($u['role'] ?? '') !== 'corporate_staff') {
-                    adminRespond(false, 'Only corporate_staff accounts can be approved via this endpoint.');
+                if (!in_array($u['role'] ?? '', $approvableRoles, true)) {
+                    adminRespond(false, 'Only corporate_staff, driver, and owner_operator accounts can be approved via this endpoint.');
                 }
                 $u['status']      = 'active';
                 $u['approved_by'] = $requestingUserId;
@@ -184,12 +186,14 @@ if ($method === 'POST') {
             adminRespond(false, 'target_user_id is required.');
         }
 
+        $approvableRoles = ['corporate_staff', 'driver', 'owner_operator'];
+
         $users   = readUsersFile();
         $updated = false;
         foreach ($users as &$u) {
             if (($u['id'] ?? '') === $targetUserId) {
-                if (($u['role'] ?? '') !== 'corporate_staff') {
-                    adminRespond(false, 'Only corporate_staff accounts can be rejected via this endpoint.');
+                if (!in_array($u['role'] ?? '', $approvableRoles, true)) {
+                    adminRespond(false, 'Only corporate_staff, driver, and owner_operator accounts can be rejected via this endpoint.');
                 }
                 $u['status']      = 'rejected';
                 $u['rejected_by'] = $requestingUserId;
