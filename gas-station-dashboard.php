@@ -139,19 +139,19 @@
   <!-- Dashboard header -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>/ Gas Station Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
         <span class="dash-badge"><iconify-icon icon="lucide:fuel"></iconify-icon> Gas Station Partner</span>
-        <a href="messages.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="messages" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:message-circle" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Messages
         </a>
-        <a href="documents.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="documents" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:file-text" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Documents
         </a>
-        <a href="marketplace.php" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+        <a href="marketplace" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
           <iconify-icon icon="lucide:store" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Marketplace
         </a>
         <span id="userGreeting" style="font-size:14px;color:var(--muted-foreground);"></span>
@@ -320,7 +320,7 @@
     var user = null;
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e){}
     if (!user || !user.id || user.role !== 'gas_station') {
-      window.location.href = 'gas-station-login.php?redirect=' + encodeURIComponent(window.location.href);
+      window.location.href = 'gas-station-login?redirect=' + encodeURIComponent(window.location.href);
     }
 
     document.getElementById('userGreeting').textContent = 'Hi, ' + (user.first_name || user.email);
@@ -502,7 +502,7 @@
 
     function logout() {
       localStorage.removeItem('fx_user');
-      window.location.href = 'gas-station-login.php';
+      window.location.href = 'gas-station-login';
     }
 
     document.getElementById('listingModal').addEventListener('click', function(e) {

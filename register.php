@@ -60,22 +60,22 @@
 
   <header class="header">
     <div class="container header-content">
-      <a href="index.php" class="logo">
+      <a href="index" class="logo">
         <iconify-icon icon="lucide:truck" style="font-size:28px;color:var(--primary)"></iconify-icon>
         Fastrux
       </a>
       <nav class="nav-links">
-        <a class="nav-link" href="index.php">Home</a>
-        <a class="nav-link" href="index.php#services">Services</a>
-        <a class="nav-link" href="track.php">Tracking</a>
-        <a class="nav-link" href="marketplace.php">Marketplace</a>
-        <a class="nav-link" href="contact.php">Contact</a>
-        <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-        <a class="nav-link" href="loadboard.php">Loadboard</a>
+        <a class="nav-link" href="index">Home</a>
+        <a class="nav-link" href="index#services">Services</a>
+        <a class="nav-link" href="track">Tracking</a>
+        <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="contact">Contact</a>
+        <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
       </nav>
       <div class="header-actions">
-        <a class="nav-link" href="login.php">Login</a>
-        <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+        <a class="nav-link" href="login">Login</a>
+        <a class="btn btn-primary" href="quote">Get a Quote</a>
       </div>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu">
         <span></span><span></span><span></span>
@@ -83,15 +83,15 @@
     </div>
   </header>
   <nav class="mobile-menu" id="mobileMenu">
-    <a class="nav-link" href="index.php">Home</a>
-    <a class="nav-link" href="index.php#services">Services</a>
-    <a class="nav-link" href="track.php">Tracking</a>
-    <a class="nav-link" href="marketplace.php">Marketplace</a>
-    <a class="nav-link" href="contact.php">Contact</a>
-    <a class="nav-link" href="driver-onboarding.php">Drive with Us</a>
-    <a class="nav-link" href="loadboard.php">Loadboard</a>
+    <a class="nav-link" href="index">Home</a>
+    <a class="nav-link" href="index#services">Services</a>
+    <a class="nav-link" href="track">Tracking</a>
+    <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="contact">Contact</a>
+    <a class="nav-link" href="driver-onboarding">Drive with Us</a>
+    <a class="nav-link" href="loadboard">Loadboard</a>
     <div class="header-actions" style="margin-top:8px;">
-      <a class="btn btn-primary" href="quote.php">Get a Quote</a>
+      <a class="btn btn-primary" href="quote">Get a Quote</a>
     </div>
   </nav>
 
@@ -344,9 +344,9 @@
                    style="margin-top:3px;accent-color:var(--primary);" />
             <span style="font-size:14px;color:var(--muted-foreground);">
               I agree to the
-              <a href="terms.php" style="color:var(--primary);">Terms of Service</a>
+              <a href="terms" style="color:var(--primary);">Terms of Service</a>
               and
-              <a href="privacy.php" style="color:var(--primary);">Privacy Policy</a>
+              <a href="privacy" style="color:var(--primary);">Privacy Policy</a>
             </span>
           </label>
         </div>
@@ -355,12 +355,12 @@
           Create Account
         </button>
       </form>
-      <p class="auth-footer-text">Already have an account? <a href="login.php">Sign in</a></p>
+      <p class="auth-footer-text">Already have an account? <a href="login">Sign in</a></p>
       <p class="auth-footer-text" style="margin-top:6px;font-size:13px;color:var(--muted-foreground);">
-        Insurance company? <a href="insurance-login.php" style="color:var(--primary);">Insurance portal</a> &nbsp;·&nbsp;
-        Trucking company? <a href="trucking-login.php" style="color:var(--primary);">Trucking portal</a> &nbsp;·&nbsp;
-        Gas station? <a href="gas-station-login.php" style="color:var(--primary);">Gas Station portal</a> &nbsp;·&nbsp;
-        Hotel? <a href="hotel-login.php" style="color:var(--primary);">Hotel portal</a>
+        Insurance company? <a href="insurance-login" style="color:var(--primary);">Insurance portal</a> &nbsp;·&nbsp;
+        Trucking company? <a href="trucking-login" style="color:var(--primary);">Trucking portal</a> &nbsp;·&nbsp;
+        Gas station? <a href="gas-station-login" style="color:var(--primary);">Gas Station portal</a> &nbsp;·&nbsp;
+        Hotel? <a href="hotel-login" style="color:var(--primary);">Hotel portal</a>
       </p>
     </div>
   </div>
@@ -370,8 +370,8 @@
       <div class="footer-bottom" style="border-top:none;padding-top:0;">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>
         <div>
-          <a href="privacy.php" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
-          <a href="terms.php"   style="color:var(--muted-foreground);">Terms</a>
+          <a href="privacy" style="color:var(--muted-foreground);margin-right:16px;">Privacy</a>
+          <a href="terms"   style="color:var(--muted-foreground);">Terms</a>
         </div>
       </div>
     </div>

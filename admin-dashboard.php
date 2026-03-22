@@ -262,27 +262,27 @@
   <!-- ── Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Admin Dashboard</span>
       </a>
       <div style="display:flex;align-items:center;gap:12px;">
-        <a href="messages.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="messages" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:message-circle" style="font-size:14px;margin-right:5px"></iconify-icon>Messages
         </a>
-        <a href="documents.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="documents" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:folder-open" style="font-size:14px;margin-right:5px"></iconify-icon>Documents
         </a>
-        <a href="observability.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="observability" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:activity" style="font-size:14px;margin-right:5px"></iconify-icon>Observability
         </a>
-        <a href="driver-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:5px"></iconify-icon>Drivers
         </a>
-        <a href="quote-dashboard.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="quote-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:file-text" style="font-size:14px;margin-right:5px"></iconify-icon>Quotes
         </a>
-        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="index" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:14px;margin-right:5px"></iconify-icon>Main Site
         </a>
       </div>
@@ -600,17 +600,17 @@
     (function () {
       try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
       if (!currentUser || !currentUser.id) {
-        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
         return;
       }
       var adminRoles = ['admin', 'super_admin'];
       if (adminRoles.indexOf(currentUser.role) === -1) {
         if (currentUser.role === 'corporate_staff') {
-          window.location.href = 'staff-dashboard.php';
+          window.location.href = 'staff-dashboard';
         } else if (currentUser.role === 'driver' || currentUser.role === 'owner_operator') {
-          window.location.href = 'driver-dashboard.php';
+          window.location.href = 'driver-dashboard';
         } else {
-          window.location.href = 'shipper-dashboard.php';
+          window.location.href = 'shipper-dashboard';
         }
       }
     })();
