@@ -706,6 +706,44 @@
                 <input class="form-control" type="text" id="w_description" name="description" placeholder="e.g. Top-up for shipment" maxlength="120" />
               </div>
             </div>
+
+            <!-- Card payment section -->
+            <div class="form-section-title" style="margin-top:20px;">Payment Details</div>
+            <div style="display:flex;gap:6px;margin-bottom:14px;">
+              <span style="display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted-foreground);">VISA</span>
+              <span style="display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted-foreground);">MASTERCARD</span>
+              <span style="display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted-foreground);">AMEX</span>
+              <span style="display:inline-block;padding:3px 8px;border:1px solid var(--border);border-radius:4px;font-size:11px;font-weight:700;letter-spacing:.5px;color:var(--muted-foreground);">DISCOVER</span>
+            </div>
+            <div class="form-group">
+              <label for="w_card_name">Cardholder Name *</label>
+              <input class="form-control" type="text" id="w_card_name" name="card_name" placeholder="Jane Smith" required autocomplete="cc-name" />
+            </div>
+            <div class="form-group" style="position:relative;">
+              <label for="w_card_number">Card Number *</label>
+              <input class="form-control" type="text" id="w_card_number" name="card_number" placeholder="1234 5678 9012 3456" maxlength="19" required autocomplete="cc-number" inputmode="numeric" style="padding-right:40px;" />
+              <iconify-icon icon="lucide:credit-card" style="position:absolute;right:12px;top:50%;transform:translateY(8px);font-size:18px;color:var(--muted-foreground);pointer-events:none;"></iconify-icon>
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="w_expiry">Expiry *</label>
+                <input class="form-control" type="text" id="w_expiry" name="expiry" placeholder="MM / YY" maxlength="7" required autocomplete="cc-exp" inputmode="numeric" />
+              </div>
+              <div class="form-group">
+                <label for="w_cvv">CVV *</label>
+                <input class="form-control" type="text" id="w_cvv" name="cvv" placeholder="•••" maxlength="4" required autocomplete="cc-csc" inputmode="numeric" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="w_billing_address">Billing Address *</label>
+              <input class="form-control" type="text" id="w_billing_address" name="billing_address" placeholder="123 Main St, City, Postcode" required autocomplete="billing street-address" />
+            </div>
+
+            <p style="font-size:12px;color:var(--muted-foreground);margin-top:4px;margin-bottom:16px;display:flex;align-items:center;gap:6px;">
+              <iconify-icon icon="lucide:lock" style="font-size:13px;flex-shrink:0;"></iconify-icon>
+              Your payment is processed securely. Card details are never stored on our servers.
+            </p>
+
             <div style="display:flex;justify-content:flex-end;margin-top:8px;">
               <button type="submit" class="btn btn-primary" id="walletAddBtn">
                 <iconify-icon icon="lucide:plus-circle" style="font-size:15px;margin-right:6px"></iconify-icon>Add Funds
@@ -1053,6 +1091,32 @@
 
     // Load wallet when wallet tab is opened (handled in showTab above)
 
+    // Wallet add-funds form — card input formatting
+    document.getElementById('w_card_number').addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').substring(0, 16);
+      this.value = v.match(/.{1,4}/g)?.join(' ') ?? v;
+    });
+    document.getElementById('w_expiry').addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').substring(0, 4);
+      if (v.length > 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+      this.value = v;
+    });
+    document.getElementById('w_cvv').addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '').substring(0, 4);
+    });
+
+    // Luhn algorithm check
+    function luhnCheck(num) {
+      let sum = 0, alt = false;
+      for (let i = num.length - 1; i >= 0; i--) {
+        let n = parseInt(num[i], 10);
+        if (alt) { n *= 2; if (n > 9) n -= 9; }
+        sum += n;
+        alt = !alt;
+      }
+      return sum % 10 === 0;
+    }
+
     // Wallet add-funds form
     document.getElementById('walletAddForm').addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -1061,23 +1125,57 @@
       const amount   = parseFloat(document.getElementById('w_amount').value);
       const desc     = document.getElementById('w_description').value.trim();
 
+      const cardName   = document.getElementById('w_card_name').value.trim();
+      const cardNumber = document.getElementById('w_card_number').value.replace(/\s/g, '');
+      const expiry     = document.getElementById('w_expiry').value.replace(/\s/g, '');
+      const cvv        = document.getElementById('w_cvv').value.trim();
+      const billing    = document.getElementById('w_billing_address').value.trim();
+
       feedback.className = 'form-feedback';
       feedback.style.display = 'none';
 
-      if (!amount || amount <= 0) {
+      const showError = (msg) => {
         feedback.className = 'form-feedback error';
-        feedback.innerHTML = '<iconify-icon icon="lucide:x-circle" style="font-size:18px"></iconify-icon>Please enter a valid amount.';
+        feedback.innerHTML = '<iconify-icon icon="lucide:x-circle" style="font-size:18px"></iconify-icon>' + msg;
         feedback.style.display = 'flex';
-        return;
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      };
+
+      if (!amount || amount <= 0) { showError('Please enter a valid amount.'); return; }
+      if (amount > 10000) { showError('Maximum single deposit is $10,000.'); return; }
+      if (!cardName) { showError('Please enter the cardholder name.'); return; }
+      if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+        showError('Please enter a valid card number.'); return;
       }
+      const expiryClean = expiry.replace('/', '');
+      if (expiryClean.length !== 4) { showError('Please enter a valid expiry date (MM/YY).'); return; }
+      const mm = parseInt(expiryClean.substring(0, 2), 10);
+      const twoDigitYear = parseInt(expiryClean.substring(2), 10);
+      const yy = twoDigitYear < 50 ? 2000 + twoDigitYear : 2050 + (twoDigitYear - 50);
+      const now = new Date();
+      if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
+        showError('Your card appears to be expired.'); return;
+      }
+      if (cvv.length < 3) { showError('Please enter a valid CVV (3–4 digits).'); return; }
+      if (!billing) { showError('Please enter a billing address.'); return; }
 
       btn.disabled = true;
       const origHtml = btn.innerHTML;
       btn.innerHTML = '<iconify-icon icon="lucide:loader" style="font-size:15px;margin-right:6px;animation:spin 1s linear infinite"></iconify-icon>Processing…';
 
       try {
-        const body = new URLSearchParams({ action: 'add_funds', user_id: currentUser.id, amount, description: desc });
-        const res  = await fetch('wallet_data.php', { method: 'POST', body });
+        // Only send last 4 digits — never send the full card number or CVV to our server
+        const fd = new FormData();
+        fd.append('action',          'add_funds');
+        fd.append('user_id',         currentUser.id);
+        fd.append('amount',          amount);
+        fd.append('description',     desc);
+        fd.append('card_name',       cardName);
+        fd.append('card_last4',      cardNumber.slice(-4));
+        fd.append('card_expiry',     expiryClean.substring(0, 2) + '/' + expiryClean.substring(2));
+        fd.append('billing_address', billing);
+
+        const res  = await fetch('wallet_data.php', { method: 'POST', body: fd });
         const data = await res.json();
         feedback.className = 'form-feedback ' + (data.success ? 'success' : 'error');
         feedback.innerHTML = `<iconify-icon icon="${data.success?'lucide:check-circle':'lucide:x-circle'}" style="font-size:18px"></iconify-icon>${data.message}`;
