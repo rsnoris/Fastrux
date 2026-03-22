@@ -277,6 +277,9 @@
           <button class="sidebar-nav-item" onclick="showTab('security', this)">
             <iconify-icon icon="lucide:lock" style="font-size:18px"></iconify-icon>Security
           </button>
+          <button class="sidebar-nav-item" onclick="showTab('wallet', this)">
+            <iconify-icon icon="lucide:wallet" style="font-size:18px"></iconify-icon>Wallet
+          </button>
           <hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">
           <button class="sidebar-nav-item" onclick="logout()" style="color:var(--destructive);">
             <iconify-icon icon="lucide:log-out" style="font-size:18px"></iconify-icon>Sign Out
@@ -335,13 +338,12 @@
                 <input class="form-control" type="text" id="p_company" name="company" placeholder="Optional" />
               </div>
               <div class="form-group">
-                <label for="p_role">Account Role *</label>
-                <select class="form-control" id="p_role" name="role" onchange="handleRoleChange(this.value)">
-                  <option value="shipper">Shipper</option>
-                  <option value="driver">Employee — Owner &amp; Operator / Driver</option>
-                  <option value="owner_operator">Employee — Owner &amp; Operator (Legacy)</option>
-                  <option value="corporate_staff">Employee — Corporate Staff</option>
-                </select>
+                <label>Account Role</label>
+                <div class="form-control" id="p_role_display" style="background:var(--muted);cursor:not-allowed;color:var(--muted-foreground);display:flex;align-items:center;gap:6px;">
+                  <iconify-icon icon="lucide:lock" style="font-size:14px"></iconify-icon>
+                  <span id="p_role_label">—</span>
+                </div>
+                <small style="color:var(--muted-foreground);font-size:12px;margin-top:4px;display:block;">Your role is assigned by an administrator and cannot be changed here.</small>
               </div>
             </div>
             <div style="display:flex;justify-content:flex-end;margin-top:8px;">
@@ -675,6 +677,60 @@
         </div>
       </div>
 
+      <!-- ── WALLET TAB ── -->
+      <div class="kyc-tabs" id="tab-wallet">
+        <!-- Balance card -->
+        <div class="content-card" style="margin-bottom:24px;">
+          <div class="content-card-header">
+            <div>
+              <div class="content-card-title">My Wallet</div>
+              <div class="content-card-subtitle">View your balance and manage funds.</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px;color:var(--muted-foreground);margin-bottom:4px;">Available Balance</div>
+              <div style="font-size:32px;font-weight:800;color:var(--primary);" id="walletBalance">$0.00</div>
+            </div>
+          </div>
+
+          <!-- Add funds form -->
+          <div class="form-section-title">Add Funds</div>
+          <div class="form-feedback" id="walletFeedback"></div>
+          <form id="walletAddForm" novalidate>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label for="w_amount">Amount (USD) *</label>
+                <input class="form-control" type="number" id="w_amount" name="amount" min="1" max="10000" step="0.01" placeholder="e.g. 100.00" required />
+              </div>
+              <div class="form-group">
+                <label for="w_description">Note</label>
+                <input class="form-control" type="text" id="w_description" name="description" placeholder="e.g. Top-up for shipment" maxlength="120" />
+              </div>
+            </div>
+            <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+              <button type="submit" class="btn btn-primary" id="walletAddBtn">
+                <iconify-icon icon="lucide:plus-circle" style="font-size:15px;margin-right:6px"></iconify-icon>Add Funds
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Transaction history -->
+        <div class="content-card">
+          <div class="content-card-header">
+            <div>
+              <div class="content-card-title">Transaction History</div>
+              <div class="content-card-subtitle">A record of all deposits and withdrawals on your wallet.</div>
+            </div>
+          </div>
+          <div id="walletTxList">
+            <div style="text-align:center;padding:32px;color:var(--muted-foreground);">
+              <iconify-icon icon="lucide:inbox" style="font-size:40px;display:block;margin:0 auto 12px;"></iconify-icon>
+              No transactions yet.
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div><!-- /account-content -->
   </div><!-- /account-layout -->
 
@@ -777,9 +833,9 @@
       document.getElementById('p_first_name').value = user.first_name || '';
       document.getElementById('p_last_name').value  = user.last_name  || '';
       document.getElementById('p_email').value      = user.email      || '';
-      // Normalize legacy 'customer' role to 'shipper'
+      // Show read-only role label
       const normalizedRole = (user.role === 'customer') ? 'shipper' : (user.role || 'shipper');
-      document.getElementById('p_role').value = normalizedRole;
+      document.getElementById('p_role_label').textContent = formatRole(normalizedRole);
       handleRoleChange(normalizedRole);
     }
 
@@ -812,7 +868,7 @@
 
     function fillFormFromData(kyc) {
       const fields = [
-        'phone','dob','address','company','role',
+        'phone','dob','address','company',
         'national_id','id_expiry','nationality','ssn_last4',
         'business_type','tax_id','billing_address','annual_shipments','primary_service',
         'license_number','license_expiry','van_make','van_model','van_reg',
@@ -826,9 +882,9 @@
         if (el && kyc[f] !== undefined) el.value = kyc[f];
       });
       if (kyc.role) {
-        // Normalize legacy 'customer' role to 'shipper'
+        // Normalize legacy 'customer' role to 'shipper' and update KYC section visibility
         const normalizedRole = kyc.role === 'customer' ? 'shipper' : kyc.role;
-        document.getElementById('p_role').value = normalizedRole;
+        document.getElementById('p_role_label').textContent = formatRole(normalizedRole);
         handleRoleChange(normalizedRole);
       }
       // Update KYC status pill
@@ -855,6 +911,7 @@
       document.querySelectorAll('.sidebar-nav-item').forEach(b => b.classList.remove('active'));
       document.getElementById('tab-' + name).classList.add('active');
       if (btn) btn.classList.add('active');
+      if (name === 'wallet') loadWallet();
     }
 
     // ── Role-specific KYC fields ────────────────────────────────
@@ -871,14 +928,8 @@
         driverExtra.style.display = (role === 'driver' || role === 'owner_operator') ? 'block' : 'none';
       }
 
-      // Update role badge
+      // Update role badge in sidebar
       document.getElementById('userRoleLabel').textContent = formatRole(role);
-
-      // Update localStorage
-      if (currentUser) {
-        currentUser.role = role;
-        localStorage.setItem('fx_user', JSON.stringify(currentUser));
-      }
     }
 
     // ── File upload labels ───────────────────────────────────────
@@ -909,7 +960,6 @@
           if (currentUser) {
             fd.append('user_id', currentUser.id);
             fd.append('user_email', currentUser.email || '');
-            fd.append('user_role', document.getElementById('p_role')?.value || currentUser.role || 'shipper');
           }
           const res  = await fetch('process_form.php', { method: 'POST', body: fd });
           const data = await res.json();
@@ -934,7 +984,6 @@
         currentUser.first_name = document.getElementById('p_first_name').value;
         currentUser.last_name  = document.getElementById('p_last_name').value;
         currentUser.email      = document.getElementById('p_email').value;
-        currentUser.role       = document.getElementById('p_role').value;
         localStorage.setItem('fx_user', JSON.stringify(currentUser));
         populateSidebar(currentUser);
       }
@@ -949,6 +998,100 @@
 
     submitForm('docForm', 'docFeedback', 'docSaveBtn');
     submitForm('securityForm', 'securityFeedback', 'securitySaveBtn');
+
+    // ── Wallet ───────────────────────────────────────────────────
+    function fmtCurrency(n) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(n) || 0);
+    }
+
+    function renderWalletTx(transactions) {
+      const list = document.getElementById('walletTxList');
+      if (!transactions || transactions.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted-foreground);"><iconify-icon icon="lucide:inbox" style="font-size:40px;display:block;margin:0 auto 12px;"></iconify-icon>No transactions yet.</div>';
+        return;
+      }
+      const rows = [...transactions].reverse().map(tx => {
+        const isDebit = tx.type === 'withdrawal' || tx.type === 'payment';
+        const sign  = isDebit ? '-' : '+';
+        const color = isDebit ? 'var(--destructive)' : 'var(--success)';
+        const icon  = isDebit ? 'lucide:arrow-up-right' : 'lucide:arrow-down-left';
+        return `<tr>
+          <td style="padding:12px 0;border-bottom:1px solid var(--border);">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:32px;height:32px;border-radius:50%;background:var(--secondary);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                <iconify-icon icon="${icon}" style="font-size:16px;color:${color}"></iconify-icon>
+              </div>
+              <div>
+                <div style="font-size:14px;font-weight:500;">${tx.description || (isDebit ? 'Withdrawal' : 'Deposit')}</div>
+                <div style="font-size:12px;color:var(--muted-foreground);">${tx.timestamp || ''}</div>
+              </div>
+            </div>
+          </td>
+          <td style="padding:12px 0;border-bottom:1px solid var(--border);text-align:right;font-weight:700;color:${color};">${sign}${fmtCurrency(tx.amount)}</td>
+        </tr>`;
+      }).join('');
+      list.innerHTML = `<table style="width:100%;border-collapse:collapse;">${rows}</table>`;
+    }
+
+    function loadWallet() {
+      if (!currentUser) return;
+      fetch('wallet_data.php?action=balance&user_id=' + encodeURIComponent(currentUser.id))
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            document.getElementById('walletBalance').textContent = fmtCurrency(data.balance);
+            renderWalletTx(data.transactions);
+          }
+        })
+        .catch(() => {});
+    }
+
+    // Load wallet when wallet tab is opened (handled in showTab above)
+
+    // Wallet add-funds form
+    document.getElementById('walletAddForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const feedback = document.getElementById('walletFeedback');
+      const btn      = document.getElementById('walletAddBtn');
+      const amount   = parseFloat(document.getElementById('w_amount').value);
+      const desc     = document.getElementById('w_description').value.trim();
+
+      feedback.className = 'form-feedback';
+      feedback.style.display = 'none';
+
+      if (!amount || amount <= 0) {
+        feedback.className = 'form-feedback error';
+        feedback.innerHTML = '<iconify-icon icon="lucide:x-circle" style="font-size:18px"></iconify-icon>Please enter a valid amount.';
+        feedback.style.display = 'flex';
+        return;
+      }
+
+      btn.disabled = true;
+      const origHtml = btn.innerHTML;
+      btn.innerHTML = '<iconify-icon icon="lucide:loader" style="font-size:15px;margin-right:6px;animation:spin 1s linear infinite"></iconify-icon>Processing…';
+
+      try {
+        const body = new URLSearchParams({ action: 'add_funds', user_id: currentUser.id, amount, description: desc });
+        const res  = await fetch('wallet_data.php', { method: 'POST', body });
+        const data = await res.json();
+        feedback.className = 'form-feedback ' + (data.success ? 'success' : 'error');
+        feedback.innerHTML = `<iconify-icon icon="${data.success?'lucide:check-circle':'lucide:x-circle'}" style="font-size:18px"></iconify-icon>${data.message}`;
+        feedback.style.display = 'flex';
+        if (data.success) {
+          document.getElementById('walletBalance').textContent = fmtCurrency(data.balance);
+          renderWalletTx(data.transactions);
+          document.getElementById('walletAddForm').reset();
+        }
+      } catch (err) {
+        feedback.className = 'form-feedback error';
+        feedback.innerHTML = '<iconify-icon icon="lucide:x-circle" style="font-size:18px"></iconify-icon>Network error. Please try again.';
+        feedback.style.display = 'flex';
+      } finally {
+        btn.disabled  = false;
+        btn.innerHTML = origHtml;
+        feedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    });
 
     // ── Sign out ─────────────────────────────────────────────────
     function logout() {

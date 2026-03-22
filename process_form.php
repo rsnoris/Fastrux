@@ -688,17 +688,37 @@ function handleRegister(): void
 //  Saves user KYC/profile data to /data/users/{role}/{id}/
 // ══════════════════════════════════════════════════════════
 
+function lookupUserRole(string $userId): ?string
+{
+    $usersPath = DATA_DIR . 'registered_users.json';
+    if (!file_exists($usersPath)) {
+        return null;
+    }
+    $users = json_decode(file_get_contents($usersPath), true) ?? [];
+    foreach ($users as $u) {
+        if (($u['id'] ?? '') === $userId) {
+            return $u['role'] ?? 'shipper';
+        }
+    }
+    return null;
+}
+
 function handleKycUpdate(): void
 {
-    $userId  = clean($_POST['user_id']    ?? '');
-    $section = clean($_POST['section']    ?? '');
-    $role    = clean($_POST['user_role']  ?? 'customer');
+    $userId  = clean($_POST['user_id'] ?? '');
+    $section = clean($_POST['section'] ?? '');
 
     if (!$userId) {
         respond(false, 'User ID is required.');
     }
 
-    // Sanitize role to a safe directory name
+    // Look up the authoritative role from registered_users.json
+    // (never trust role from user-controlled POST data)
+    $role = lookupUserRole($userId);
+    if ($role === null) {
+        respond(false, 'User account not found.');
+    }
+
     $allowedRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin', 'insurance_company', 'trucking_company'];
     if (!in_array($role, $allowedRoles, true)) {
         $role = 'shipper';
