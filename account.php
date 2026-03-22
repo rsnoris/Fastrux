@@ -1011,10 +1011,14 @@
         return;
       }
       const rows = [...transactions].reverse().map(tx => {
-        const isDebit = tx.type === 'withdrawal' || tx.type === 'payment';
+        const isDebit = tx.type === 'withdrawal' || tx.type === 'payment' || tx.type === 'card_payment';
         const sign  = isDebit ? '-' : '+';
         const color = isDebit ? 'var(--destructive)' : 'var(--success)';
         const icon  = isDebit ? 'lucide:arrow-up-right' : 'lucide:arrow-down-left';
+        const typeLabel = { deposit: 'Deposit', withdrawal: 'Withdrawal', payment: 'Wallet Payment', card_payment: 'Card Payment' }[tx.type] || tx.type;
+        const refHtml = tx.reference
+          ? `<div style="font-size:11px;color:var(--muted-foreground);font-family:monospace;margin-top:2px;">Ref: ${tx.reference}</div>`
+          : '';
         return `<tr>
           <td style="padding:12px 0;border-bottom:1px solid var(--border);">
             <div style="display:flex;align-items:center;gap:10px;">
@@ -1022,8 +1026,9 @@
                 <iconify-icon icon="${icon}" style="font-size:16px;color:${color}"></iconify-icon>
               </div>
               <div>
-                <div style="font-size:14px;font-weight:500;">${tx.description || (isDebit ? 'Withdrawal' : 'Deposit')}</div>
+                <div style="font-size:14px;font-weight:500;">${tx.description || typeLabel}</div>
                 <div style="font-size:12px;color:var(--muted-foreground);">${tx.timestamp || ''}</div>
+                ${refHtml}
               </div>
             </div>
           </td>

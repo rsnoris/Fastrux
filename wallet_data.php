@@ -163,6 +163,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
     }
 
+    if ($action === 'withdraw') {
+        $rawAmount   = $_POST['amount']      ?? '';
+        $description = clean($_POST['description'] ?? '');
+
+        if (!is_numeric($rawAmount)) {
+            respond(false, 'Amount must be a number.');
+        }
+        $amount = round((float)$rawAmount, 2);
+        if ($amount <= 0) {
+            respond(false, 'Amount must be greater than zero.');
+        }
+
+        $wallet = loadWallet($userId);
+        $balance = round((float)($wallet['balance'] ?? 0), 2);
+
+        if ($balance < $amount) {
+            respond(false, sprintf(
+                'Insufficient balance. Available: $%.2f, Requested: $%.2f.',
+                $balance,
+                $amount
+            ));
+        }
+
+        $txId = 'TXN-' . strtoupper(bin2hex(random_bytes(4)));
+        $transaction = [
+            'id'          => $txId,
+            'type'        => 'withdrawal',
+            'amount'      => $amount,
+            'description' => $description ?: 'Funds withdrawn',
+            'timestamp'   => date('Y-m-d H:i:s'),
+        ];
+
+        $wallet['balance']        = round($balance - $amount, 2);
+        $wallet['transactions'][] = $transaction;
+
+        if (count($wallet['transactions']) > 500) {
+            $wallet['transactions'] = array_slice($wallet['transactions'], -500);
+        }
+
+        saveWallet($userId, $wallet);
+        auditLog('wallet.funds_withdrawn', $userId, 'wallet', $userId, "Withdrew \${$amount} from wallet for user {$userId}");
+
+        respond(true, 'Withdrawal successful.', [
+            'balance'      => $wallet['balance'],
+            'transactions' => $wallet['transactions'],
+        ]);
+    }
+
     respond(false, 'Unknown action.');
 }
 

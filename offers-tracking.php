@@ -195,11 +195,12 @@
     .load-date  { font-size: 12px; color: var(--muted-foreground); }
 
     /* ── Badge overrides ─────────────────────────────────── */
-    .badge-open       { background:#dbeafe; color:#1d4ed8; }
-    .badge-matched    { background:#dcfce7; color:#16a34a; }
-    .badge-in_transit { background:#fef9c3; color:#d97706; }
-    .badge-completed  { background:#e5e7eb; color:#374151; }
-    .badge-cancelled  { background:#fef2f2; color:var(--destructive); }
+    .badge-open            { background:#dbeafe; color:#1d4ed8; }
+    .badge-pending_payment { background:#fef9c3; color:#a16207; }
+    .badge-matched         { background:#dcfce7; color:#16a34a; }
+    .badge-in_transit      { background:#fef9c3; color:#d97706; }
+    .badge-completed       { background:#e5e7eb; color:#374151; }
+    .badge-cancelled       { background:#fef2f2; color:var(--destructive); }
 
     .badge-available { background:#dcfce7; color:#16a34a; }
     .badge-busy      { background:#fef9c3; color:#d97706; }
@@ -417,6 +418,19 @@
       padding: 10px 14px; border-radius: 6px;
       font-size: 13px; margin-top: 8px;
     }
+    .pay-method-tab {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 8px 12px; border-radius: var(--radius-md);
+      border: 1.5px solid var(--border); background: var(--background);
+      font-size: 13px; font-weight: 600; cursor: pointer; color: var(--muted-foreground);
+      transition: all .15s;
+    }
+    .pay-method-tab.active {
+      border-color: var(--primary); background: var(--secondary); color: var(--primary);
+    }
+    .pay-method-tab:hover:not(.active) {
+      background: var(--muted);
+    }
   </style>
 </head>
 <body>
@@ -546,6 +560,7 @@
             <div style="display:flex;align-items:center;gap:8px;">
               <select id="loadStatusFilter" style="padding:6px 10px;border:1.5px solid var(--border);border-radius:var(--radius-md);font-size:13px;background:var(--input);cursor:pointer;">
                 <option value="">All Statuses</option>
+                <option value="pending_payment">Pending Payment</option>
                 <option value="open">Open</option>
                 <option value="matched">Matched</option>
                 <option value="in_transit">In Transit</option>
@@ -704,6 +719,13 @@
               </select>
             </div>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Freight Value (USD) <span class="req">*</span></label>
+              <input type="number" name="freight_value" id="freightValue" min="1" max="1000000" step="0.01" placeholder="e.g. 1500.00" required />
+              <p class="hint">Amount you agree to pay for this load.</p>
+            </div>
+          </div>
 
           <!-- Contact -->
           <div style="font-size:13px;font-weight:700;color:var(--foreground);margin-bottom:10px;margin-top:4px;display:flex;align-items:center;gap:6px;">
@@ -740,7 +762,7 @@
   <!-- ── Payment Modal ── -->
   <div class="modal-backdrop hidden" id="paymentModal">
     <div class="modal">
-      <!-- Loading state -->
+      <!-- Payment form state -->
       <div id="paymentContent">
         <div class="modal-header">
           <h2>
@@ -757,46 +779,76 @@
             <iconify-icon icon="lucide:tag" style="font-size:16px"></iconify-icon>
             <span id="payTrackingIdText">—</span>
           </div>
-          <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:16px;">Complete your payment to confirm the load request.</p>
 
-          <div class="card-network-icons">
-            <span class="card-network-badge">VISA</span>
-            <span class="card-network-badge">MASTERCARD</span>
-            <span class="card-network-badge">AMEX</span>
-            <span class="card-network-badge">DISCOVER</span>
+          <!-- Amount due -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin:12px 0 16px;padding:12px 16px;background:var(--muted);border-radius:var(--radius-md);">
+            <span style="font-size:13px;color:var(--muted-foreground);">Amount Due</span>
+            <span style="font-size:22px;font-weight:800;color:var(--primary);" id="payAmountDisplay">$0.00</span>
           </div>
 
-          <form id="paymentForm" novalidate>
-            <div class="form-group">
-              <label>Cardholder Name <span class="req">*</span></label>
-              <input type="text" id="payCardName" placeholder="Jane Smith" required autocomplete="cc-name" />
+          <!-- Payment method tabs -->
+          <div style="display:flex;gap:8px;margin-bottom:16px;">
+            <button type="button" class="pay-method-tab active" id="tabCard" onclick="switchPayMethod('card')">
+              <iconify-icon icon="lucide:credit-card" style="font-size:14px;margin-right:4px;"></iconify-icon>Credit Card
+            </button>
+            <button type="button" class="pay-method-tab" id="tabWallet" onclick="switchPayMethod('wallet')">
+              <iconify-icon icon="lucide:wallet" style="font-size:14px;margin-right:4px;"></iconify-icon>Wallet
+              <span id="walletBalanceBadge" style="font-size:11px;color:var(--muted-foreground);margin-left:4px;"></span>
+            </button>
+          </div>
+
+          <!-- Card payment form -->
+          <div id="cardPaySection">
+            <div class="card-network-icons">
+              <span class="card-network-badge">VISA</span>
+              <span class="card-network-badge">MASTERCARD</span>
+              <span class="card-network-badge">AMEX</span>
+              <span class="card-network-badge">DISCOVER</span>
             </div>
-            <div class="form-group card-input-wrap">
-              <label>Card Number <span class="req">*</span></label>
-              <input type="text" id="payCardNumber" placeholder="1234 5678 9012 3456"
-                     maxlength="19" required autocomplete="cc-number" inputmode="numeric" />
-              <iconify-icon icon="lucide:credit-card"></iconify-icon>
-            </div>
-            <div class="form-row">
+
+            <form id="paymentForm" novalidate>
               <div class="form-group">
-                <label>Expiry <span class="req">*</span></label>
-                <input type="text" id="payExpiry" placeholder="MM / YY" maxlength="7" required autocomplete="cc-exp" inputmode="numeric" />
+                <label>Cardholder Name <span class="req">*</span></label>
+                <input type="text" id="payCardName" placeholder="Jane Smith" required autocomplete="cc-name" />
               </div>
-              <div class="form-group">
-                <label>CVV <span class="req">*</span></label>
-                <input type="text" id="payCvv" placeholder="•••" maxlength="4" required autocomplete="cc-csc" inputmode="numeric" />
+              <div class="form-group card-input-wrap">
+                <label>Card Number <span class="req">*</span></label>
+                <input type="text" id="payCardNumber" placeholder="1234 5678 9012 3456"
+                       maxlength="19" required autocomplete="cc-number" inputmode="numeric" />
+                <iconify-icon icon="lucide:credit-card"></iconify-icon>
               </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Expiry <span class="req">*</span></label>
+                  <input type="text" id="payExpiry" placeholder="MM / YY" maxlength="7" required autocomplete="cc-exp" inputmode="numeric" />
+                </div>
+                <div class="form-group">
+                  <label>CVV <span class="req">*</span></label>
+                  <input type="text" id="payCvv" placeholder="•••" maxlength="4" required autocomplete="cc-csc" inputmode="numeric" />
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:4px;">
+                <label>Billing Address <span class="req">*</span></label>
+                <input type="text" id="payBillingAddress" placeholder="123 Main St, City, Postcode" required autocomplete="billing street-address" />
+              </div>
+            </form>
+          </div>
+
+          <!-- Wallet payment section -->
+          <div id="walletPaySection" style="display:none;">
+            <div style="padding:16px;background:var(--muted);border-radius:var(--radius-md);text-align:center;">
+              <iconify-icon icon="lucide:wallet" style="font-size:36px;color:var(--primary);display:block;margin:0 auto 8px;"></iconify-icon>
+              <div style="font-size:13px;color:var(--muted-foreground);margin-bottom:4px;">Your wallet balance</div>
+              <div style="font-size:28px;font-weight:800;color:var(--primary);" id="payWalletBalance">$0.00</div>
+              <div style="font-size:12px;color:var(--muted-foreground);margin-top:8px;" id="walletPayNote"></div>
             </div>
-            <div class="form-group" style="margin-bottom:4px;">
-              <label>Billing Address <span class="req">*</span></label>
-              <input type="text" id="payBillingAddress" placeholder="123 Main St, City, Postcode" required autocomplete="billing street-address" />
-            </div>
-            <div id="paymentAlert" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;"></div>
-          </form>
+          </div>
+
+          <div id="paymentAlert" style="display:none;margin-top:10px;padding:10px 14px;border-radius:var(--radius-md);font-size:13px;"></div>
 
           <p style="font-size:11px;color:var(--muted-foreground);margin-top:14px;display:flex;align-items:center;gap:6px;">
             <iconify-icon icon="lucide:lock" style="font-size:13px;flex-shrink:0;"></iconify-icon>
-            Your payment is processed securely. Card details are encrypted and never stored on our servers.
+            Your payment is processed securely. Card details are never stored on our servers.
           </p>
         </div>
         <div class="modal-footer">
@@ -824,6 +876,7 @@
             <h3>Payment Confirmed!</h3>
             <p>Your load request has been confirmed and is now active.</p>
             <p>Tracking ID: <strong id="paySuccessId" style="color:var(--primary);font-family:monospace;font-size:15px;">—</strong></p>
+            <p style="margin-top:4px;font-size:13px;color:var(--muted-foreground);">Payment ID: <strong id="paySuccessPaymentId" style="font-family:monospace;">—</strong></p>
             <p style="margin-top:8px;">Our team will match you with an available driver shortly.</p>
             <button class="btn btn-primary" id="payDoneBtn" style="margin-top:20px;padding:12px 32px;">
               Done
@@ -1025,10 +1078,18 @@
       const date      = l.scheduled_date
         ? new Date(l.scheduled_date + 'T00:00:00').toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })
         : '';
+      const freightHtml = l.freight_value
+        ? `<span class="load-chip" style="font-weight:700;color:var(--primary);">💵 $${parseFloat(l.freight_value).toFixed(2)}</span>`
+        : '';
+      const paymentBadge = l.payment_status === 'paid'
+        ? `<span style="font-size:10px;background:#e6f9ee;color:#15803d;border-radius:3px;padding:2px 6px;font-weight:700;margin-left:4px;">✓ Paid</span>`
+        : (l.payment_status === 'unpaid'
+          ? `<span style="font-size:10px;background:#fef9c3;color:#a16207;border-radius:3px;padding:2px 6px;font-weight:700;margin-left:4px;">Unpaid</span>`
+          : '');
       return `
         <div class="load-item${isActive ? ' active' : ''}" onclick="selectLoad('${escHtml(l.id)}')">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-            <span class="load-id">${tgSent}${escHtml(l.id)}</span>
+            <span class="load-id">${tgSent}${escHtml(l.id)}${paymentBadge}</span>
             <span class="badge ${badgeCls}" style="font-size:11px;padding:3px 8px;">
               <span class="badge-dot"></span>${capitalize(l.status || 'open')}
             </span>
@@ -1038,6 +1099,7 @@
             <span>${escHtml(l.pickup_address)} → ${escHtml(l.delivery_address)}</span>
           </div>
           <div class="load-meta">
+            ${freightHtml}
             ${l.weight_kg ? `<span class="load-chip">⚖️ ${l.weight_kg} kg</span>` : ''}
             ${l.volume_m3  ? `<span class="load-chip">📦 ${l.volume_m3} m³</span>` : ''}
             ${tl}
@@ -1139,7 +1201,7 @@
       return;
     }
 
-    const canOffer = load && load.status === 'open';
+    const canOffer = load && load.status === 'open' && load.payment_status === 'paid';
 
     list.innerHTML = drivers.map(d => {
       const initials = ((d.name || '?')[0] || '?').toUpperCase();
@@ -1280,15 +1342,8 @@
       if (data.success) {
         form.reset();
         document.getElementById('addLoadModal').classList.add('hidden');
-        // Show payment modal with the new tracking ID
-        const trackId = data.load.id;
-        document.getElementById('payTrackingIdText').textContent = trackId;
-        document.getElementById('paySuccessId').textContent      = trackId;
-        document.getElementById('paymentContent').style.display  = '';
-        document.getElementById('paymentSuccess').style.display  = 'none';
-        document.getElementById('paymentForm').reset();
-        document.getElementById('paymentAlert').style.display    = 'none';
-        document.getElementById('paymentModal').classList.remove('hidden');
+        // Show payment modal with the new tracking ID and freight value
+        openPaymentModal(data.load.id, data.load.freight_value || 0);
         await loadData();
       } else {
         alert.textContent   = data.message;
@@ -1469,6 +1524,58 @@
   });
 
   // ── Payment modal handlers ────────────────────────────────
+  let currentPayLoadId = '';
+  let currentPayAmount = 0;
+  let currentPayMethod = 'card';
+
+  function fmtCurrency(n) {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(parseFloat(n) || 0);
+  }
+
+  function switchPayMethod(method) {
+    currentPayMethod = method;
+    document.getElementById('tabCard').classList.toggle('active',   method === 'card');
+    document.getElementById('tabWallet').classList.toggle('active', method === 'wallet');
+    document.getElementById('cardPaySection').style.display   = method === 'card'   ? '' : 'none';
+    document.getElementById('walletPaySection').style.display = method === 'wallet' ? '' : 'none';
+  }
+
+  async function loadWalletBalanceForPayment() {
+    const user = getCurrentUser();
+    if (!user || !user.id) return;
+    try {
+      const res  = await fetch('wallet_data.php?action=balance&user_id=' + encodeURIComponent(user.id));
+      const data = await res.json();
+      if (data.success) {
+        const bal = parseFloat(data.balance) || 0;
+        document.getElementById('payWalletBalance').textContent    = fmtCurrency(bal);
+        document.getElementById('walletBalanceBadge').textContent  = fmtCurrency(bal);
+        const sufficient = bal >= currentPayAmount;
+        document.getElementById('walletPayNote').textContent = sufficient
+          ? 'Sufficient balance to cover this payment.'
+          : 'Insufficient balance — please top up your wallet or pay by card.';
+        document.getElementById('walletPayNote').style.color = sufficient ? 'var(--success)' : '#b91c1c';
+      }
+    } catch (_) {}
+  }
+
+  function openPaymentModal(trackId, amount) {
+    currentPayLoadId = trackId;
+    currentPayAmount = parseFloat(amount) || 0;
+    currentPayMethod = 'card';
+
+    document.getElementById('payTrackingIdText').textContent  = trackId;
+    document.getElementById('paySuccessId').textContent       = trackId;
+    document.getElementById('payAmountDisplay').textContent   = fmtCurrency(currentPayAmount);
+    document.getElementById('paymentContent').style.display   = '';
+    document.getElementById('paymentSuccess').style.display   = 'none';
+    document.getElementById('paymentForm').reset();
+    document.getElementById('paymentAlert').style.display     = 'none';
+    switchPayMethod('card');
+    document.getElementById('paymentModal').classList.remove('hidden');
+    loadWalletBalanceForPayment();
+  }
+
   function closePaymentModal() {
     document.getElementById('paymentModal').classList.add('hidden');
   }
@@ -1496,67 +1603,102 @@
     this.value = this.value.replace(/\D/g, '').substring(0, 4);
   });
 
+  // Luhn algorithm check for card number validity
+  function luhnCheck(num) {
+    let sum = 0, alt = false;
+    for (let i = num.length - 1; i >= 0; i--) {
+      let n = parseInt(num[i], 10);
+      if (alt) { n *= 2; if (n > 9) n -= 9; }
+      sum += n;
+      alt = !alt;
+    }
+    return sum % 10 === 0;
+  }
+
   document.getElementById('submitPayment').addEventListener('click', async () => {
     const btn   = document.getElementById('submitPayment');
-    const alert = document.getElementById('paymentAlert');
     const orig  = btn.innerHTML;
 
-    const cardName    = document.getElementById('payCardName').value.trim();
-    const cardNumber  = document.getElementById('payCardNumber').value.replace(/\s/g, '');
-    const expiry      = document.getElementById('payExpiry').value.replace(/\s/g, '');
-    const cvv         = document.getElementById('payCvv').value.trim();
-    const billing     = document.getElementById('payBillingAddress').value.trim();
+    document.getElementById('paymentAlert').style.display = 'none';
 
-    alert.style.display = 'none';
+    const user = getCurrentUser();
+    if (!user || !user.id) {
+      showPayAlert('You must be logged in to make a payment.'); return;
+    }
 
-    // Luhn algorithm check for card number validity
-    function luhnCheck(num) {
-      let sum = 0, alt = false;
-      for (let i = num.length - 1; i >= 0; i--) {
-        let n = parseInt(num[i], 10);
-        if (alt) { n *= 2; if (n > 9) n -= 9; }
-        sum += n;
-        alt = !alt;
+    if (!currentPayLoadId) {
+      showPayAlert('No load ID found. Please try again.'); return;
+    }
+
+    if (currentPayAmount <= 0) {
+      showPayAlert('Invalid payment amount.'); return;
+    }
+
+    const fd = new FormData();
+    fd.append('action',         'process_payment');
+    fd.append('load_id',        currentPayLoadId);
+    fd.append('user_id',        user.id);
+    fd.append('amount',         currentPayAmount);
+    fd.append('payment_method', currentPayMethod);
+
+    if (currentPayMethod === 'card') {
+      const cardName   = document.getElementById('payCardName').value.trim();
+      const cardNumber = document.getElementById('payCardNumber').value.replace(/\s/g, '');
+      const expiry     = document.getElementById('payExpiry').value.replace(/\s/g, '');
+      const cvv        = document.getElementById('payCvv').value.trim();
+      const billing    = document.getElementById('payBillingAddress').value.trim();
+
+      // Validate card details
+      if (!cardName) {
+        showPayAlert('Please enter the cardholder name.'); return;
       }
-      return sum % 10 === 0;
+      if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber) || !luhnCheck(cardNumber)) {
+        showPayAlert('Please enter a valid card number.'); return;
+      }
+      const expiryClean = expiry.replace('/', '');
+      if (expiryClean.length !== 4) {
+        showPayAlert('Please enter a valid expiry date (MM/YY).'); return;
+      }
+      const mm = parseInt(expiryClean.substring(0, 2), 10);
+      const twoDigitYear = parseInt(expiryClean.substring(2), 10);
+      // Map 2-digit year: 00-49 → 2000-2049, 50-99 → 2050-2099
+      const yy = twoDigitYear < 50 ? 2000 + twoDigitYear : 2050 + (twoDigitYear - 50);
+      const now = new Date();
+      if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
+        showPayAlert('Your card appears to be expired.'); return;
+      }
+      if (cvv.length < 3) {
+        showPayAlert('Please enter a valid CVV (3–4 digits).'); return;
+      }
+      if (!billing) {
+        showPayAlert('Please enter a billing address.'); return;
+      }
+
+      // Only send last 4 digits — never send the full card number or CVV to our server
+      fd.append('card_name',       cardName);
+      fd.append('card_last4',      cardNumber.slice(-4));
+      fd.append('card_expiry',     expiryClean.substring(0, 2) + '/' + expiryClean.substring(2));
+      fd.append('billing_address', billing);
     }
 
-    // Validate
-    if (!cardName) {
-      showPayAlert('Please enter the cardholder name.'); return;
-    }
-    if (cardNumber.length < 13 || cardNumber.length > 16 || !/^\d+$/.test(cardNumber) || !luhnCheck(cardNumber)) {
-      showPayAlert('Please enter a valid card number.'); return;
-    }
-    const expiryClean = expiry.replace('/', '');
-    if (expiryClean.length !== 4) {
-      showPayAlert('Please enter a valid expiry date (MM/YY).'); return;
-    }
-    const mm = parseInt(expiryClean.substring(0, 2), 10);
-    // Sliding window: 2-digit year 00-49 → 2000–2049, 50-99 → 1950–1999 (standard ISO 7816)
-    const twoDigitYear = parseInt(expiryClean.substring(2), 10);
-    const yy = twoDigitYear <= 49 ? 2000 + twoDigitYear : 1900 + twoDigitYear;
-    const now = new Date();
-    if (mm < 1 || mm > 12 || yy < now.getFullYear() || (yy === now.getFullYear() && mm < now.getMonth() + 1)) {
-      showPayAlert('Your card appears to be expired.'); return;
-    }
-    if (cvv.length < 3) {
-      showPayAlert('Please enter a valid CVV (3–4 digits).'); return;
-    }
-    if (!billing) {
-      showPayAlert('Please enter a billing address.'); return;
-    }
-
-    btn.disabled = true;
+    btn.disabled  = true;
     btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:15px;margin-right:6px;animation:spin 1s linear infinite"></iconify-icon>Processing…';
 
-    // TODO: Replace this simulated delay with a real payment gateway API call
-    // e.g. Stripe: stripe.confirmCardPayment(clientSecret, { payment_method: { card, billing_details } })
-    await new Promise(r => setTimeout(r, 1800));
+    try {
+      const res  = await fetch('payment_data.php', { method: 'POST', body: fd });
+      const data = await res.json();
 
-    // Show success state
-    document.getElementById('paymentContent').style.display = 'none';
-    document.getElementById('paymentSuccess').style.display = '';
+      if (data.success) {
+        document.getElementById('paySuccessPaymentId').textContent = data.payment_id || '—';
+        document.getElementById('paymentContent').style.display = 'none';
+        document.getElementById('paymentSuccess').style.display = '';
+        await loadData();
+      } else {
+        showPayAlert(data.message || 'Payment failed. Please try again.');
+      }
+    } catch (err) {
+      showPayAlert('Network error: ' + err.message);
+    }
 
     btn.disabled  = false;
     btn.innerHTML = orig;
@@ -1603,7 +1745,7 @@
   }
 
   function capitalize(str) {
-    return String(str).charAt(0).toUpperCase() + String(str).slice(1).replace(/_/g, ' ');
+    return String(str).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
   }
 
   // Haversine distance in km

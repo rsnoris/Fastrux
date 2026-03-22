@@ -226,12 +226,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            $pickupLat  = filter_var($_POST['pickup_lat']  ?? '', FILTER_VALIDATE_FLOAT);
-            $pickupLng  = filter_var($_POST['pickup_lng']  ?? '', FILTER_VALIDATE_FLOAT);
-            $delivLat   = filter_var($_POST['delivery_lat'] ?? '', FILTER_VALIDATE_FLOAT);
-            $delivLng   = filter_var($_POST['delivery_lng'] ?? '', FILTER_VALIDATE_FLOAT);
-            $weightKg   = filter_var($_POST['weight_kg']   ?? '', FILTER_VALIDATE_FLOAT);
-            $volumeM3   = filter_var($_POST['volume_m3']   ?? '', FILTER_VALIDATE_FLOAT);
+            $pickupLat    = filter_var($_POST['pickup_lat']    ?? '', FILTER_VALIDATE_FLOAT);
+            $pickupLng    = filter_var($_POST['pickup_lng']    ?? '', FILTER_VALIDATE_FLOAT);
+            $delivLat     = filter_var($_POST['delivery_lat']  ?? '', FILTER_VALIDATE_FLOAT);
+            $delivLng     = filter_var($_POST['delivery_lng']  ?? '', FILTER_VALIDATE_FLOAT);
+            $weightKg     = filter_var($_POST['weight_kg']     ?? '', FILTER_VALIDATE_FLOAT);
+            $volumeM3     = filter_var($_POST['volume_m3']     ?? '', FILTER_VALIDATE_FLOAT);
+            $freightValue = filter_var($_POST['freight_value'] ?? '', FILTER_VALIDATE_FLOAT);
 
             $rawCreatedBy = trim($_POST['created_by'] ?? '');
             $createdBy    = validateUserId($rawCreatedBy);
@@ -248,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'id'                 => $id,
                 'created_at'         => date('Y-m-d H:i:s'),
                 'created_by'         => $createdBy,
-                'status'             => 'open',
+                'status'             => 'pending_payment',
                 'pickup_address'     => clean($_POST['pickup_address']),
                 'pickup_lat'         => ($pickupLat !== false) ? $pickupLat : null,
                 'pickup_lng'         => ($pickupLng !== false) ? $pickupLng : null,
@@ -258,6 +259,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'cargo_description'  => clean($_POST['cargo_description']),
                 'weight_kg'          => ($weightKg  !== false) ? $weightKg  : null,
                 'volume_m3'          => ($volumeM3  !== false) ? $volumeM3  : null,
+                'freight_value'      => ($freightValue !== false && $freightValue > 0) ? round($freightValue, 2) : null,
                 'requires_tail_lift' => ($_POST['requires_tail_lift'] ?? 'no') === 'yes',
                 'scheduled_date'     => clean($_POST['scheduled_date']),
                 'contact_name'       => clean($_POST['contact_name']  ?? ''),
@@ -265,6 +267,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'notes'              => clean($_POST['notes']          ?? ''),
                 'assigned_driver_id' => null,
                 'telegram_sent_at'   => null,
+                'payment_id'         => null,
+                'payment_status'     => 'unpaid',
+                'payment_amount'     => null,
+                'payment_method'     => null,
+                'paid_at'            => null,
             ];
 
             $loads[] = $load;
