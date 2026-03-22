@@ -1,0 +1,15 @@
+# ── HTTPS Redirect ────────────────────────────────────────────────────────────
+# Force all traffic to HTTPS.
+# Uses HTTP 308 (Permanent Redirect) instead of 301/302 so that POST requests
+# are NOT downgraded to GET — which is what caused the "Method not allowed"
+# error on login and register after an SSL certificate was added.
+# ──────────────────────────────────────────────────────────────────────────────
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Skip the redirect if already on HTTPS
+    RewriteCond %{HTTPS} off
+
+    # 308 preserves the request method (POST stays POST, GET stays GET)
+    RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=308]
+</IfModule>
