@@ -367,7 +367,7 @@
           Documents
         </a>
         <a href="maps.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
-          <iconify-icon icon="lucide:map-pin" style="font-size:15px;margin-right:6px"></iconify-icon>
+          <iconify-icon icon="lucide:map" style="font-size:15px;margin-right:6px"></iconify-icon>
           Live Map
         </a>
         <a href="offers-tracking.php" class="btn btn-outline" style="padding:8px 16px;font-size:13px;">
