@@ -146,16 +146,16 @@
   <!-- Header -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Documents</span>
       </a>
       <div style="display:flex;align-items:center;gap:10px;">
-        <a href="messages.php" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="messages" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:message-circle" style="font-size:15px;margin-right:6px"></iconify-icon>
           Messages
         </a>
-        <a href="index.php" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
+        <a href="index" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
@@ -292,7 +292,7 @@
     try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
 
     if (!user || !user.id) {
-      window.location.href = 'login.php';
+      window.location.href = 'login';
       return;
     }
 
@@ -351,7 +351,7 @@
           '<td>' + fmtSize(d.file_size) + '</td>' +
           '<td>' + fmtDate(d.uploaded_at) + '</td>' +
           '<td>' +
-            '<a href="documents_data.php?action=download&doc_id=' + encodeURIComponent(d.id) + '&user_id=' + encodeURIComponent(userId) + '" ' +
+            '<a href="documents_data?action=download&doc_id=' + encodeURIComponent(d.id) + '&user_id=' + encodeURIComponent(userId) + '" ' +
                'class="btn btn-outline" style="padding:5px 10px;font-size:12px;margin-right:6px;" title="Download">' +
               '<iconify-icon icon="lucide:download" style="font-size:14px;vertical-align:middle;"></iconify-icon>' +
             '</a>' +

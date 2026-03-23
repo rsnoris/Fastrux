@@ -243,7 +243,7 @@
   <!-- ── Dashboard Header ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>&nbsp;/ Live Driver Map</span>
       </a>
@@ -354,7 +354,7 @@
     try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
     var allowed = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
     if (!currentUser || !currentUser.id || allowed.indexOf(currentUser.role) === -1) {
-      window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+      window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
     }
   })();
 
@@ -365,18 +365,18 @@
     var html = '';
 
     if (role === 'driver' || role === 'owner_operator') {
-      html += '<a href="driver-location.php" class="btn btn-outline btn-locate">'
+      html += '<a href="driver-location" class="btn btn-outline btn-locate">'
             + '<iconify-icon icon="lucide:map-pin" style="font-size:15px"></iconify-icon>'
             + 'Share My Location</a>';
-      html += '<a href="driver-dashboard.php" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
+      html += '<a href="driver-dashboard" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
             + '<iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>'
             + 'My Dashboard</a>';
     } else if (role === 'shipper' || role === 'customer') {
-      html += '<a href="shipper-dashboard.php" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
+      html += '<a href="shipper-dashboard" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
             + '<iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>'
             + 'My Dashboard</a>';
     } else {
-      html += '<a href="admin-dashboard.php" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
+      html += '<a href="admin-dashboard" class="btn btn-primary" style="padding:8px 16px;font-size:13px;">'
             + '<iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>'
             + 'Admin Dashboard</a>';
     }

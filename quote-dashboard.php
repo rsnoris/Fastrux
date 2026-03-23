@@ -391,12 +391,12 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
   <!-- ── HEADER ── -->
   <header class="dash-header">
     <div class="container dash-header-inner">
-      <a href="index.php" class="dash-brand">
+      <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
         Fastrux <span>/ Quote Requests</span>
       </a>
       <div style="display:flex;gap:12px;align-items:center;">
-        <a href="driver-dashboard.php" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
+        <a href="driver-dashboard" class="btn btn-outline" style="font-size:13px;padding:8px 16px;">
           <iconify-icon icon="lucide:users" style="font-size:14px;margin-right:6px"></iconify-icon>Driver Dashboard
         </a>
         <a href="?export=csv" class="btn btn-primary" style="font-size:13px;padding:8px 16px;">
@@ -603,7 +603,7 @@ $todayQuotes = count(array_filter($quotes, fn($q) => isset($q['timestamp']) && s
       try { user = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
       var allowedRoles = ['driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
       if (!user || !user.id || allowedRoles.indexOf(user.role) === -1) {
-        window.location.href = 'login.php?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
       }
     })();
 
