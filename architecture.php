@@ -445,7 +445,7 @@ $fileDescriptions = [
   'shipper_data.php'        => 'API — shipper quote data',
   'marketplace_data.php'    => 'API — marketplace CRUD operations',
   'offers_tracking_data.php'=> 'API — load requests, matching, notifications',
-  'audit.php'               => 'API — audit event log (GET/POST)',
+  'nearby_places_data.php'  => 'API — nearby POI data (gas, hotels, restaurants, libraries, theaters, TMS)',
   'audit_helper.php'        => 'Helper — centralised auditLog() function',
   'careers.php'             => 'Careers — open positions',
   'contact.php'             => 'Contact — enquiry form',
@@ -464,7 +464,8 @@ $fileDescriptions = [
 
 /* ── Categorise files ── */
 $apiFiles = ['process_form.php','admin_api.php','dashboard_data.php','shipper_data.php',
-             'marketplace_data.php','offers_tracking_data.php','audit.php','audit_helper.php'];
+             'marketplace_data.php','offers_tracking_data.php','audit.php','audit_helper.php',
+             'nearby_places_data.php'];
 $dashFiles = ['shipper-dashboard.php','driver-dashboard.php','staff-dashboard.php',
               'admin-dashboard.php','insurance-dashboard.php','trucking-dashboard.php',
               'quote-dashboard.php','observability.php'];
