@@ -567,9 +567,9 @@
           <iconify-icon icon="lucide:refresh-cw" style="font-size:15px;margin-right:6px"></iconify-icon>
           Refresh
         </button>
-        <a href="driver-dashboard" id="dashboardBtn" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
-          <iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>
-          Dashboard
+        <a href="login" id="dashboardBtn" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+          <iconify-icon icon="lucide:log-in" style="font-size:15px;margin-right:6px"></iconify-icon>
+          Login
         </a>
         <a href="index" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
@@ -2420,9 +2420,17 @@
       document.getElementById('userWelcome').style.display = '';
       document.getElementById('userNameDisplay').textContent =
         user.name || (user.first_name ? (user.first_name + ' ' + (user.last_name || '')).trim() : '') || user.email || user.id;
-      // Set the Dashboard button href based on the logged-in user's role
+      // Set the Dashboard button href and label based on the logged-in user's role
       var dashBtn = document.getElementById('dashboardBtn');
-      if (dashBtn) dashBtn.href = getDashboardUrl(user.role);
+      if (dashBtn) {
+        dashBtn.href = getDashboardUrl(user.role);
+        dashBtn.textContent = '';
+        var dashIcon = document.createElement('iconify-icon');
+        dashIcon.setAttribute('icon', 'lucide:layout-dashboard');
+        dashIcon.style.cssText = 'font-size:15px;margin-right:6px';
+        dashBtn.appendChild(dashIcon);
+        dashBtn.appendChild(document.createTextNode('Dashboard'));
+      }
       // Show "Post Load" button only for shippers
       const isShipper = ['shipper','customer'].includes(user.role || '');
       const postBtn = document.getElementById('postLoadBtn');
