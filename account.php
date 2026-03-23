@@ -818,11 +818,7 @@
             <a href="contact">Contact</a>
           </div>
         </div>
-        <div>
-          <h4 class="footer-heading">Contact</h4>
-          <div class="footer-links">
-          </div>
-        </div>
+
       </div>
       <div class="footer-bottom">
         <div>© 2026 Fastrux Logistics. All rights reserved.</div>

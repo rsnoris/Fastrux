@@ -55,6 +55,7 @@
     <a class="nav-link" href="driver-onboarding">Drive with Us</a>
     <a class="nav-link" href="contact">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
+      <a class="btn btn-outline" href="login">Login</a>
       <a class="btn btn-primary" href="quote">Get a Quote</a>
     </div>
   </nav>
