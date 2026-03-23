@@ -10,6 +10,11 @@
  * GET  ?action=get_place&id=XXX   — returns a single place by ID
  */
 
+// Suppress PHP notices/warnings that would corrupt the JSON output
+ini_set('display_errors', '0');
+error_reporting(0);
+ob_start();  // Buffer any accidental output
+
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
@@ -30,6 +35,7 @@ function npClean(string $value): string {
 }
 
 function npRespond(bool $success, string $message, array $extra = []): void {
+    ob_clean();  // Discard any accidental output before our JSON
     echo json_encode(array_merge(['success' => $success, 'message' => $message], $extra));
     exit;
 }
@@ -157,6 +163,15 @@ switch ($action) {
         break;
     case 'get_place':
         handleGetPlace();
+        break;
+    case 'geocode':
+        handleGeocode();
+        break;
+    case 'reverse_geocode':
+        handleReverseGeocode();
+        break;
+    case 'ip_location':
+        handleIpLocation();
         break;
     default:
         npRespond(false, 'Unknown action.');
@@ -315,4 +330,127 @@ function handleGetPlace(): void {
     }
 
     npRespond(false, 'Place not found.');
+}
+
+// ── Geocoding / Nominatim proxy ─────────────────────────────
+
+/**
+ * Forward geocode: ?action=geocode&q=query[&limit=5]
+ * Proxies to Nominatim to avoid browser CORS / user-agent issues.
+ */
+function handleGeocode(): void {
+    $q     = npClean($_GET['q'] ?? '');
+    $limit = max(1, min(10, (int)($_GET['limit'] ?? 5)));
+    if ($q === '') {
+        npRespond(false, 'Query parameter q is required.');
+    }
+
+    $url = 'https://nominatim.openstreetmap.org/search?'
+         . http_build_query([
+             'q'              => $q,
+             'format'         => 'json',
+             'addressdetails' => 1,
+             'limit'          => $limit,
+             'countrycodes'   => 'us',
+         ]);
+
+    $ctx = stream_context_create(['http' => [
+        'timeout' => 5,
+        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
+    ]]);
+
+    $raw = @file_get_contents($url, false, $ctx);
+    if ($raw === false) {
+        npRespond(false, 'Geocoding service unavailable.');
+    }
+    $results = json_decode($raw, true);
+    if (!is_array($results)) {
+        npRespond(false, 'Invalid geocoding response.');
+    }
+
+    $places = array_map(function ($r) {
+        return [
+            'lat'         => (float)$r['lat'],
+            'lng'         => (float)$r['lon'],
+            'display'     => $r['display_name'] ?? '',
+            'type'        => $r['type']        ?? '',
+            'address'     => $r['address']     ?? [],
+        ];
+    }, $results);
+
+    npRespond(true, 'OK', ['results' => $places]);
+}
+
+/**
+ * Reverse geocode: ?action=reverse_geocode&lat=XX&lng=YY
+ */
+function handleReverseGeocode(): void {
+    $lat = filter_var($_GET['lat'] ?? null, FILTER_VALIDATE_FLOAT);
+    $lng = filter_var($_GET['lng'] ?? null, FILTER_VALIDATE_FLOAT);
+    if ($lat === false || $lng === false || $lat === null || $lng === null) {
+        npRespond(false, 'Valid lat and lng are required.');
+    }
+
+    $url = 'https://nominatim.openstreetmap.org/reverse?'
+         . http_build_query([
+             'lat'    => $lat,
+             'lon'    => $lng,
+             'format' => 'json',
+             'zoom'   => 17,
+         ]);
+
+    $ctx = stream_context_create(['http' => [
+        'timeout' => 5,
+        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
+    ]]);
+
+    $raw = @file_get_contents($url, false, $ctx);
+    if ($raw === false) {
+        npRespond(false, 'Reverse geocoding service unavailable.');
+    }
+    $result = json_decode($raw, true);
+    if (!is_array($result)) {
+        npRespond(false, 'Invalid reverse geocode response.');
+    }
+
+    npRespond(true, 'OK', [
+        'display' => $result['display_name'] ?? '',
+        'address' => $result['address']      ?? [],
+        'lat'     => $lat,
+        'lng'     => $lng,
+    ]);
+}
+
+/**
+ * IP-based location fallback: ?action=ip_location
+ */
+function handleIpLocation(): void {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '';
+    // Use ipapi.co free tier for IP geolocation
+    $url = 'https://ipapi.co/' . urlencode($ip) . '/json/';
+    $ctx = stream_context_create(['http' => [
+        'timeout' => 5,
+        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
+    ]]);
+    $raw = @file_get_contents($url, false, $ctx);
+    if ($raw !== false) {
+        $data = json_decode($raw, true);
+        if (is_array($data) && isset($data['latitude'], $data['longitude'])) {
+            npRespond(true, 'OK', [
+                'lat'     => (float)$data['latitude'],
+                'lng'     => (float)$data['longitude'],
+                'city'    => $data['city']         ?? '',
+                'region'  => $data['region']       ?? '',
+                'country' => $data['country_name'] ?? '',
+                'source'  => 'ip',
+            ]);
+        }
+    }
+    // Fallback to geographic centre of USA
+    npRespond(true, 'OK', [
+        'lat'    => 39.5,
+        'lng'    => -98.35,
+        'city'   => 'United States',
+        'source' => 'default',
+    ]);
 }
