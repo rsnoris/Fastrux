@@ -5,8 +5,12 @@
  * GET  ?action=find_loads          — Search/filter available loads
  * GET  ?action=density_data        — Load density per region for map
  * GET  ?action=my_loads&user_id=   — Loads in user's personal categories
+ * GET  ?action=get_bids&load_id=&user_id= — Get bids for a load (shipper sees all; driver sees own)
  * POST action=update_load_status   — Save/hide/contact/book a load for a user
  * POST action=update_load_outcome  — Mark delivered/cancelled/rejected
+ * POST action=post_load            — Shipper posts a new load (with optional bidding)
+ * POST action=submit_bid           — Driver/owner_operator submits a bid on a bidding-enabled load
+ * POST action=update_bid_status    — Shipper accepts or rejects a bid
  */
 
 header('Content-Type: application/json');
@@ -22,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 define('DATA_DIR',         __DIR__ . '/data/');
 define('LOADS_BOARD_JSON', DATA_DIR . 'loadboard_loads.json');
 define('USER_LOADS_JSON',  DATA_DIR . 'loadboard_user_loads.json');
+define('BIDS_JSON',        DATA_DIR . 'loadboard_bids.json');
+define('USERS_JSON',       DATA_DIR . 'registered_users.json');
 
 // ── Helpers ──────────────────────────────────────────────────────
 function respond(bool $ok, string $msg = '', array $extra = []): void
@@ -39,6 +45,40 @@ function validateUserId(string $raw): string
 {
     $raw = trim($raw);
     return preg_match('/^USR-[A-Z0-9]{8}$/', $raw) ? $raw : '';
+}
+
+function validateLoadId(string $raw): string
+{
+    $raw = trim($raw);
+    return preg_match('/^LB-[A-Z0-9]{8}$/', $raw) ? $raw : '';
+}
+
+function validateBidId(string $raw): string
+{
+    $raw = trim($raw);
+    return preg_match('/^BID-[A-Z0-9]{8}$/', $raw) ? $raw : '';
+}
+
+function getUserName(string $userId): string
+{
+    $users = readJson(USERS_JSON);
+    foreach ($users as $u) {
+        if (($u['id'] ?? '') === $userId) {
+            return trim(($u['first_name'] ?? '') . ' ' . ($u['last_name'] ?? '')) ?: ($u['email'] ?? $userId);
+        }
+    }
+    return $userId;
+}
+
+function getUserRole(string $userId): string
+{
+    $users = readJson(USERS_JSON);
+    foreach ($users as $u) {
+        if (($u['id'] ?? '') === $userId) {
+            return $u['role'] ?? '';
+        }
+    }
+    return '';
 }
 
 function readJson(string $file): array
@@ -155,6 +195,9 @@ function seedLoads(): array
             'contact_name' => 'Dispatcher ' . $i,
             'contact_phone'=> '+1-800-' . str_pad(rand(100, 999), 3, '0') . '-' . str_pad(rand(1000, 9999), 4, '0'),
             'notes'        => '',
+            'bidding_enabled' => false,
+            'bid_deadline'    => null,
+            'bid_count'       => 0,
         ];
     }
 
@@ -416,6 +459,244 @@ if ($method === 'POST') {
         writeJson(USER_LOADS_JSON, $allUserLoads);
         respond(true, 'View tracked');
     }
+
+    // ── POST: post_load (shipper posts a new load) ────────────────
+    if ($action === 'post_load') {
+        $userId = validateUserId(clean($raw['user_id'] ?? ''));
+        if (!$userId) respond(false, 'Invalid user_id');
+
+        $role = getUserRole($userId);
+        if (!in_array($role, ['shipper', 'customer'], true)) {
+            respond(false, 'Only shippers can post loads');
+        }
+
+        // Required fields
+        $originCity  = clean($raw['origin_city']  ?? '');
+        $originState = strtoupper(clean($raw['origin_state'] ?? ''));
+        $destCity    = clean($raw['dest_city']    ?? '');
+        $destState   = strtoupper(clean($raw['dest_state'] ?? ''));
+        $equipment   = clean($raw['equipment']    ?? '');
+        $loadType    = clean($raw['load_type']    ?? '');
+        $weightLbs   = (int)($raw['weight_lbs']   ?? 0);
+        $rateTotal   = (int)($raw['rate_total']   ?? 0);
+        $pickupDate  = clean($raw['pickup_date']  ?? '');
+        $commodity   = clean($raw['commodity']    ?? 'General Freight');
+        $hazmat      = !empty($raw['hazmat']) && $raw['hazmat'] !== 'false' && $raw['hazmat'] !== '0';
+        $notes       = clean(substr($raw['notes'] ?? '', 0, 1000));
+        $contactName = clean($raw['contact_name'] ?? getUserName($userId));
+        $contactPhone= clean($raw['contact_phone'] ?? '');
+        $distanceMi  = max(0, (int)($raw['distance_mi'] ?? 0));
+        $ratePerMile = $distanceMi > 0 ? round($rateTotal / $distanceMi, 2) : 0;
+
+        // Bidding fields
+        $biddingEnabled = !empty($raw['bidding_enabled']) && $raw['bidding_enabled'] !== 'false' && $raw['bidding_enabled'] !== '0';
+        $bidDeadline    = null;
+        if ($biddingEnabled) {
+            $rawDeadline = clean($raw['bid_deadline'] ?? '');
+            if ($rawDeadline && strtotime($rawDeadline) > time()) {
+                $bidDeadline = $rawDeadline;
+            } else {
+                respond(false, 'A future bid deadline is required when bidding is enabled');
+            }
+        }
+
+        if (!$originCity || !$originState || !$destCity || !$destState) {
+            respond(false, 'Origin and destination are required');
+        }
+        if (!$equipment) respond(false, 'Equipment type is required');
+        if (!$loadType)  respond(false, 'Load type is required');
+        if ($weightLbs <= 0) respond(false, 'Weight must be positive');
+        if ($rateTotal  <= 0) respond(false, 'Rate must be positive');
+        if (!$pickupDate) respond(false, 'Pickup date is required');
+
+        $loadId = 'LB-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+        $now    = time();
+        $newLoad = [
+            'id'              => $loadId,
+            'origin_city'     => $originCity,
+            'origin_state'    => $originState,
+            'origin_lat'      => (float)($raw['origin_lat'] ?? 0),
+            'origin_lng'      => (float)($raw['origin_lng'] ?? 0),
+            'dest_city'       => $destCity,
+            'dest_state'      => $destState,
+            'dest_lat'        => (float)($raw['dest_lat'] ?? 0),
+            'dest_lng'        => (float)($raw['dest_lng'] ?? 0),
+            'distance_mi'     => $distanceMi,
+            'equipment'       => $equipment,
+            'load_type'       => $loadType,
+            'commodity'       => $commodity,
+            'weight_lbs'      => $weightLbs,
+            'rate_total'      => $rateTotal,
+            'rate_per_mile'   => $ratePerMile,
+            'pickup_ts'       => strtotime($pickupDate),
+            'pickup_date'     => $pickupDate,
+            'hazmat'          => $hazmat,
+            'posted_ts'       => $now,
+            'posted_by'       => $userId,
+            'contact_name'    => $contactName,
+            'contact_phone'   => $contactPhone,
+            'notes'           => $notes,
+            'bidding_enabled' => $biddingEnabled,
+            'bid_deadline'    => $bidDeadline,
+            'bid_count'       => 0,
+        ];
+
+        $loads   = getLoads();
+        $loads[] = $newLoad;
+        writeJson(LOADS_BOARD_JSON, $loads);
+
+        if (function_exists('auditLog')) {
+            auditLog('load.post', $userId, 'load', $loadId,
+                "{$originCity}, {$originState} → {$destCity}, {$destState}" .
+                ($biddingEnabled ? " [bidding until {$bidDeadline}]" : ''));
+        }
+
+        respond(true, 'Load posted successfully', ['load_id' => $loadId, 'load' => $newLoad]);
+    }
+
+    // ── POST: submit_bid ──────────────────────────────────────────
+    if ($action === 'submit_bid') {
+        $userId = validateUserId(clean($raw['user_id'] ?? ''));
+        $loadId = validateLoadId(clean($raw['load_id'] ?? ''));
+        if (!$userId) respond(false, 'Invalid user_id');
+        if (!$loadId) respond(false, 'Invalid load_id');
+
+        $role = getUserRole($userId);
+        if (!in_array($role, ['driver', 'owner_operator'], true)) {
+            respond(false, 'Only drivers and owner operators can submit bids');
+        }
+
+        // Find the load
+        $loads    = getLoads();
+        $loadData = null;
+        foreach ($loads as $l) {
+            if ($l['id'] === $loadId) { $loadData = $l; break; }
+        }
+        if (!$loadData) respond(false, 'Load not found');
+        if (empty($loadData['bidding_enabled'])) respond(false, 'This load is not accepting bids');
+
+        // Check deadline
+        if ($loadData['bid_deadline'] && strtotime($loadData['bid_deadline']) <= time()) {
+            respond(false, 'Bidding deadline has passed');
+        }
+
+        $bidAmount = round((float)($raw['bid_amount'] ?? 0), 2);
+        $notes     = clean(substr($raw['notes'] ?? '', 0, 500));
+        if ($bidAmount <= 0) respond(false, 'Bid amount must be positive');
+
+        $allBids = readJson(BIDS_JSON);
+
+        // Prevent duplicate bids from the same user on the same load
+        foreach ($allBids as $b) {
+            if ($b['load_id'] === $loadId && $b['bidder_id'] === $userId && ($b['status'] ?? '') === 'pending') {
+                respond(false, 'You already have a pending bid on this load');
+            }
+        }
+
+        $bidId  = 'BID-' . strtoupper(substr(md5(uniqid('', true)), 0, 8));
+        $entry  = [
+            'id'            => $bidId,
+            'load_id'       => $loadId,
+            'bidder_id'     => $userId,
+            'bidder_name'   => getUserName($userId),
+            'bid_amount'    => $bidAmount,
+            'notes'         => $notes,
+            'status'        => 'pending',
+            'submitted_at'  => date('Y-m-d H:i:s'),
+        ];
+        $allBids[] = $entry;
+        writeJson(BIDS_JSON, $allBids);
+
+        // Increment bid_count on the load
+        foreach ($loads as &$l) {
+            if ($l['id'] === $loadId) {
+                $l['bid_count'] = ($l['bid_count'] ?? 0) + 1;
+                break;
+            }
+        }
+        unset($l);
+        writeJson(LOADS_BOARD_JSON, $loads);
+
+        if (function_exists('auditLog')) {
+            auditLog('bid.submit', $userId, 'bid', $bidId, "Load: {$loadId}, Amount: \${$bidAmount}");
+        }
+
+        respond(true, 'Bid submitted successfully', ['bid_id' => $bidId, 'bid' => $entry]);
+    }
+
+    // ── POST: update_bid_status (shipper accepts/rejects) ─────────
+    if ($action === 'update_bid_status') {
+        $userId = validateUserId(clean($raw['user_id'] ?? ''));
+        $bidId  = validateBidId(clean($raw['bid_id'] ?? ''));
+        $status = clean($raw['status'] ?? '');
+        if (!$userId) respond(false, 'Invalid user_id');
+        if (!$bidId)  respond(false, 'Invalid bid_id');
+        if (!in_array($status, ['accepted', 'rejected'], true)) respond(false, 'Invalid status');
+
+        $role = getUserRole($userId);
+        if (!in_array($role, ['shipper', 'customer'], true)) {
+            respond(false, 'Only shippers can update bid status');
+        }
+
+        $allBids = readJson(BIDS_JSON);
+        $found   = false;
+        foreach ($allBids as &$b) {
+            if ($b['id'] !== $bidId) continue;
+
+            // Verify this shipper owns the load
+            $loadId   = $b['load_id'];
+            $loads    = getLoads();
+            $loadData = null;
+            foreach ($loads as $l) {
+                if ($l['id'] === $loadId) { $loadData = $l; break; }
+            }
+            if (!$loadData || ($loadData['posted_by'] ?? '') !== $userId) {
+                respond(false, 'You do not own this load');
+            }
+
+            $b['status']     = $status;
+            $b['updated_at'] = date('Y-m-d H:i:s');
+            $found = true;
+            break;
+        }
+        unset($b);
+
+        if (!$found) respond(false, 'Bid not found');
+        writeJson(BIDS_JSON, $allBids);
+
+        if (function_exists('auditLog')) {
+            auditLog('bid.status', $userId, 'bid', $bidId, "Status changed to: {$status}");
+        }
+
+        respond(true, 'Bid ' . $status);
+    }
+}
+
+// ── GET: get_bids ─────────────────────────────────────────────────
+if ($method === 'GET' && $action === 'get_bids') {
+    $userId = validateUserId(clean($_GET['user_id'] ?? ''));
+    $loadId = validateLoadId(clean($_GET['load_id'] ?? ''));
+    if (!$userId) respond(false, 'Invalid user_id');
+    if (!$loadId) respond(false, 'Invalid load_id');
+
+    $role = getUserRole($userId);
+
+    $allBids = readJson(BIDS_JSON);
+    $bids    = array_values(array_filter($allBids, function ($b) use ($loadId, $userId, $role) {
+        if ($b['load_id'] !== $loadId) return false;
+        // Shippers see all bids on their load; bidders see only their own
+        if (in_array($role, ['shipper', 'customer'], true)) {
+            // Verify ownership
+            $loads = getLoads();
+            foreach ($loads as $l) {
+                if ($l['id'] === $loadId && ($l['posted_by'] ?? '') === $userId) return true;
+            }
+            return false;
+        }
+        return ($b['bidder_id'] ?? '') === $userId;
+    }));
+
+    respond(true, '', ['bids' => $bids, 'total' => count($bids)]);
 }
 
 respond(false, 'Unknown action');
