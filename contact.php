@@ -126,29 +126,6 @@
         <p>Whether you're looking for a freight quote, need help tracking a shipment, or want to explore a partnership — reach out any time.</p>
 
         <div class="contact-item">
-          <div class="contact-item-icon"><iconify-icon icon="lucide:map-pin" style="font-size:22px"></iconify-icon></div>
-          <div>
-            <h4>Headquarters</h4>
-            <p>1008 Oak Chase way, Leander, TX 78641</p>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-item-icon"><iconify-icon icon="lucide:phone" style="font-size:22px"></iconify-icon></div>
-          <div>
-            <h4>Phone</h4>
-            <a href="tel:+2038896129">+203-889-6129</a>
-            <p style="font-size:13px;margin-top:2px;">Mon–Fri, 8 AM – 8 PM EST</p>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-item-icon"><iconify-icon icon="lucide:mail" style="font-size:22px"></iconify-icon></div>
-          <div>
-            <h4>Email</h4>
-            <a href="mailto:support@fastrux.com">support@fastrux.com</a><br>
-            <a href="mailto:sales@fastrux.com">sales@fastrux.com</a>
-          </div>
-        </div>
-        <div class="contact-item">
           <div class="contact-item-icon"><iconify-icon icon="lucide:clock" style="font-size:22px"></iconify-icon></div>
           <div>
             <h4>Business Hours</h4>
@@ -245,9 +222,6 @@
         <div>
           <h4 class="footer-heading">Contact</h4>
           <div class="footer-links">
-            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon> 1008 Oak Chase way, Leander, TX 78641</div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+2038896129">+203-889-6129</a></div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:support@fastrux.com">support@fastrux.com</a></div>
           </div>
         </div>
       </div>

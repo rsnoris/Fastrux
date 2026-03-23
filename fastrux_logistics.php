@@ -690,33 +690,6 @@
 
         <div class="contact-detail">
           <div class="contact-detail-icon">
-            <iconify-icon icon="lucide:map-pin" style="font-size:20px"></iconify-icon>
-          </div>
-          <div>
-            <h4>Headquarters</h4>
-            <p>1008 Oak Chase way, Leander, TX 78641</p>
-          </div>
-        </div>
-        <div class="contact-detail">
-          <div class="contact-detail-icon">
-            <iconify-icon icon="lucide:phone" style="font-size:20px"></iconify-icon>
-          </div>
-          <div>
-            <h4>Phone</h4>
-            <a href="tel:+2038896129">+203-889-6129</a>
-          </div>
-        </div>
-        <div class="contact-detail">
-          <div class="contact-detail-icon">
-            <iconify-icon icon="lucide:mail" style="font-size:20px"></iconify-icon>
-          </div>
-          <div>
-            <h4>Email</h4>
-            <a href="mailto:support@fastrux.com">support@fastrux.com</a>
-          </div>
-        </div>
-        <div class="contact-detail">
-          <div class="contact-detail-icon">
             <iconify-icon icon="lucide:clock" style="font-size:20px"></iconify-icon>
           </div>
           <div>
@@ -822,17 +795,6 @@
         <div>
           <h4 class="footer-heading">Contact</h4>
           <div class="footer-links">
-            <div class="footer-contact-item">
-              <iconify-icon icon="lucide:map-pin"></iconify-icon> 1008 Oak Chase way, Leander, TX 78641
-            </div>
-            <div class="footer-contact-item">
-              <iconify-icon icon="lucide:phone"></iconify-icon>
-              <a href="tel:+2038896129">+203-889-6129</a>
-            </div>
-            <div class="footer-contact-item">
-              <iconify-icon icon="lucide:mail"></iconify-icon>
-              <a href="mailto:support@fastrux.com">support@fastrux.com</a>
-            </div>
           </div>
         </div>
       </div>

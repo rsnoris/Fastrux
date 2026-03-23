@@ -11,6 +11,7 @@
   var ADMIN_ROLES         = ['admin', 'super_admin'];
   var COMPANY_ROLES       = ['insurance_company', 'trucking_company', 'gas_station', 'hotel'];
   var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
+  var INACTIVITY_TIMEOUT  = 60000; // ms — auto-logout after 1 minute of inactivity
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -51,6 +52,34 @@
       hotel:             'Hotel',
     };
     return map[role] || role;
+  }
+
+  // ── Inactivity auto-logout ──────────────────────────────────────
+  function startInactivityTimer() {
+    var lastActivity = Date.now();
+    var loggedOut = false;
+
+    function resetTimer() {
+      lastActivity = Date.now();
+    }
+
+    ['scroll', 'touchstart', 'wheel', 'mousemove'].forEach(function (evt) {
+      document.addEventListener(evt, resetTimer, { passive: true });
+    });
+    ['keydown', 'mousedown', 'click'].forEach(function (evt) {
+      document.addEventListener(evt, resetTimer);
+    });
+
+    var checker = setInterval(function () {
+      if (loggedOut) { clearInterval(checker); return; }
+      if (Date.now() - lastActivity >= INACTIVITY_TIMEOUT) {
+        loggedOut = true;
+        clearInterval(checker);
+        alert('You have been logged out due to 1 minute of inactivity.');
+        localStorage.removeItem('fx_user');
+        window.location.href = 'login';
+      }
+    }, 10000);
   }
 
   // ── Notification bell ──────────────────────────────────────────
@@ -151,7 +180,7 @@
     var headerActions = document.querySelector('.header-actions');
     if (headerActions) {
       // Replace Login link with My Account
-      var loginLink = headerActions.querySelector('a[href="login.php"]');
+      var loginLink = headerActions.querySelector('a[href="login.php"], a[href="login"]');
       if (loginLink) {
         loginLink.href = 'account.php';
         loginLink.textContent = 'My Account';
@@ -160,7 +189,7 @@
 
       // For employees: change "Get a Quote" button to "Dashboard"
       if (isEmployee(role)) {
-        var quoteBtn = headerActions.querySelector('a[href="quote.php"]');
+        var quoteBtn = headerActions.querySelector('a[href="quote.php"], a[href="quote"]');
         if (quoteBtn) {
           quoteBtn.href = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
           quoteBtn.textContent = 'Dashboard';
@@ -169,7 +198,7 @@
 
       // For admins: change "Get a Quote" button to "Admin Dashboard"
       if (isAdmin(role)) {
-        var quoteBtn2 = headerActions.querySelector('a[href="quote.php"]');
+        var quoteBtn2 = headerActions.querySelector('a[href="quote.php"], a[href="quote"]');
         if (quoteBtn2) {
           quoteBtn2.href = 'admin-dashboard.php';
           quoteBtn2.textContent = 'Admin Dashboard';
@@ -179,8 +208,8 @@
       // For company roles: change "Get a Quote" / "Join Marketplace" button to "Dashboard"
       if (isCompany(role)) {
         var dashHref = companyDashHref(role);
-        var ctaBtn = headerActions.querySelector('a[href="quote.php"]') ||
-                     headerActions.querySelector('a[href="register.php"]');
+        var ctaBtn = headerActions.querySelector('a[href="quote.php"], a[href="quote"]') ||
+                     headerActions.querySelector('a[href="register.php"], a[href="register"]');
         if (ctaBtn) {
           ctaBtn.href = dashHref;
           ctaBtn.textContent = 'My Dashboard';
@@ -263,7 +292,7 @@
       hidePublicNavLinks(mobileMenu);
 
       // Replace any Login links in mobile menu
-      mobileMenu.querySelectorAll('a[href="login.php"]').forEach(function (el) {
+      mobileMenu.querySelectorAll('a[href="login.php"], a[href="login"]').forEach(function (el) {
         el.href = 'account.php';
         el.textContent = 'My Account';
       });
@@ -274,7 +303,7 @@
         if (mobileDriveLink) mobileDriveLink.style.display = 'none';
 
         // Replace "Get a Quote" button with "Admin Dashboard"
-        var mobileQuoteBtn = mobileMenu.querySelector('a[href="quote.php"].btn');
+        var mobileQuoteBtn = mobileMenu.querySelector('a[href="quote.php"].btn, a[href="quote"].btn');
         if (mobileQuoteBtn) {
           mobileQuoteBtn.href = 'admin-dashboard.php';
           mobileQuoteBtn.textContent = 'Admin Dashboard';
@@ -285,7 +314,7 @@
         if (mobileDriveLink2) mobileDriveLink2.style.display = 'none';
 
         // Replace "Get a Quote" button with "Dashboard"
-        var mobileQuoteBtn2 = mobileMenu.querySelector('a[href="quote.php"].btn');
+        var mobileQuoteBtn2 = mobileMenu.querySelector('a[href="quote.php"].btn, a[href="quote"].btn');
         if (mobileQuoteBtn2) {
           mobileQuoteBtn2.href = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
           mobileQuoteBtn2.textContent = 'Dashboard';
@@ -326,8 +355,8 @@
 
         // Replace CTA button with "My Dashboard"
         var mobileCoDashHref = companyDashHref(role);
-        var mobileCoBtn = mobileMenu.querySelector('a[href="quote.php"].btn') ||
-                          mobileMenu.querySelector('a[href="register.php"].btn');
+        var mobileCoBtn = mobileMenu.querySelector('a[href="quote.php"].btn, a[href="quote"].btn') ||
+                          mobileMenu.querySelector('a[href="register.php"].btn, a[href="register"].btn');
         if (mobileCoBtn) {
           mobileCoBtn.href = mobileCoDashHref;
           mobileCoBtn.textContent = 'My Dashboard';
@@ -345,6 +374,9 @@
 
     // ── Notification bell ────────────────────────────────────────
     injectNotificationBadge(userId);
+
+    // ── Inactivity auto-logout ────────────────────────────────────
+    startInactivityTimer();
   }
 
   // Run after DOM is ready
