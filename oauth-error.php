@@ -32,9 +32,9 @@
         <a class="nav-link" href="index">Home</a>
         <a class="nav-link" href="index#services">Services</a>
         <a class="nav-link" href="track">Tracking</a>
-        <a class="nav-link" href="contact">Contact</a>
-        <a class="nav-link" href="loadboard">Loadboard</a>
         <a class="nav-link" href="marketplace">Marketplace</a>
+        <a class="nav-link" href="loadboard">Loadboard</a>
+        <a class="nav-link" href="contact">Contact</a>
       </nav>
       <div class="header-actions">
         <a class="nav-link active" href="login">Login</a>
@@ -49,9 +49,9 @@
     <a class="nav-link" href="index">Home</a>
     <a class="nav-link" href="index#services">Services</a>
     <a class="nav-link" href="track">Tracking</a>
-    <a class="nav-link" href="contact">Contact</a>
-    <a class="nav-link" href="loadboard">Loadboard</a>
     <a class="nav-link" href="marketplace">Marketplace</a>
+    <a class="nav-link" href="loadboard">Loadboard</a>
+    <a class="nav-link" href="contact">Contact</a>
     <div class="header-actions" style="margin-top:8px;">
       <a class="btn btn-primary" href="quote">Get a Quote</a>
     </div>
