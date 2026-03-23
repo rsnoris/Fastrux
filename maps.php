@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Live Driver Map — Fastrux</title>
+  <title>Live Map & Nearby Places — Fastrux</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -236,6 +236,86 @@
       display: flex; align-items: center; gap: 6px;
       padding: 8px 14px; font-size: 13px;
     }
+
+    /* ── Panel tabs ── */
+    .panel-tabs {
+      display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .panel-tab {
+      flex: 1; padding: 10px 6px; font-size: 12px; font-weight: 600;
+      text-align: center; cursor: pointer; border: none; background: none;
+      color: var(--muted-foreground); border-bottom: 2px solid transparent;
+      transition: color .15s, border-color .15s;
+    }
+    .panel-tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+    .panel-tab:hover:not(.active) { color: var(--foreground); }
+
+    /* ── Nearby controls bar ── */
+    .nearby-controls {
+      padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .nearby-controls select, .nearby-controls input[type=number] {
+      flex: 1; min-width: 80px; padding: 6px 10px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-md);
+      font-size: 12px; background: var(--muted); color: var(--foreground);
+      outline: none; transition: border-color .2s;
+    }
+    .nearby-controls select:focus, .nearby-controls input:focus { border-color: var(--primary); }
+    .btn-sm {
+      padding: 6px 12px; font-size: 12px; border-radius: var(--radius-md);
+      border: none; cursor: pointer; font-weight: 600; white-space: nowrap;
+      background: var(--primary); color: #fff; transition: opacity .15s;
+    }
+    .btn-sm:hover { opacity: .85; }
+    .btn-sm.outline { background: var(--card); color: var(--primary); border: 1.5px solid var(--primary); }
+
+    /* ── POI list items ── */
+    .poi-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 10px 12px; border: 1px solid var(--border);
+      border-radius: var(--radius-lg); background: var(--card);
+      cursor: pointer; transition: border-color .2s, box-shadow .2s;
+      font-size: 13px;
+    }
+    .poi-item:hover { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(11,111,255,.1); }
+    .poi-emoji { font-size: 20px; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+    .poi-info { flex: 1; min-width: 0; }
+    .poi-name { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .poi-addr { font-size: 11px; color: var(--muted-foreground); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .poi-dist { font-size: 11px; color: var(--primary); font-weight: 600; white-space: nowrap; }
+    .poi-badge {
+      font-size: 10px; padding: 1px 6px; border-radius: 8px;
+      font-weight: 600; white-space: nowrap; flex-shrink: 0; margin-top: 3px;
+    }
+
+    /* ── Category layer toggles ── */
+    .layer-toggles {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+    }
+    .layer-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 4px 10px; font-size: 11px; font-weight: 600;
+      border-radius: 12px; border: 1.5px solid; cursor: pointer;
+      transition: opacity .15s, background .15s;
+    }
+    .layer-btn.active { opacity: 1; }
+    .layer-btn:not(.active) { opacity: .45; background: transparent !important; }
+
+    /* ── Radius info ── */
+    .radius-info {
+      font-size: 11px; color: var(--muted-foreground);
+      padding: 4px 12px; flex-shrink: 0;
+    }
+
+    /* ── Location prompt ── */
+    .location-prompt {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 24px 16px; gap: 10px; color: var(--muted-foreground);
+      font-size: 13px; text-align: center;
+    }
+    .location-prompt iconify-icon { font-size: 32px; color: var(--primary); }
   </style>
 </head>
 <body>
@@ -245,7 +325,7 @@
     <div class="container dash-header-inner">
       <a href="index" class="dash-brand">
         <iconify-icon icon="lucide:truck" style="font-size:24px"></iconify-icon>
-        Fastrux <span>&nbsp;/ Live Driver Map</span>
+        Fastrux <span>&nbsp;/ Live Map &amp; Nearby Places</span>
       </a>
       <div style="display:flex;align-items:center;gap:10px;" id="headerActions">
         <!-- Populated by JS based on role -->
@@ -259,8 +339,8 @@
     <!-- Title + refresh -->
     <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
       <div>
-        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">Live Driver Locations</h1>
-        <p style="color:var(--muted-foreground);font-size:14px;">Real-time map of active drivers. Updates every 30 seconds.</p>
+        <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">Live Map &amp; Nearby Places</h1>
+        <p style="color:var(--muted-foreground);font-size:14px;">Real-time drivers · Gas stations · Hotels · Restaurants · Libraries · Theaters · TMS hubs</p>
       </div>
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
         <div class="refresh-indicator">
@@ -308,30 +388,82 @@
     <!-- Map + Driver list layout -->
     <div class="map-layout">
 
-      <!-- Left: Driver list -->
+      <!-- Left: Tabbed panel (Drivers / Nearby Places) -->
       <div class="panel">
-        <div class="panel-header">
-          <div class="panel-title">
-            <iconify-icon icon="lucide:users" style="font-size:16px;color:var(--primary)"></iconify-icon>
-            Drivers
+        <!-- Tabs -->
+        <div class="panel-tabs">
+          <button class="panel-tab active" id="tabDrivers" onclick="switchTab('drivers')">
+            🚚 Drivers
+          </button>
+          <button class="panel-tab" id="tabNearby" onclick="switchTab('nearby')">
+            📍 Nearby Places
+          </button>
+        </div>
+
+        <!-- ── Drivers sub-panel ── -->
+        <div id="driversPanel" style="display:flex;flex-direction:column;flex:1;overflow:hidden;">
+          <div class="panel-header" style="border-top:none;">
+            <div class="panel-title">
+              <iconify-icon icon="lucide:users" style="font-size:16px;color:var(--primary)"></iconify-icon>
+              Drivers
+            </div>
+            <select id="statusFilter" class="status-filter" onchange="applyFilters()">
+              <option value="">All</option>
+              <option value="available">Available</option>
+              <option value="busy">On Trip</option>
+              <option value="offline">Offline</option>
+            </select>
           </div>
-          <select id="statusFilter" class="status-filter" onchange="applyFilters()">
-            <option value="">All</option>
-            <option value="available">Available</option>
-            <option value="busy">On Trip</option>
-            <option value="offline">Offline</option>
-          </select>
-        </div>
-        <div class="search-wrap">
-          <iconify-icon icon="lucide:search"></iconify-icon>
-          <input type="text" id="searchInput" placeholder="Search driver or van reg…" oninput="applyFilters()" />
-        </div>
-        <div class="driver-list" id="driverList">
-          <div class="empty-state">
-            <iconify-icon icon="lucide:loader-circle" style="animation:spin 1s linear infinite"></iconify-icon>
-            <p>Loading drivers…</p>
+          <div class="search-wrap">
+            <iconify-icon icon="lucide:search"></iconify-icon>
+            <input type="text" id="searchInput" placeholder="Search driver or van reg…" oninput="applyFilters()" />
+          </div>
+          <div class="driver-list" id="driverList">
+            <div class="empty-state">
+              <iconify-icon icon="lucide:loader-circle" style="animation:spin 1s linear infinite"></iconify-icon>
+              <p>Loading drivers…</p>
+            </div>
           </div>
         </div>
+
+        <!-- ── Nearby Places sub-panel ── -->
+        <div id="nearbyPanel" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+          <!-- Location & radius controls -->
+          <div class="nearby-controls">
+            <label for="nearbyRadius" style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">Radius:</label>
+            <input type="number" id="nearbyRadius" value="50" min="1" max="500" style="width:70px;flex:none;" title="Search radius in miles" aria-label="Search radius in miles" />
+            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
+            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
+            <select id="nearbyCategory" style="flex:1;">
+              <option value="all">All Categories</option>
+              <option value="gas_station">⛽ Gas Stations</option>
+              <option value="hotel">🏨 Hotels</option>
+              <option value="restaurant">🍽️ Restaurants</option>
+              <option value="library">📚 Libraries</option>
+              <option value="movie_theater">🎬 Theaters</option>
+              <option value="tms_terminal">🏭 TMS / Freight</option>
+            </select>
+          </div>
+          <div class="nearby-controls" style="padding-top:0;">
+            <button class="btn-sm" onclick="loadNearby(true)" id="btnLocate">
+              <iconify-icon icon="lucide:locate" style="font-size:13px;vertical-align:-2px;margin-right:3px"></iconify-icon>Use My Location
+            </button>
+            <button class="btn-sm outline" onclick="loadNearby(false)" id="btnMapCenter">
+              <iconify-icon icon="lucide:map" style="font-size:13px;vertical-align:-2px;margin-right:3px"></iconify-icon>Map Center
+            </button>
+          </div>
+          <div class="radius-info" id="nearbyInfo">Enter a radius and click a button to find nearby places.</div>
+          <!-- Layer visibility toggles -->
+          <div class="layer-toggles" id="layerToggles"></div>
+          <!-- Results list -->
+          <div class="driver-list" id="nearbyList">
+            <div class="location-prompt">
+              <iconify-icon icon="lucide:map-pin"></iconify-icon>
+              <p>Click <strong>Use My Location</strong> or <strong>Map Center</strong> to find nearby places.</p>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <!-- Right: Map -->
@@ -393,6 +525,21 @@
   var driverMarkers = {};
   var refreshTimer  = null;
   var REFRESH_MS    = 30000;
+
+  // POI state
+  var poiLayers     = {};   // category -> L.LayerGroup
+  var poiVisible    = {};   // category -> bool
+  var lastPlaces    = [];   // last fetched places array
+
+  // POI category metadata
+  var POI_CATS = {
+    gas_station:   { label: 'Gas Stations',     emoji: '⛽', color: '#f59e0b' },
+    hotel:         { label: 'Hotels',            emoji: '🏨', color: '#8b5cf6' },
+    restaurant:    { label: 'Restaurants',       emoji: '🍽️', color: '#ef4444' },
+    library:       { label: 'Libraries',         emoji: '📚', color: '#3b82f6' },
+    movie_theater: { label: 'Movie Theaters',    emoji: '🎬', color: '#ec4899' },
+    tms_terminal:  { label: 'TMS / Freight',     emoji: '🏭', color: '#10b981' },
+  };
 
   // ═══════════════════════════════════════════════════════════
   //  HELPERS
@@ -570,6 +717,259 @@
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  TAB SWITCHING
+  // ═══════════════════════════════════════════════════════════
+  function switchTab(tab) {
+    var isDrivers = tab === 'drivers';
+    document.getElementById('tabDrivers').classList.toggle('active', isDrivers);
+    document.getElementById('tabNearby').classList.toggle('active', !isDrivers);
+    document.getElementById('driversPanel').style.display = isDrivers ? 'flex' : 'none';
+    document.getElementById('nearbyPanel').style.display  = isDrivers ? 'none' : 'flex';
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  POI ICON
+  // ═══════════════════════════════════════════════════════════
+  function poiIcon(category) {
+    var cat = POI_CATS[category] || { emoji: '📍', color: '#6b7280' };
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="36" viewBox="0 0 28 36">'
+      + '<ellipse cx="14" cy="34" rx="6" ry="2" fill="rgba(0,0,0,.15)"/>'
+      + '<path d="M14 0 C7 0 1 6 1 13 C1 22 14 34 14 34 C14 34 27 22 27 13 C27 6 21 0 14 0Z"'
+      + ' fill="' + cat.color + '" stroke="#fff" stroke-width="2"/>'
+      + '<text x="14" y="17" text-anchor="middle" font-size="12" font-family="sans-serif">' + cat.emoji + '</text>'
+      + '</svg>';
+    return L.divIcon({
+      html: '<div style="transform:translate(-14px,-36px)">' + svg + '</div>',
+      iconSize: [0, 0], iconAnchor: [0, 0], popupAnchor: [14, -36],
+      className: '',
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  NEARBY PLACES — LOAD
+  // ═══════════════════════════════════════════════════════════
+  function loadNearby(useGeolocation) {
+    var rawRadius = parseFloat(document.getElementById('nearbyRadius').value);
+    var radius    = (isNaN(rawRadius) || rawRadius <= 0) ? 50 : Math.min(rawRadius, 500);
+    var category = document.getElementById('nearbyCategory').value;
+    var list     = document.getElementById('nearbyList');
+    var info     = document.getElementById('nearbyInfo');
+
+    list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:loader-circle" style="animation:spin 1s linear infinite"></iconify-icon><p>Searching nearby places…</p></div>';
+    info.textContent = 'Searching…';
+
+    function fetchNearby(lat, lng) {
+      var url = 'nearby_places_data.php?action=nearby'
+        + '&lat=' + lat.toFixed(6)
+        + '&lng=' + lng.toFixed(6)
+        + '&radius=' + radius
+        + '&category=' + encodeURIComponent(category)
+        + '&t=' + Date.now();
+
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (!data.success) {
+            list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:alert-circle"></iconify-icon><p>' + esc(data.message) + '</p></div>';
+            info.textContent = 'Error loading places.';
+            return;
+          }
+          lastPlaces = data.places || [];
+          info.textContent = lastPlaces.length + ' place' + (lastPlaces.length !== 1 ? 's' : '') + ' within ' + radius + ' mi of ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+          renderNearbyList(lastPlaces);
+          renderPoiMarkers(lastPlaces, lat, lng, radius);
+          renderLayerToggles(data.grouped || {});
+        })
+        .catch(function(err) {
+          list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:wifi-off"></iconify-icon><p>Network error loading places.</p></div>';
+          info.textContent = 'Network error.';
+          showToast('Could not load nearby places.');
+        });
+    }
+
+    if (useGeolocation) {
+      if (!navigator.geolocation) {
+        showToast('Geolocation is not supported by your browser.');
+        list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:map-pin-off"></iconify-icon><p>Geolocation not available. Try "Map Center".</p></div>';
+        info.textContent = '';
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        function(pos) { fetchNearby(pos.coords.latitude, pos.coords.longitude); },
+        function(err) {
+          showToast('Location access denied. Using map center instead.');
+          var c = map.getCenter();
+          fetchNearby(c.lat, c.lng);
+        },
+        { enableHighAccuracy: true, timeout: 8000 }
+      );
+    } else {
+      var c = map.getCenter();
+      fetchNearby(c.lat, c.lng);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  NEARBY PLACES — RENDER LIST
+  // ═══════════════════════════════════════════════════════════
+  function renderNearbyList(places) {
+    var list = document.getElementById('nearbyList');
+    if (!places.length) {
+      list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:search-x"></iconify-icon><p>No places found in this radius. Try a larger radius.</p></div>';
+      return;
+    }
+
+    var html = places.map(function(p) {
+      var cat  = POI_CATS[p.category] || { emoji: '📍', color: '#6b7280', label: p.category };
+      var meta = p.meta || {};
+      var detail = '';
+      if (p.category === 'gas_station')   detail = (meta.brand ? esc(meta.brand) + ' · ' : '') + (meta.diesel_price ? 'Diesel ' + esc(meta.diesel_price) : '') + (meta.open_247 ? ' · 24/7' : '');
+      if (p.category === 'hotel')         detail = (meta.brand ? esc(meta.brand) : '') + (meta.price_range ? ' · ' + esc(meta.price_range) : '') + (meta.star_rating ? ' · ' + '★'.repeat(meta.star_rating) : '');
+      if (p.category === 'restaurant')    detail = (meta.cuisine ? esc(meta.cuisine) : '') + (meta.trucker_friendly ? ' · 🚚 Trucker-friendly' : '');
+      if (p.category === 'library')       detail = (meta.wifi ? 'WiFi available · ' : '') + (meta.hours ? esc(meta.hours.split(',')[0]) : '');
+      if (p.category === 'movie_theater') detail = (meta.screens ? meta.screens + ' screens' : '') + (meta.accessibility ? ' · Accessible' : '');
+      if (p.category === 'tms_terminal')  detail = (meta.carrier ? esc(meta.carrier) : '') + (meta.open_247 ? ' · 24/7' : '') + (meta.dock_doors ? ' · ' + meta.dock_doors + ' doors' : '');
+
+      return '<div class="poi-item" data-id="' + esc(p.id) + '" onclick="focusPoi(\'' + esc(p.id) + '\')">'
+        + '<div class="poi-emoji">' + cat.emoji + '</div>'
+        + '<div class="poi-info">'
+        + '<div class="poi-name">' + esc(p.name) + '</div>'
+        + '<div class="poi-addr">' + esc(p.address) + '</div>'
+        + (detail ? '<div class="poi-addr" style="margin-top:2px;">' + detail + '</div>' : '')
+        + '</div>'
+        + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">'
+        + '<span class="poi-dist">' + p.distance + ' mi</span>'
+        + '<span class="poi-badge" style="background:' + cat.color + '22;color:' + cat.color + ';border:1px solid ' + cat.color + '44;">' + esc(cat.label) + '</span>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+    list.innerHTML = html;
+  }
+
+  // ── Focus a POI on the map ────────────────────────────────
+  function focusPoi(placeId) {
+    document.querySelectorAll('.poi-item').forEach(function(el) {
+      el.classList.toggle('active', el.dataset.id === placeId);
+    });
+    var found = null;
+    Object.values(poiLayers).forEach(function(lg) {
+      lg.eachLayer(function(m) {
+        if (m.options && m.options.placeId === placeId) found = m;
+      });
+    });
+    if (found) {
+      map.setView(found.getLatLng(), 14, { animate: true });
+      found.openPopup();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  POI MAP MARKERS
+  // ═══════════════════════════════════════════════════════════
+  function renderPoiMarkers(places, centerLat, centerLng, radius) {
+    // Clear existing POI layers
+    Object.values(poiLayers).forEach(function(lg) { map.removeLayer(lg); });
+    poiLayers = {};
+
+    // Draw radius circle
+    if (window._radiusCircle) map.removeLayer(window._radiusCircle);
+    window._radiusCircle = L.circle([centerLat, centerLng], {
+      radius: radius * 1609.34, // miles to meters
+      color: '#0b6fff', weight: 1.5, opacity: 0.4,
+      fillColor: '#0b6fff', fillOpacity: 0.04,
+    }).addTo(map);
+
+    // Group places by category
+    var grouped = {};
+    places.forEach(function(p) {
+      if (!grouped[p.category]) grouped[p.category] = [];
+      grouped[p.category].push(p);
+    });
+
+    Object.keys(grouped).forEach(function(cat) {
+      var lg = L.layerGroup();
+      grouped[cat].forEach(function(p) {
+        if (!p.lat || !p.lng) return;
+        var meta = p.meta || {};
+        var cat2 = POI_CATS[cat] || { emoji: '📍', color: '#6b7280', label: cat };
+
+        var popupLines = [
+          '<div class="popup-name">' + cat2.emoji + ' ' + esc(p.name) + '</div>',
+          '<div class="popup-updated">' + esc(p.address) + '</div>',
+        ];
+        if (p.phone) popupLines.push('<div class="popup-updated">📞 ' + esc(p.phone) + '</div>');
+        if (cat === 'gas_station' && meta.diesel_price) popupLines.push('<div class="popup-updated">⛽ Diesel: ' + esc(meta.diesel_price) + ' | ' + (meta.open_247 ? '24/7' : 'Hours vary') + '</div>');
+        if (cat === 'hotel' && meta.brand)      popupLines.push('<div class="popup-updated">🏨 ' + esc(meta.brand) + (meta.price_range ? ' · ' + esc(meta.price_range) : '') + '</div>');
+        if (cat === 'restaurant' && meta.cuisine) popupLines.push('<div class="popup-updated">🍽️ ' + esc(meta.cuisine) + (meta.trucker_friendly ? ' · Trucker-friendly' : '') + '</div>');
+        if (cat === 'library' && meta.hours)    popupLines.push('<div class="popup-updated">🕐 ' + esc(meta.hours.split(',')[0]) + '</div>');
+        if (cat === 'movie_theater' && meta.screens) popupLines.push('<div class="popup-updated">🎬 ' + meta.screens + ' screens</div>');
+        if (cat === 'tms_terminal' && meta.carrier) popupLines.push('<div class="popup-updated">🏭 ' + esc(meta.carrier) + (meta.open_247 ? ' · 24/7' : '') + '</div>');
+        if (meta.website) {
+          var websiteUrl = /^https?:\/\//i.test(meta.website) ? meta.website : 'https://' + meta.website;
+          popupLines.push('<div class="popup-updated" style="margin-top:4px;"><a href="' + esc(websiteUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">Visit Website ↗</a></div>');
+        }
+        popupLines.push('<div class="popup-updated" style="margin-top:4px;color:var(--primary);font-weight:600;">' + p.distance + ' mi away</div>');
+
+        var marker = L.marker([p.lat, p.lng], {
+          icon: poiIcon(cat),
+          placeId: p.id,
+        }).bindPopup(popupLines.join(''));
+
+        lg.addLayer(marker);
+      });
+      poiLayers[cat] = lg;
+      if (poiVisible[cat] !== false) {
+        lg.addTo(map);
+        poiVisible[cat] = true;
+      }
+    });
+
+    // Fit map to show all results
+    if (places.length > 0) {
+      var bounds = [[centerLat, centerLng]];
+      places.forEach(function(p) { if (p.lat && p.lng) bounds.push([p.lat, p.lng]); });
+      map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  LAYER TOGGLE BUTTONS
+  // ═══════════════════════════════════════════════════════════
+  function renderLayerToggles(grouped) {
+    var container = document.getElementById('layerToggles');
+    var html = '';
+    Object.keys(grouped).forEach(function(cat) {
+      var c = POI_CATS[cat] || { emoji: '📍', color: '#6b7280', label: cat };
+      var count = grouped[cat].length;
+      var isActive = poiVisible[cat] !== false;
+      html += '<span class="layer-btn ' + (isActive ? 'active' : '') + '"'
+        + ' style="color:' + c.color + ';border-color:' + c.color + ';background:' + (isActive ? c.color + '18' : 'transparent') + '"'
+        + ' onclick="toggleLayer(\'' + cat + '\')" data-cat="' + cat + '">'
+        + c.emoji + ' ' + count
+        + '</span>';
+    });
+    container.innerHTML = html || '<span style="font-size:12px;color:var(--muted-foreground);">No results to toggle.</span>';
+  }
+
+  function toggleLayer(cat) {
+    if (!poiLayers[cat]) return;
+    if (poiVisible[cat] !== false) {
+      map.removeLayer(poiLayers[cat]);
+      poiVisible[cat] = false;
+    } else {
+      poiLayers[cat].addTo(map);
+      poiVisible[cat] = true;
+    }
+    // Update button style
+    var btn = document.querySelector('.layer-btn[data-cat="' + cat + '"]');
+    if (btn) {
+      var c = POI_CATS[cat] || { color: '#6b7280' };
+      btn.classList.toggle('active', poiVisible[cat] !== false);
+      btn.style.background = poiVisible[cat] ? c.color + '18' : 'transparent';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  AUTO REFRESH
   // ═══════════════════════════════════════════════════════════
   function startAutoRefresh() {
@@ -584,6 +984,8 @@
     initMap();
     loadData();
     startAutoRefresh();
+    // Pre-populate all category layers as visible
+    Object.keys(POI_CATS).forEach(function(cat) { poiVisible[cat] = true; });
   });
   </script>
 </body>
