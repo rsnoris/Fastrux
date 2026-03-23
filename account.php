@@ -900,6 +900,21 @@
           fillFormFromData(data.kyc);
           updateKycProgress(data.kyc);
         }
+        // Sync the authoritative role from the server into localStorage so that
+        // nav links, dashboard guards, and auth-nav.js all see the correct role.
+        const serverRole = data.authoritative_role || (data.kyc && data.kyc.role) || null;
+        if (serverRole) {
+          try {
+            const stored = JSON.parse(localStorage.getItem('fx_user') || '{}');
+            if (stored && stored.id && stored.role !== serverRole) {
+              stored.role = serverRole;
+              localStorage.setItem('fx_user', JSON.stringify(stored));
+              // Reload the page so that auth-nav.js re-runs with the corrected role
+              // and all nav links (including the Dashboard button) point to the right place.
+              window.location.reload();
+            }
+          } catch (e) { /* ignore */ }
+        }
       })
       .catch(() => {/* silently ignore if no saved data */});
     }

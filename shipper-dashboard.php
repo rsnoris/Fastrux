@@ -368,9 +368,28 @@
     var currentUser = null;
     (function() {
       try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch(e) {}
-      var shipperRoles = ['shipper', 'customer'];
-      if (!currentUser || !currentUser.id || shipperRoles.indexOf(currentUser.role || 'shipper') === -1) {
+      if (!currentUser || !currentUser.id) {
         window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
+        return;
+      }
+      var shipperRoles = ['shipper', 'customer'];
+      if (shipperRoles.indexOf(currentUser.role) === -1) {
+        // Redirect non-shippers to their correct dashboard
+        var dashMap = {
+          driver:            'driver-dashboard.php',
+          owner_operator:    'driver-dashboard.php',
+          corporate_staff:   'staff-dashboard.php',
+          admin:             'admin-dashboard.php',
+          super_admin:       'admin-dashboard.php',
+          insurance_company: 'insurance-dashboard.php',
+          trucking_company:  'trucking-dashboard.php',
+          gas_station:       'gas-station-dashboard.php',
+          hotel:             'hotel-dashboard.php',
+        };
+        var dest = (currentUser.role && dashMap[currentUser.role])
+          ? dashMap[currentUser.role]
+          : 'login?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = dest;
       }
     })();
 
