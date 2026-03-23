@@ -1038,19 +1038,33 @@ function handleKycLoad(): void
         respond(false, 'Invalid user ID format.');
     }
 
-    // Search across all role folders
-    $roles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin',
-              'insurance_company', 'trucking_company', 'gas_station', 'hotel'];
-    foreach ($roles as $role) {
+    // Look up the authoritative role from registered_users.json first
+    $authoritativeRole = lookupUserRole($userId);
+
+    $allRoles = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin',
+                 'insurance_company', 'trucking_company', 'gas_station', 'hotel'];
+
+    // Build the search order: authoritative role first, then the rest
+    $searchOrder = array_unique(array_merge(
+        ($authoritativeRole !== null ? [$authoritativeRole] : []),
+        $allRoles
+    ));
+
+    foreach ($searchOrder as $role) {
         $kycFile = DATA_DIR . 'users/' . $role . '/' . $safeId . '/kyc.json';
         if (file_exists($kycFile)) {
             $kyc = json_decode(file_get_contents($kycFile), true) ?? [];
-            respond(true, 'KYC data loaded.', ['kyc' => $kyc]);
+            // Always stamp the authoritative role so the client can refresh its session
+            if ($authoritativeRole !== null) {
+                $kyc['role'] = $authoritativeRole;
+            }
+            respond(true, 'KYC data loaded.', ['kyc' => $kyc, 'authoritative_role' => $authoritativeRole]);
         }
     }
 
-    // No data yet — return empty
-    respond(true, 'No KYC data found.', ['kyc' => []]);
+    // No data yet — return empty but still include authoritative role
+    $emptyKyc = $authoritativeRole !== null ? ['role' => $authoritativeRole] : [];
+    respond(true, 'No KYC data found.', ['kyc' => $emptyKyc, 'authoritative_role' => $authoritativeRole]);
 }
 
 // ══════════════════════════════════════════════════════════

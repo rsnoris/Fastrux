@@ -231,7 +231,7 @@
       var user = getLoggedInUser();
       if (!user || !user.id) return;
       var shipperRoles = ['shipper', 'customer'];
-      if (shipperRoles.indexOf(user.role || 'shipper') === -1) return;
+      if (shipperRoles.indexOf(user.role) === -1) return;
       document.getElementById('quoteUserId').value = user.id || '';
       var f = document.getElementById('quoteForm');
       if (user.first_name) { var fn = f.querySelector('[name="first_name"]'); if (fn) fn.value = user.first_name; }
