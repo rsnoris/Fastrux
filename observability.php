@@ -433,13 +433,18 @@
       var adminRoles = ['admin', 'super_admin'];
       if (adminRoles.indexOf(user.role) === -1) {
         // Redirect non-admins to their appropriate dashboard
-        if (user.role === 'corporate_staff') {
-          window.location.href = 'staff-dashboard';
-        } else if (user.role === 'driver' || user.role === 'owner_operator') {
-          window.location.href = 'driver-dashboard';
-        } else {
-          window.location.href = 'shipper-dashboard';
-        }
+        var dashMap = {
+          corporate_staff:   'staff-dashboard',
+          driver:            'driver-dashboard',
+          owner_operator:    'driver-dashboard',
+          shipper:           'shipper-dashboard',
+          customer:          'shipper-dashboard',
+          insurance_company: 'insurance-dashboard',
+          trucking_company:  'trucking-dashboard',
+          gas_station:       'gas-station-dashboard',
+          hotel:             'hotel-dashboard',
+        };
+        window.location.href = dashMap[user.role] || 'login';
       }
     })();
 

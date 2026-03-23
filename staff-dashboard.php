@@ -298,14 +298,20 @@
         return;
       }
       if (currentUser.role !== 'corporate_staff') {
-        // Redirect admins to admin dashboard, others to their own dashboard
-        if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
-          window.location.href = 'admin-dashboard';
-        } else if (currentUser.role === 'driver' || currentUser.role === 'owner_operator') {
-          window.location.href = 'driver-dashboard';
-        } else {
-          window.location.href = 'shipper-dashboard';
-        }
+        // Redirect to each role's correct dashboard
+        var dashMap = {
+          admin:             'admin-dashboard',
+          super_admin:       'admin-dashboard',
+          driver:            'driver-dashboard',
+          owner_operator:    'driver-dashboard',
+          shipper:           'shipper-dashboard',
+          customer:          'shipper-dashboard',
+          insurance_company: 'insurance-dashboard',
+          trucking_company:  'trucking-dashboard',
+          gas_station:       'gas-station-dashboard',
+          hotel:             'hotel-dashboard',
+        };
+        window.location.href = dashMap[currentUser.role] || 'login';
       }
     })();
 
