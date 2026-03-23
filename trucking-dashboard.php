@@ -135,6 +135,9 @@
           <iconify-icon icon="lucide:store" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Marketplace
         </a>
         <span id="userGreeting" style="font-size:14px;color:var(--muted-foreground);"></span>
+        <a href="account" class="btn btn-outline" style="padding:8px 16px;font-size:14px;">
+          <iconify-icon icon="lucide:settings" style="margin-right:6px;font-size:15px;vertical-align:middle;"></iconify-icon>Account
+        </a>
         <button onclick="logout()" class="btn btn-outline" style="padding:8px 16px;font-size:14px;color:var(--destructive);border-color:var(--destructive);">
           <iconify-icon icon="lucide:log-out" style="margin-right:4px;font-size:14px;vertical-align:middle;"></iconify-icon>Logout
         </button>

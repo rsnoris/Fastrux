@@ -382,6 +382,10 @@
           <iconify-icon icon="lucide:home" style="font-size:15px;margin-right:6px"></iconify-icon>
           Main Site
         </a>
+        <a href="account" style="font-size:13px;color:var(--muted-foreground);text-decoration:none;display:flex;align-items:center;gap:5px;">
+          <iconify-icon icon="lucide:settings" style="font-size:15px"></iconify-icon>
+          Account
+        </a>
       </div>
     </div>
   </header>

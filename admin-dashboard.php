@@ -285,6 +285,10 @@
         <a href="index" class="btn btn-primary" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:home" style="font-size:14px;margin-right:5px"></iconify-icon>Main Site
         </a>
+        <a href="account" style="font-size:13px;color:var(--muted-foreground);text-decoration:none;display:flex;align-items:center;gap:5px;">
+          <iconify-icon icon="lucide:settings" style="font-size:14px"></iconify-icon>
+          Account
+        </a>
       </div>
     </div>
   </header>
