@@ -430,8 +430,10 @@
         <div id="nearbyPanel" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
           <!-- Location & radius controls -->
           <div class="nearby-controls">
-            <input type="number" id="nearbyRadius" value="50" min="1" max="500" style="width:70px;flex:none;" title="Radius in miles" />
-            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi radius</span>
+            <label for="nearbyRadius" style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">Radius:</label>
+            <input type="number" id="nearbyRadius" value="50" min="1" max="500" style="width:70px;flex:none;" title="Search radius in miles" aria-label="Search radius in miles" />
+            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
+            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
             <select id="nearbyCategory" style="flex:1;">
               <option value="all">All Categories</option>
               <option value="gas_station">⛽ Gas Stations</option>
@@ -747,7 +749,8 @@
   //  NEARBY PLACES — LOAD
   // ═══════════════════════════════════════════════════════════
   function loadNearby(useGeolocation) {
-    var radius   = parseFloat(document.getElementById('nearbyRadius').value) || 50;
+    var rawRadius = parseFloat(document.getElementById('nearbyRadius').value);
+    var radius    = (isNaN(rawRadius) || rawRadius <= 0) ? 50 : Math.min(rawRadius, 500);
     var category = document.getElementById('nearbyCategory').value;
     var list     = document.getElementById('nearbyList');
     var info     = document.getElementById('nearbyInfo');
@@ -901,7 +904,10 @@
         if (cat === 'library' && meta.hours)    popupLines.push('<div class="popup-updated">🕐 ' + esc(meta.hours.split(',')[0]) + '</div>');
         if (cat === 'movie_theater' && meta.screens) popupLines.push('<div class="popup-updated">🎬 ' + meta.screens + ' screens</div>');
         if (cat === 'tms_terminal' && meta.carrier) popupLines.push('<div class="popup-updated">🏭 ' + esc(meta.carrier) + (meta.open_247 ? ' · 24/7' : '') + '</div>');
-        if (meta.website) popupLines.push('<div class="popup-updated" style="margin-top:4px;"><a href="https://' + esc(meta.website) + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">Visit Website ↗</a></div>');
+        if (meta.website) {
+          var websiteUrl = /^https?:\/\//i.test(meta.website) ? meta.website : 'https://' + meta.website;
+          popupLines.push('<div class="popup-updated" style="margin-top:4px;"><a href="' + esc(websiteUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">Visit Website ↗</a></div>');
+        }
         popupLines.push('<div class="popup-updated" style="margin-top:4px;color:var(--primary);font-weight:600;">' + p.distance + ' mi away</div>');
 
         var marker = L.marker([p.lat, p.lng], {

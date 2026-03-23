@@ -21,6 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 define('NP_DATA_DIR', __DIR__ . '/data/');
+define('NP_SEED_DIR', __DIR__ . '/seed_data/');
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -35,6 +36,13 @@ function npRespond(bool $success, string $message, array $extra = []): void {
 
 function npLoadJson(string $filename): array {
     $path = NP_DATA_DIR . $filename;
+    if (!file_exists($path)) return [];
+    $data = json_decode(file_get_contents($path), true);
+    return is_array($data) ? $data : [];
+}
+
+function npLoadSeed(string $filename): array {
+    $path = NP_SEED_DIR . $filename;
     if (!file_exists($path)) return [];
     $data = json_decode(file_get_contents($path), true);
     return is_array($data) ? $data : [];
@@ -161,13 +169,13 @@ switch ($action) {
 function handleNearby(): void {
     $lat      = filter_var($_GET['lat']    ?? null, FILTER_VALIDATE_FLOAT);
     $lng      = filter_var($_GET['lng']    ?? null, FILTER_VALIDATE_FLOAT);
-    $radius   = min((float)($_GET['radius'] ?? 50), 500); // max 500 miles
+    $rawRadius = filter_var($_GET['radius'] ?? 50, FILTER_VALIDATE_FLOAT);
+    $radius    = ($rawRadius === false || $rawRadius <= 0) ? 50.0 : min($rawRadius, 500.0);
     $category = npClean($_GET['category'] ?? 'all');
 
     if ($lat === false || $lng === false || $lat === null || $lng === null) {
         npRespond(false, 'Valid lat and lng parameters are required.');
     }
-    if ($radius <= 0) $radius = 50;
 
     $allPlaces = [];
 
@@ -190,7 +198,7 @@ function handleNearby(): void {
 
     foreach ($categoriesToLoad as $cat) {
         [$file, $catLabel] = $categoryMap[$cat];
-        $places = npLoadJson($file);
+        $places = npLoadSeed($file);
         foreach ($places as $place) {
             $pLat = (float)($place['lat'] ?? 0);
             $pLng = (float)($place['lng'] ?? 0);
@@ -258,12 +266,12 @@ function handleNearby(): void {
 
 function handleCategories(): void {
     $counts = [
-        'gas_station'   => count(npLoadJson('gas_stations_seed.json')),
-        'hotel'         => count(npLoadJson('hotels_seed.json')),
-        'restaurant'    => count(npLoadJson('restaurants.json')),
-        'library'       => count(npLoadJson('libraries.json')),
-        'movie_theater' => count(npLoadJson('movie_theaters.json')),
-        'tms_terminal'  => count(npLoadJson('tms_terminals.json')),
+        'gas_station'   => count(npLoadSeed('gas_stations_seed.json')),
+        'hotel'         => count(npLoadSeed('hotels_seed.json')),
+        'restaurant'    => count(npLoadSeed('restaurants.json')),
+        'library'       => count(npLoadSeed('libraries.json')),
+        'movie_theater' => count(npLoadSeed('movie_theaters.json')),
+        'tms_terminal'  => count(npLoadSeed('tms_terminals.json')),
     ];
 
     $categories = [
@@ -299,7 +307,7 @@ function handleGetPlace(): void {
     }
 
     [$file, $category] = $fileMap[$prefix];
-    $places = npLoadJson($file);
+    $places = npLoadSeed($file);
     foreach ($places as $place) {
         if (($place['id'] ?? '') === $id) {
             npRespond(true, 'OK', ['place' => normalizePlace($place, $category, 0)]);
