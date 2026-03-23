@@ -441,6 +441,116 @@
       border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
     }
     .popup-btn:hover { opacity: .9; }
+
+    /* ── Modals (contact shipper / bid / post load) ─────────── */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.45); align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-xl); box-shadow: var(--shadow-lg);
+      width: 100%; max-width: 520px; max-height: 90vh;
+      overflow-y: auto; padding: 28px;
+      animation: slideUp .22s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .modal-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .modal-title {
+      font-size: 17px; font-weight: 700;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .modal-close {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted-foreground); font-size: 20px;
+      display: flex; align-items: center; padding: 4px;
+      border-radius: var(--radius-md); transition: color .15s;
+    }
+    .modal-close:hover { color: var(--foreground); }
+    .modal-field { margin-bottom: 16px; }
+    .modal-field label {
+      display: block; font-size: 12px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: .04em;
+      color: var(--muted-foreground); margin-bottom: 5px;
+    }
+    .modal-field input,
+    .modal-field textarea,
+    .modal-field select {
+      width: 100%; padding: 9px 12px;
+      border: 1.5px solid var(--border); border-radius: var(--radius-md);
+      font-size: 14px; font-family: var(--font-family-body);
+      background: var(--card); color: var(--foreground);
+      outline: none; transition: border-color .2s;
+      box-sizing: border-box;
+    }
+    .modal-field input:focus,
+    .modal-field textarea:focus,
+    .modal-field select:focus { border-color: var(--primary); }
+    .modal-field textarea { resize: vertical; min-height: 90px; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 8px; }
+    .modal-ref {
+      background: var(--muted); border-radius: var(--radius-md);
+      padding: 10px 14px; font-size: 13px; color: var(--muted-foreground);
+      margin-bottom: 16px;
+    }
+    .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .bid-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: #f0fdf4; color: #16a34a;
+      border: 1px solid #bbf7d0; border-radius: 20px;
+      font-size: 11px; font-weight: 700; padding: 2px 8px;
+    }
+    .bidding-deadline { font-size: 12px; color: var(--muted-foreground); margin-top: 2px; }
+    .btn-icon.active-bid { border-color: #16a34a; color: #16a34a; background: #f0fdf4; }
+
+    /* ── Bids table ───────────────────────────────────────── */
+    .bids-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .bids-table th {
+      padding: 9px 12px; text-align: left;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--muted-foreground);
+      border-bottom: 1px solid var(--border);
+    }
+    .bids-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .bids-table tr:last-child td { border-bottom: none; }
+    .bid-status-badge {
+      display: inline-block; padding: 2px 8px; border-radius: 20px;
+      font-size: 11px; font-weight: 700;
+    }
+    .bid-status-pending  { background: #fef9c3; color: #d97706; }
+    .bid-status-accepted { background: #dcfce7; color: #16a34a; }
+    .bid-status-rejected { background: #fee2e2; color: #b91c1c; }
+
+    /* ── Post Load form ───────────────────────────────────── */
+    #postLoadModal .modal { max-width: 680px; }
+    .form-section-title {
+      font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .05em; color: var(--muted-foreground);
+      margin: 18px 0 10px; padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+    .bidding-toggle {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px; background: var(--muted);
+      border-radius: var(--radius-md); cursor: pointer;
+      user-select: none;
+    }
+    .toggle-switch {
+      width: 38px; height: 22px; background: var(--border);
+      border-radius: 11px; position: relative; transition: background .2s;
+      flex-shrink: 0;
+    }
+    .toggle-switch.on { background: var(--primary); }
+    .toggle-switch::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 16px; height: 16px; background: #fff; border-radius: 50%;
+      transition: left .2s;
+    }
+    .toggle-switch.on::after { left: 19px; }
   </style>
 </head>
 <body>
@@ -483,6 +593,9 @@
       <div id="userWelcome" style="text-align:right;display:none;">
         <div style="font-size:13px;color:var(--muted-foreground);">Logged in as</div>
         <div style="font-size:15px;font-weight:700;" id="userNameDisplay"></div>
+        <button class="btn btn-primary" id="postLoadBtn" style="margin-top:8px;display:none;font-size:13px;padding:7px 14px;" onclick="openPostLoadModal()">
+          <iconify-icon icon="lucide:plus-circle" style="font-size:15px;margin-right:6px"></iconify-icon>Post a Load
+        </button>
       </div>
     </div>
 
@@ -877,6 +990,210 @@
   <!-- ── Toast ─────────────────────────────────────────────── -->
   <div class="toast" id="toast"></div>
 
+  <!-- ── Contact Shipper Modal ────────────────────────────── -->
+  <div class="modal-backdrop" id="contactModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <iconify-icon icon="lucide:mail" style="color:var(--primary)"></iconify-icon>
+          Contact Shipper
+        </div>
+        <button class="modal-close" onclick="closeContactModal()">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
+      <div id="contactModalRef" class="modal-ref"></div>
+      <div class="modal-field">
+        <label>Subject</label>
+        <input type="text" id="contactSubject" placeholder="Inquiry about load…" maxlength="200" />
+      </div>
+      <div class="modal-field">
+        <label>Message <span style="color:#b91c1c">*</span></label>
+        <textarea id="contactMessage" placeholder="Write your message to the shipper…" maxlength="2000"></textarea>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeContactModal()">Cancel</button>
+        <button class="btn btn-primary" id="contactSendBtn" onclick="sendContactMessage()">
+          <iconify-icon icon="lucide:send" style="margin-right:6px"></iconify-icon>Send Message
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Submit Bid Modal ──────────────────────────────────── -->
+  <div class="modal-backdrop" id="bidModal">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <iconify-icon icon="lucide:tag" style="color:#16a34a"></iconify-icon>
+          Submit a Bid
+        </div>
+        <button class="modal-close" onclick="closeBidModal()">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
+      <div id="bidModalRef" class="modal-ref"></div>
+      <div class="modal-field">
+        <label>Your Bid Amount (USD) <span style="color:#b91c1c">*</span></label>
+        <input type="number" id="bidAmount" min="1" step="0.01" placeholder="e.g. 2500.00" />
+      </div>
+      <div class="modal-field">
+        <label>Notes (optional)</label>
+        <textarea id="bidNotes" placeholder="E.g. available equipment, ETA, any conditions…" maxlength="500"></textarea>
+      </div>
+      <div id="bidDeadlineInfo" style="font-size:12px;color:var(--muted-foreground);margin-bottom:14px;"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" onclick="closeBidModal()">Cancel</button>
+        <button class="btn btn-primary" id="bidSubmitBtn" onclick="submitBid()" style="background:#16a34a;border-color:#16a34a;">
+          <iconify-icon icon="lucide:send" style="margin-right:6px"></iconify-icon>Submit Bid
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── View Bids Modal (Shipper) ─────────────────────────── -->
+  <div class="modal-backdrop" id="bidsModal">
+    <div class="modal" style="max-width:680px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <iconify-icon icon="lucide:gavel" style="color:var(--primary)"></iconify-icon>
+          Bids Received
+        </div>
+        <button class="modal-close" onclick="closeBidsModal()">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
+      <div id="bidsModalRef" class="modal-ref"></div>
+      <div id="bidsModalBody">
+        <div class="loading-overlay"><iconify-icon icon="lucide:loader-circle"></iconify-icon> Loading bids…</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Post Load Modal (Shipper) ─────────────────────────── -->
+  <div class="modal-backdrop" id="postLoadModal">
+    <div class="modal" style="max-width:680px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <iconify-icon icon="lucide:plus-circle" style="color:var(--primary)"></iconify-icon>
+          Post a Load
+        </div>
+        <button class="modal-close" onclick="closePostLoadModal()">
+          <iconify-icon icon="lucide:x"></iconify-icon>
+        </button>
+      </div>
+
+      <div class="form-section-title">Origin &amp; Destination</div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Origin City <span style="color:#b91c1c">*</span></label>
+          <input type="text" id="plOriginCity" placeholder="e.g. Dallas" />
+        </div>
+        <div class="modal-field">
+          <label>Origin State <span style="color:#b91c1c">*</span></label>
+          <input type="text" id="plOriginState" placeholder="e.g. TX" maxlength="2" />
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Destination City <span style="color:#b91c1c">*</span></label>
+          <input type="text" id="plDestCity" placeholder="e.g. Houston" />
+        </div>
+        <div class="modal-field">
+          <label>Destination State <span style="color:#b91c1c">*</span></label>
+          <input type="text" id="plDestState" placeholder="e.g. TX" maxlength="2" />
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Distance (mi) — optional</label>
+        <input type="number" id="plDistance" min="1" placeholder="e.g. 250" />
+      </div>
+
+      <div class="form-section-title">Load Details</div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Equipment <span style="color:#b91c1c">*</span></label>
+          <select id="plEquipment">
+            <option value="">Select…</option>
+            <option>Dry Van</option><option>Reefer</option><option>Flatbed</option>
+            <option>Step Deck</option><option>Tanker</option><option>Lowboy</option>
+            <option>Power Only</option><option>Intermodal</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Load Type <span style="color:#b91c1c">*</span></label>
+          <select id="plLoadType">
+            <option value="">Select…</option>
+            <option>FTL</option><option>LTL</option><option>Partial</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Weight (lbs) <span style="color:#b91c1c">*</span></label>
+          <input type="number" id="plWeight" min="1" placeholder="e.g. 20000" />
+        </div>
+        <div class="modal-field">
+          <label>Commodity</label>
+          <input type="text" id="plCommodity" placeholder="e.g. Electronics" />
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Total Rate (USD) <span style="color:#b91c1c">*</span></label>
+          <input type="number" id="plRate" min="1" placeholder="e.g. 2500" />
+        </div>
+        <div class="modal-field">
+          <label>Pickup Date <span style="color:#b91c1c">*</span></label>
+          <input type="date" id="plPickupDate" />
+        </div>
+      </div>
+      <div class="modal-field" style="display:flex;align-items:center;gap:10px;">
+        <input type="checkbox" id="plHazmat" style="width:auto;" />
+        <label for="plHazmat" style="text-transform:none;font-size:13px;font-weight:500;letter-spacing:0;">Hazardous material</label>
+      </div>
+      <div class="modal-field">
+        <label>Notes</label>
+        <textarea id="plNotes" placeholder="Any special instructions…" maxlength="1000"></textarea>
+      </div>
+
+      <div class="form-section-title">Contact</div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Contact Name</label>
+          <input type="text" id="plContactName" placeholder="Dispatcher name…" />
+        </div>
+        <div class="modal-field">
+          <label>Contact Phone</label>
+          <input type="tel" id="plContactPhone" placeholder="+1-800-000-0000" />
+        </div>
+      </div>
+
+      <div class="form-section-title">Bidding Options</div>
+      <label class="bidding-toggle" id="biddingToggle" onclick="toggleBiddingFields()">
+        <div class="toggle-switch" id="biddingToggleSwitch"></div>
+        <div>
+          <div style="font-size:14px;font-weight:600;">Enable Bidding</div>
+          <div style="font-size:12px;color:var(--muted-foreground);">Allow carriers and drivers to submit bids for this load</div>
+        </div>
+      </label>
+      <div id="biddingFieldsWrap" style="display:none;margin-top:14px;">
+        <div class="modal-field">
+          <label>Bid Deadline <span style="color:#b91c1c">*</span></label>
+          <input type="datetime-local" id="plBidDeadline" />
+          <div style="font-size:11px;color:var(--muted-foreground);margin-top:4px;">Bids will no longer be accepted after this time.</div>
+        </div>
+      </div>
+
+      <div class="modal-actions" style="margin-top:20px;">
+        <button class="btn btn-ghost" onclick="closePostLoadModal()">Cancel</button>
+        <button class="btn btn-primary" id="postLoadSubmitBtn" onclick="submitPostLoad()">
+          <iconify-icon icon="lucide:upload-cloud" style="margin-right:6px"></iconify-icon>Post Load
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script>
   // ═══════════════════════════════════════════════════════════
   //  UTILITIES
@@ -1118,8 +1435,40 @@
       const savedClass = st === 'saved' ? ' active-save' : '';
       const hideClass  = st === 'hidden' ? ' active-hide' : '';
 
+      const user = getCurrentUser();
+      const role = user ? (user.role || '') : '';
+      const isCarrier = ['driver','owner_operator','carrier'].includes(role);
+      const isShipper = ['shipper','customer'].includes(role);
+      const hasValidShipper = /^USR-[A-Z0-9]{8}$/.test(l.posted_by || '');
+      const biddingOpen = l.bidding_enabled && (!l.bid_deadline || new Date(l.bid_deadline) > new Date());
+
+      // Contact shipper button (carriers/drivers only, when load has a contactable shipper)
+      const contactBtn = (isCarrier && hasValidShipper)
+        ? `<button class="btn-icon" title="Contact Shipper" onclick="openContactModal('${escHtml(l.id)}','${escHtml(l.posted_by)}')">
+             <iconify-icon icon="lucide:mail"></iconify-icon>
+           </button>`
+        : '';
+
+      // Submit bid button (carriers/drivers only, when bidding is open)
+      const bidBtn = (isCarrier && biddingOpen)
+        ? `<button class="btn-icon active-bid" title="Submit Bid" onclick="openBidModal('${escHtml(l.id)}')">
+             <iconify-icon icon="lucide:tag"></iconify-icon>
+           </button>`
+        : '';
+
+      // Bidding indicator
+      const biddingBadge = l.bidding_enabled
+        ? `<span class="bid-badge" title="${biddingOpen ? 'Bidding open' : 'Bidding closed'}">
+             <iconify-icon icon="lucide:gavel" style="font-size:10px"></iconify-icon>
+             ${biddingOpen ? 'Bidding' : 'Bids Closed'}
+           </span>`
+        : '';
+
       html += `<tr>
-        <td class="load-id-cell">${escHtml(l.id)}</td>
+        <td class="load-id-cell">
+          ${escHtml(l.id)}
+          ${biddingBadge ? '<br>' + biddingBadge : ''}
+        </td>
         <td class="route-cell">
           <span>${escHtml(l.origin_city)}, ${escHtml(l.origin_state)}</span>
           <span class="route-arrow">→</span>
@@ -1139,6 +1488,8 @@
           <button class="btn-icon${hideClass}" title="${st==='hidden'?'Unhide':'Hide'} load" onclick="handleHide('${escHtml(l.id)}','${st}')">
             <iconify-icon icon="lucide:eye-off"></iconify-icon>
           </button>
+          ${contactBtn}
+          ${bidBtn}
           <button class="btn-icon" title="View details" onclick="openDrawer('${escHtml(l.id)}')">
             <iconify-icon icon="lucide:arrow-right"></iconify-icon>
           </button>
@@ -1290,7 +1641,35 @@
       ${st ? '<div style="margin-top:8px;"><span class="ml-status-badge status-'+escHtml(st)+'">'+escHtml(statusLabel(st))+'</span></div>' : ''}
     `;
 
+    // Append bidding info row if bidding enabled
+    const biddingOpen = load.bidding_enabled && (!load.bid_deadline || new Date(load.bid_deadline) > new Date());
+    if (load.bidding_enabled) {
+      const deadlineStr = load.bid_deadline
+        ? new Date(load.bid_deadline).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
+        : '';
+      document.getElementById('drawerBody').innerHTML += `
+        <div class="detail-row">
+          <div class="detail-icon" style="background:#f0fdf4;color:#16a34a;"><iconify-icon icon="lucide:gavel"></iconify-icon></div>
+          <div class="detail-content">
+            <div class="detail-label">Bidding</div>
+            <div class="detail-value">
+              <span class="bid-badge">${biddingOpen ? 'Open' : 'Closed'}</span>
+              ${(load.bid_count > 0) ? ' &nbsp;<span style="font-size:13px;color:var(--muted-foreground);">' + load.bid_count + ' bid' + (load.bid_count !== 1 ? 's' : '') + '</span>' : ''}
+            </div>
+            ${deadlineStr ? '<div class="bidding-deadline">Deadline: ' + escHtml(deadlineStr) + '</div>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
     // Footer action buttons based on current status
+    const user = getCurrentUser();
+    const role = user ? (user.role || '') : '';
+    const isCarrier = ['driver','owner_operator','carrier'].includes(role);
+    const isShipper = ['shipper','customer'].includes(role);
+    const hasValidShipper = /^USR-[A-Z0-9]{8}$/.test(load.posted_by || '');
+    const isOwnLoad = isShipper && user && load.posted_by === user.id;
+
     let footerHtml = '';
     if (!st || st === 'viewed') {
       footerHtml += `<button class="btn btn-primary" style="flex:1" onclick="updateLoadStatus('${escHtml(loadId)}','saved');closeDrawer()">
@@ -1330,6 +1709,25 @@
         <iconify-icon icon="lucide:eye-off" style="margin-right:6px"></iconify-icon>Hide
       </button>`;
     }
+    // Contact Shipper button (carrier/driver only, with valid shipper user ID)
+    if (isCarrier && hasValidShipper) {
+      footerHtml += `<button class="btn btn-outline" onclick="openContactModal('${escHtml(loadId)}','${escHtml(load.posted_by)}')">
+        <iconify-icon icon="lucide:mail" style="margin-right:6px"></iconify-icon>Contact Shipper
+      </button>`;
+    }
+    // Submit Bid button (carrier/driver only, when bidding is open)
+    if (isCarrier && biddingOpen) {
+      footerHtml += `<button class="btn btn-primary" style="background:#16a34a;border-color:#16a34a;" onclick="openBidModal('${escHtml(loadId)}')">
+        <iconify-icon icon="lucide:tag" style="margin-right:6px"></iconify-icon>Submit Bid
+      </button>`;
+    }
+    // View Bids button (shipper who owns the load)
+    if (isOwnLoad && load.bidding_enabled) {
+      footerHtml += `<button class="btn btn-outline" onclick="openBidsModal('${escHtml(loadId)}')">
+        <iconify-icon icon="lucide:gavel" style="margin-right:6px"></iconify-icon>View Bids
+        ${load.bid_count > 0 ? '(' + load.bid_count + ')' : ''}
+      </button>`;
+    }
     footerHtml += `<button class="btn btn-ghost" onclick="closeDrawer()">Close</button>`;
     document.getElementById('drawerFooter').innerHTML = footerHtml;
 
@@ -1345,6 +1743,331 @@
   document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
   document.getElementById('drawerBackdrop').addEventListener('click', function(e) {
     if (e.target === this) closeDrawer();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  CONTACT SHIPPER MODAL
+  // ═══════════════════════════════════════════════════════════
+  let _contactLoadId = null;
+  let _contactShipperId = null;
+
+  function openContactModal(loadId, shipperId) {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please log in to contact the shipper', 'error'); return; }
+    const load = allLoads.find(l => l.id === loadId);
+    _contactLoadId   = loadId;
+    _contactShipperId = shipperId;
+    document.getElementById('contactSubject').value = load
+      ? 'Inquiry about load ' + load.id + ' (' + load.origin_city + ' → ' + load.dest_city + ')'
+      : 'Load inquiry';
+    document.getElementById('contactMessage').value = '';
+    document.getElementById('contactModalRef').textContent = load
+      ? 'Load ' + load.id + ' · ' + load.origin_city + ', ' + load.origin_state + ' → ' + load.dest_city + ', ' + load.dest_state
+      : 'Load ' + loadId;
+    document.getElementById('contactModal').classList.add('open');
+  }
+
+  function closeContactModal() {
+    document.getElementById('contactModal').classList.remove('open');
+    _contactLoadId = null;
+    _contactShipperId = null;
+  }
+
+  async function sendContactMessage() {
+    const user = getCurrentUser();
+    if (!user || !_contactShipperId) return;
+    const subject = document.getElementById('contactSubject').value.trim();
+    const body    = document.getElementById('contactMessage').value.trim();
+    if (!body) { showToast('Please enter a message', 'error'); return; }
+
+    const btn = document.getElementById('contactSendBtn');
+    btn.disabled = true;
+    try {
+      const res  = await fetch('messages_data.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          action: 'send',
+          sender_id:    user.id,
+          recipient_id: _contactShipperId,
+          subject:      subject,
+          body:         body
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Message sent to shipper!', 'success');
+        updateLoadStatus(_contactLoadId, 'contacted');
+        closeContactModal();
+      } else {
+        showToast('Error: ' + data.message, 'error');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('contactModal').addEventListener('click', function(e) {
+    if (e.target === this) closeContactModal();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  SUBMIT BID MODAL
+  // ═══════════════════════════════════════════════════════════
+  let _bidLoadId = null;
+
+  function openBidModal(loadId) {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please log in to submit a bid', 'error'); return; }
+    const load = allLoads.find(l => l.id === loadId);
+    _bidLoadId = loadId;
+    document.getElementById('bidAmount').value = '';
+    document.getElementById('bidNotes').value  = '';
+    document.getElementById('bidModalRef').textContent = load
+      ? 'Load ' + load.id + ' · ' + load.origin_city + ', ' + load.origin_state + ' → ' + load.dest_city + ', ' + load.dest_state
+      : 'Load ' + loadId;
+    const deadlineEl = document.getElementById('bidDeadlineInfo');
+    if (load && load.bid_deadline) {
+      const dl = new Date(load.bid_deadline);
+      deadlineEl.textContent = 'Bidding deadline: ' + dl.toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'});
+    } else {
+      deadlineEl.textContent = '';
+    }
+    document.getElementById('bidModal').classList.add('open');
+  }
+
+  function closeBidModal() {
+    document.getElementById('bidModal').classList.remove('open');
+    _bidLoadId = null;
+  }
+
+  async function submitBid() {
+    const user = getCurrentUser();
+    if (!user || !_bidLoadId) return;
+    const amount = parseFloat(document.getElementById('bidAmount').value);
+    const notes  = document.getElementById('bidNotes').value.trim();
+    if (!amount || amount <= 0) { showToast('Please enter a valid bid amount', 'error'); return; }
+
+    const btn = document.getElementById('bidSubmitBtn');
+    btn.disabled = true;
+    try {
+      const res  = await fetch('loadboard_data.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          action:     'submit_bid',
+          user_id:    user.id,
+          load_id:    _bidLoadId,
+          bid_amount: amount,
+          notes:      notes
+        })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Bid submitted successfully!', 'success');
+        closeBidModal();
+        // Refresh loads to update bid count
+        await fetchLoads(getFilterParams());
+      } else {
+        showToast('Error: ' + data.message, 'error');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('bidModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBidModal();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  VIEW BIDS MODAL (Shipper)
+  // ═══════════════════════════════════════════════════════════
+  let _bidsLoadId = null;
+
+  function openBidsModal(loadId) {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please log in', 'error'); return; }
+    const load = allLoads.find(l => l.id === loadId);
+    _bidsLoadId = loadId;
+    document.getElementById('bidsModalRef').textContent = load
+      ? 'Load ' + load.id + ' · ' + load.origin_city + ', ' + load.origin_state + ' → ' + load.dest_city + ', ' + load.dest_state
+      : 'Load ' + loadId;
+    document.getElementById('bidsModalBody').innerHTML =
+      '<div class="loading-overlay"><iconify-icon icon="lucide:loader-circle"></iconify-icon> Loading bids…</div>';
+    document.getElementById('bidsModal').classList.add('open');
+    loadBidsForShipper(loadId, user.id);
+  }
+
+  function closeBidsModal() {
+    document.getElementById('bidsModal').classList.remove('open');
+    _bidsLoadId = null;
+  }
+
+  async function loadBidsForShipper(loadId, userId) {
+    try {
+      const res  = await fetch('loadboard_data.php?action=get_bids&load_id=' + encodeURIComponent(loadId) + '&user_id=' + encodeURIComponent(userId));
+      const data = await res.json();
+      if (!data.success) {
+        document.getElementById('bidsModalBody').innerHTML = '<p style="color:var(--muted-foreground);padding:12px;">' + escHtml(data.message) + '</p>';
+        return;
+      }
+      const bids = data.bids || [];
+      if (!bids.length) {
+        document.getElementById('bidsModalBody').innerHTML = '<div class="empty-state" style="padding:32px;"><iconify-icon icon="lucide:inbox"></iconify-icon><p>No bids received yet.</p></div>';
+        return;
+      }
+      let html = '<table class="bids-table"><thead><tr>'
+        + '<th>Bidder</th><th>Amount</th><th>Notes</th><th>Submitted</th><th>Status</th><th>Actions</th>'
+        + '</tr></thead><tbody>';
+      bids.forEach(b => {
+        const statusCls = 'bid-status-' + (b.status || 'pending');
+        html += `<tr>
+          <td>${escHtml(b.bidder_name || b.bidder_id)}</td>
+          <td style="font-weight:700;color:var(--success);">${fmtMoney(b.bid_amount)}</td>
+          <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escHtml(b.notes || '—')}</td>
+          <td style="white-space:nowrap;">${escHtml(b.submitted_at || '')}</td>
+          <td><span class="bid-status-badge ${escHtml(statusCls)}">${escHtml(b.status || 'pending')}</span></td>
+          <td>
+            ${b.status === 'pending' ? `
+              <button class="btn btn-primary" style="padding:4px 10px;font-size:12px;" onclick="updateBidStatus('${escHtml(b.id)}','accepted')">Accept</button>
+              <button class="btn btn-outline" style="padding:4px 10px;font-size:12px;margin-left:4px;" onclick="updateBidStatus('${escHtml(b.id)}','rejected')">Reject</button>
+            ` : '—'}
+          </td>
+        </tr>`;
+      });
+      html += '</tbody></table>';
+      document.getElementById('bidsModalBody').innerHTML = html;
+    } catch(err) {
+      document.getElementById('bidsModalBody').innerHTML = '<p style="color:#b91c1c;padding:12px;">Network error: ' + escHtml(err.message) + '</p>';
+    }
+  }
+
+  async function updateBidStatus(bidId, status) {
+    const user = getCurrentUser();
+    if (!user) return;
+    try {
+      const res  = await fetch('loadboard_data.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({action: 'update_bid_status', user_id: user.id, bid_id: bidId, status})
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Bid ' + status + '!', 'success');
+        if (_bidsLoadId) loadBidsForShipper(_bidsLoadId, user.id);
+      } else {
+        showToast('Error: ' + data.message, 'error');
+      }
+    } catch(err) {
+      showToast('Network error', 'error');
+    }
+  }
+
+  document.getElementById('bidsModal').addEventListener('click', function(e) {
+    if (e.target === this) closeBidsModal();
+  });
+
+  // ═══════════════════════════════════════════════════════════
+  //  POST LOAD MODAL (Shipper)
+  // ═══════════════════════════════════════════════════════════
+  let _biddingEnabled = false;
+
+  function openPostLoadModal() {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please log in to post a load', 'error'); return; }
+    // Reset form
+    ['plOriginCity','plOriginState','plDestCity','plDestState','plDistance','plWeight',
+     'plCommodity','plRate','plPickupDate','plNotes','plContactName','plContactPhone','plBidDeadline']
+      .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+    document.getElementById('plEquipment').value = '';
+    document.getElementById('plLoadType').value  = '';
+    document.getElementById('plHazmat').checked  = false;
+    document.getElementById('plContactName').value = user.name || (user.first_name ? (user.first_name + ' ' + (user.last_name || '')).trim() : '') || '';
+    _biddingEnabled = false;
+    document.getElementById('biddingToggleSwitch').classList.remove('on');
+    document.getElementById('biddingFieldsWrap').style.display = 'none';
+    document.getElementById('postLoadModal').classList.add('open');
+  }
+
+  function closePostLoadModal() {
+    document.getElementById('postLoadModal').classList.remove('open');
+  }
+
+  function toggleBiddingFields() {
+    _biddingEnabled = !_biddingEnabled;
+    document.getElementById('biddingToggleSwitch').classList.toggle('on', _biddingEnabled);
+    document.getElementById('biddingFieldsWrap').style.display = _biddingEnabled ? 'block' : 'none';
+  }
+
+  async function submitPostLoad() {
+    const user = getCurrentUser();
+    if (!user) { showToast('Please log in', 'error'); return; }
+
+    const payload = {
+      action:       'post_load',
+      user_id:      user.id,
+      origin_city:  document.getElementById('plOriginCity').value.trim(),
+      origin_state: document.getElementById('plOriginState').value.trim().toUpperCase(),
+      dest_city:    document.getElementById('plDestCity').value.trim(),
+      dest_state:   document.getElementById('plDestState').value.trim().toUpperCase(),
+      distance_mi:  parseInt(document.getElementById('plDistance').value) || 0,
+      equipment:    document.getElementById('plEquipment').value,
+      load_type:    document.getElementById('plLoadType').value,
+      weight_lbs:   parseInt(document.getElementById('plWeight').value) || 0,
+      commodity:    document.getElementById('plCommodity').value.trim() || 'General Freight',
+      rate_total:   parseInt(document.getElementById('plRate').value) || 0,
+      pickup_date:  document.getElementById('plPickupDate').value,
+      hazmat:       document.getElementById('plHazmat').checked,
+      notes:        document.getElementById('plNotes').value.trim(),
+      contact_name: document.getElementById('plContactName').value.trim(),
+      contact_phone:document.getElementById('plContactPhone').value.trim(),
+      bidding_enabled: _biddingEnabled,
+      bid_deadline: _biddingEnabled ? document.getElementById('plBidDeadline').value : null,
+    };
+
+    if (!payload.origin_city || !payload.origin_state || !payload.dest_city || !payload.dest_state) {
+      showToast('Origin and destination are required', 'error'); return;
+    }
+    if (!payload.equipment) { showToast('Equipment type is required', 'error'); return; }
+    if (!payload.load_type)  { showToast('Load type is required', 'error'); return; }
+    if (!payload.weight_lbs) { showToast('Weight is required', 'error'); return; }
+    if (!payload.rate_total)  { showToast('Rate is required', 'error'); return; }
+    if (!payload.pickup_date) { showToast('Pickup date is required', 'error'); return; }
+    if (_biddingEnabled && !payload.bid_deadline) {
+      showToast('Please set a bid deadline', 'error'); return;
+    }
+
+    const btn = document.getElementById('postLoadSubmitBtn');
+    btn.disabled = true;
+    try {
+      const res  = await fetch('loadboard_data.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast('Load posted successfully!', 'success');
+        closePostLoadModal();
+        // Refresh the load table
+        await fetchLoads(getFilterParams());
+      } else {
+        showToast('Error: ' + data.message, 'error');
+      }
+    } catch(err) {
+      showToast('Network error: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  document.getElementById('postLoadModal').addEventListener('click', function(e) {
+    if (e.target === this) closePostLoadModal();
   });
 
   // ═══════════════════════════════════════════════════════════
@@ -1695,10 +2418,15 @@
     const user = getCurrentUser();
     if (user) {
       document.getElementById('userWelcome').style.display = '';
-      document.getElementById('userNameDisplay').textContent = user.name || user.email || user.id;
+      document.getElementById('userNameDisplay').textContent =
+        user.name || (user.first_name ? (user.first_name + ' ' + (user.last_name || '')).trim() : '') || user.email || user.id;
       // Set the Dashboard button href based on the logged-in user's role
       var dashBtn = document.getElementById('dashboardBtn');
       if (dashBtn) dashBtn.href = getDashboardUrl(user.role);
+      // Show "Post Load" button only for shippers
+      const isShipper = ['shipper','customer'].includes(user.role || '');
+      const postBtn = document.getElementById('postLoadBtn');
+      if (postBtn) postBtn.style.display = isShipper ? '' : 'none';
     }
   }
 
