@@ -155,10 +155,27 @@
 
     /* ── Map ── */
     #map {
-      height: 100%;
-      min-height: 400px;
-      border-radius: var(--radius-xl);
+      flex: 1;
+      min-height: 300px;
+      border-radius: 0 0 var(--radius-xl) var(--radius-xl);
       z-index: 1;
+    }
+
+    /* ── Navigation toolbar ── */
+    .nav-toolbar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+      flex-wrap: wrap;
+    }
+    .route-info {
+      font-size: 12px; color: var(--primary); font-weight: 600;
+      flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .my-location-dot {
+      width: 14px; height: 14px; background: #1d4ed8;
+      border: 3px solid #fff; border-radius: 50%;
+      box-shadow: 0 0 0 2px #1d4ed8, 0 2px 6px rgba(0,0,0,.3);
+      display: inline-block;
     }
 
     /* ── Search bar ── */
@@ -444,7 +461,6 @@
             <label for="nearbyRadius" style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">Radius:</label>
             <input type="number" id="nearbyRadius" value="50" min="1" max="500" style="width:70px;flex:none;" title="Search radius in miles" aria-label="Search radius in miles" />
             <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
-            <span style="font-size:12px;color:var(--muted-foreground);white-space:nowrap;">mi</span>
             <select id="nearbyCategory" style="flex:1;">
               <option value="all">All Categories</option>
               <option value="gas_station">⛽ Gas Stations</option>
@@ -478,7 +494,17 @@
       </div>
 
       <!-- Right: Map -->
-      <div class="panel" style="overflow:hidden;">
+      <div class="panel" style="overflow:hidden;display:flex;flex-direction:column;">
+        <!-- Navigation toolbar -->
+        <div class="nav-toolbar">
+          <button class="btn-sm" onclick="centerOnMyLocation()" title="Center map on your real-time location">
+            <iconify-icon icon="lucide:locate" style="font-size:13px;vertical-align:-2px;margin-right:3px"></iconify-icon>My Location
+          </button>
+          <button class="btn-sm outline" id="btnClearRoute" onclick="clearRoute()" style="display:none;" title="Remove current route from map">
+            <iconify-icon icon="lucide:x" style="font-size:13px;vertical-align:-2px;margin-right:3px"></iconify-icon>Clear Route
+          </button>
+          <span id="routeInfo" class="route-info"></span>
+        </div>
         <div id="map"></div>
       </div>
 
@@ -534,6 +560,14 @@
   var poiVisible    = {};   // category -> bool
   var lastPlaces    = [];   // last fetched places array
 
+  // Navigation / user location state
+  var userLat           = null;
+  var userLng           = null;
+  var userWatchId       = null;
+  var userLocMarker     = null;
+  var userLocCircle     = null;
+  var routeLayer        = null;
+
   // POI category metadata
   var POI_CATS = {
     gas_station:   { label: 'Gas Stations',     emoji: '⛽', color: '#f59e0b' },
@@ -550,6 +584,14 @@
   function esc(s) {
     return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  /** Return a finite, in-range coordinate or null. */
+  function safeCoord(v, min, max) {
+    var n = parseFloat(v);
+    return (isFinite(n) && n >= min && n <= max) ? n : null;
+  }
+  function safeLat(v) { return safeCoord(v, -90,  90);  }
+  function safeLng(v) { return safeCoord(v, -180, 180); }
 
   function timeSince(date) {
     var secs = Math.floor((Date.now() - date.getTime()) / 1000);
@@ -574,8 +616,171 @@
     map = L.map('map', { preferCanvas: true }).setView([39.5, -98.35], 4); // USA centre
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 18,
+      maxZoom: 19,
     }).addTo(map);
+
+    // Add "My Location" Leaflet control button (bottom-right)
+    var LocControl = L.Control.extend({
+      options: { position: 'bottomright' },
+      onAdd: function () {
+        var btn = L.DomUtil.create('button', 'leaflet-bar leaflet-control');
+        btn.title = 'Center on my location';
+        btn.style.cssText = 'width:34px;height:34px;background:#fff;border:none;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 5px rgba(0,0,0,.35);border-radius:4px;';
+        btn.innerHTML = '📍';
+        L.DomEvent.on(btn, 'click', function (e) {
+          L.DomEvent.stopPropagation(e);
+          centerOnMyLocation();
+        });
+        return btn;
+      }
+    });
+    new LocControl().addTo(map);
+
+    startLocationTracking();
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  REAL-TIME USER LOCATION TRACKING
+  // ═══════════════════════════════════════════════════════════
+  function startLocationTracking() {
+    if (!navigator.geolocation) return;
+    userWatchId = navigator.geolocation.watchPosition(
+      function (pos) {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        updateUserLocMarker(userLat, userLng, pos.coords.accuracy);
+      },
+      function (err) {
+        // PERMISSION_DENIED (1): silent — user chose to deny
+        // POSITION_UNAVAILABLE (2) / TIMEOUT (3): notify so user can investigate
+        if (err.code !== 1) {
+          console.warn('Location tracking:', err.message);
+          showToast('Location unavailable — GPS signal lost or timed out.');
+        }
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 15000 }
+    );
+  }
+
+  function updateUserLocMarker(lat, lng, accuracy) {
+    if (!map) return;
+    var icon = L.divIcon({
+      html: '<div class="my-location-dot"></div>',
+      iconSize: [14, 14], iconAnchor: [7, 7],
+      className: ''
+    });
+    var popupHtml = '<div class="popup-name">📍 Your Location</div>'
+      + '<div class="popup-updated">Accuracy: ~' + Math.round(accuracy || 0) + ' m</div>'
+      + '<div class="popup-updated">' + lat.toFixed(5) + ', ' + lng.toFixed(5) + '</div>';
+
+    if (!userLocMarker) {
+      userLocMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 2000 })
+        .bindPopup(popupHtml).addTo(map);
+      // On first fix, center the map on the user
+      map.setView([lat, lng], 12, { animate: true });
+    } else {
+      userLocMarker.setLatLng([lat, lng]);
+      userLocMarker.getPopup().setContent(popupHtml);
+    }
+    if (!userLocCircle) {
+      userLocCircle = L.circle([lat, lng], {
+        radius: accuracy || 50, color: '#1d4ed8', weight: 1.5,
+        opacity: 0.5, fillColor: '#1d4ed8', fillOpacity: 0.08
+      }).addTo(map);
+    } else {
+      userLocCircle.setLatLng([lat, lng]).setRadius(accuracy || 50);
+    }
+  }
+
+  function centerOnMyLocation() {
+    if (userLat !== null && userLng !== null) {
+      map.setView([userLat, userLng], 14, { animate: true });
+      if (userLocMarker) userLocMarker.openPopup();
+    } else {
+      showToast('Getting your location…');
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          updateUserLocMarker(userLat, userLng, pos.coords.accuracy);
+          map.setView([userLat, userLng], 14, { animate: true });
+        },
+        function () { showToast('Location access denied. Enable it in browser settings.'); },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  ROUTING — OSRM (Open Source Routing Machine)
+  // ═══════════════════════════════════════════════════════════
+  function navigateTo(destLat, destLng, label) {
+    if (userLat !== null && userLng !== null) {
+      showRoute(userLat, userLng, destLat, destLng, label);
+    } else {
+      showToast('Getting your location…');
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          userLat = pos.coords.latitude;
+          userLng = pos.coords.longitude;
+          updateUserLocMarker(userLat, userLng, pos.coords.accuracy);
+          showRoute(userLat, userLng, destLat, destLng, label);
+        },
+        function () { showToast('Enable location access to use navigation.'); },
+        { enableHighAccuracy: true, timeout: 10000 }
+      );
+    }
+  }
+
+  function showRoute(fromLat, fromLng, toLat, toLng, label) {
+    // Clear existing route
+    if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+
+    document.getElementById('routeInfo').textContent = 'Calculating route…';
+    document.getElementById('btnClearRoute').style.display = 'inline-flex';
+
+    var url = 'https://router.project-osrm.org/route/v1/driving/'
+      + fromLng.toFixed(6) + ',' + fromLat.toFixed(6) + ';'
+      + toLng.toFixed(6) + ',' + toLat.toFixed(6)
+      + '?overview=full&geometries=geojson';
+
+    fetch(url)
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.routes || !data.routes.length) {
+          showToast('No route found to ' + label + '.');
+          document.getElementById('routeInfo').textContent = '';
+          document.getElementById('btnClearRoute').style.display = 'none';
+          return;
+        }
+        var route = data.routes[0];
+        var distMi = (route.distance / 1609.34).toFixed(1);
+        var mins   = Math.round(route.duration / 60);
+        var timeStr = mins >= 60
+          ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm'
+          : mins + ' min';
+
+        routeLayer = L.geoJSON(route.geometry, {
+          style: { color: '#0b6fff', weight: 5, opacity: 0.85 }
+        }).addTo(map);
+
+        map.fitBounds(routeLayer.getBounds(), { padding: [40, 40] });
+        document.getElementById('routeInfo').textContent =
+          '🗺 ' + label + ' · ' + distMi + ' mi · ~' + timeStr;
+        showToast('Route to ' + label + ': ' + distMi + ' mi · ~' + timeStr);
+      })
+      .catch(function () {
+        showToast('Routing unavailable. Check your connection.');
+        document.getElementById('routeInfo').textContent = '';
+        document.getElementById('btnClearRoute').style.display = 'none';
+      });
+  }
+
+  function clearRoute() {
+    if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
+    document.getElementById('routeInfo').textContent = '';
+    document.getElementById('btnClearRoute').style.display = 'none';
+    showToast('Route cleared.');
   }
 
   // ── Marker icons ─────────────────────────────────────────
@@ -693,11 +898,13 @@
     driverMarkers = {};
 
     allDrivers.forEach(function (d) {
-      if (d.lat === null || d.lng === null) return;
+      var dLat = safeLat(d.lat);
+      var dLng = safeLng(d.lng);
+      if (dLat === null || dLng === null) return;
 
       var isMe   = currentUser && d.user_id === currentUser.id;
       var status = d.location_status || 'offline';
-      var marker = L.marker([d.lat, d.lng], { icon: driverIcon(status, isMe) });
+      var marker = L.marker([dLat, dLng], { icon: driverIcon(status, isMe) });
 
       var updatedAgo = d.location_updated
         ? timeSince(new Date(d.location_updated.replace(' ', 'T'))) + ' ago'
@@ -709,9 +916,10 @@
         + '<span class="popup-reg">' + esc(d.van_reg || '—') + '</span>'
         + ' &nbsp;·&nbsp; ' + esc((d.van_type || '').replace(/_/g, ' '))
         + '</div>'
-        + '<div class="popup-updated">📍 ' + d.lat.toFixed(5) + ', ' + d.lng.toFixed(5) + '</div>'
+        + '<div class="popup-updated">📍 ' + dLat.toFixed(5) + ', ' + dLng.toFixed(5) + '</div>'
         + '<div class="popup-updated">🕐 Updated ' + esc(updatedAgo) + '</div>'
         + '<div class="popup-updated" style="margin-top:4px;">Status: <strong>' + esc(status) + '</strong></div>'
+        + (!isMe ? '<div style="margin-top:8px;"><button onclick="navigateTo(' + dLat + ',' + dLng + ',\'' + esc(d.name || 'Driver') + '\')" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;">🗺 Navigate Here</button></div>' : '')
       );
 
       marker.addTo(map);
@@ -825,6 +1033,8 @@
     var html = places.map(function(p) {
       var cat  = POI_CATS[p.category] || { emoji: '📍', color: '#6b7280', label: p.category };
       var meta = p.meta || {};
+      var pLat = safeLat(p.lat);
+      var pLng = safeLng(p.lng);
       var detail = '';
       if (p.category === 'gas_station')   detail = (meta.brand ? esc(meta.brand) + ' · ' : '') + (meta.diesel_price ? 'Diesel ' + esc(meta.diesel_price) : '') + (meta.open_247 ? ' · 24/7' : '');
       if (p.category === 'hotel')         detail = (meta.brand ? esc(meta.brand) : '') + (meta.price_range ? ' · ' + esc(meta.price_range) : '') + (meta.star_rating ? ' · ' + '★'.repeat(meta.star_rating) : '');
@@ -843,6 +1053,7 @@
         + '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex-shrink:0;">'
         + '<span class="poi-dist">' + p.distance + ' mi</span>'
         + '<span class="poi-badge" style="background:' + cat.color + '22;color:' + cat.color + ';border:1px solid ' + cat.color + '44;">' + esc(cat.label) + '</span>'
+        + (pLat !== null && pLng !== null ? '<button onclick="event.stopPropagation();navigateTo(' + pLat + ',' + pLng + ',\'' + esc(p.name) + '\')" style="background:var(--primary);color:#fff;border:none;border-radius:5px;padding:3px 8px;font-size:10px;font-weight:600;cursor:pointer;margin-top:2px;">🗺 Go</button>' : '')
         + '</div>'
         + '</div>';
     }).join('');
@@ -892,7 +1103,9 @@
     Object.keys(grouped).forEach(function(cat) {
       var lg = L.layerGroup();
       grouped[cat].forEach(function(p) {
-        if (!p.lat || !p.lng) return;
+        var pLat = safeLat(p.lat);
+        var pLng = safeLng(p.lng);
+        if (pLat === null || pLng === null) return;
         var meta = p.meta || {};
         var cat2 = POI_CATS[cat] || { emoji: '📍', color: '#6b7280', label: cat };
 
@@ -912,8 +1125,9 @@
           popupLines.push('<div class="popup-updated" style="margin-top:4px;"><a href="' + esc(websiteUrl) + '" target="_blank" rel="noopener noreferrer" style="color:var(--primary);">Visit Website ↗</a></div>');
         }
         popupLines.push('<div class="popup-updated" style="margin-top:4px;color:var(--primary);font-weight:600;">' + p.distance + ' mi away</div>');
+        popupLines.push('<div style="margin-top:8px;"><button onclick="navigateTo(' + pLat + ',' + pLng + ',\'' + esc(p.name) + '\')" style="background:var(--primary);color:#fff;border:none;border-radius:6px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;width:100%;">🗺 Navigate Here</button></div>');
 
-        var marker = L.marker([p.lat, p.lng], {
+        var marker = L.marker([pLat, pLng], {
           icon: poiIcon(cat),
           placeId: p.id,
         }).bindPopup(popupLines.join(''));
@@ -930,7 +1144,11 @@
     // Fit map to show all results
     if (places.length > 0) {
       var bounds = [[centerLat, centerLng]];
-      places.forEach(function(p) { if (p.lat && p.lng) bounds.push([p.lat, p.lng]); });
+      places.forEach(function(p) {
+        var pLat = safeLat(p.lat);
+        var pLng = safeLng(p.lng);
+        if (pLat !== null && pLng !== null) bounds.push([pLat, pLng]);
+      });
       map.fitBounds(bounds, { padding: [30, 30], maxZoom: 12 });
     }
   }
