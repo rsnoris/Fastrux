@@ -125,47 +125,82 @@
 
   // ── Hide public-only nav links for logged-in users ───────────
   function hidePublicNavLinks(container) {
-    ['a[href="index.php"]', 'a[href="#services"]', 'a[href="index.php#services"]',
+    ['a[href="index.php"]', 'a[href="index"]', 'a[href="#services"]',
+     'a[href="index.php#services"]', 'a[href="index#services"]',
      'a[href="contact.php"]', 'a[href="#contact"]'].forEach(function (sel) {
       var el = container.querySelector(sel);
       if (el) el.style.display = 'none';
     });
   }
 
-  // ── Add Messages & Documents links for all logged-in users ────
-  function addAuthNavLinks(container, isMobile) {
-    if (!container.querySelector('a[href="messages.php"]')) {
-      var msgLink = document.createElement('a');
-      msgLink.className = 'nav-link';
-      msgLink.href = 'messages.php';
-      msgLink.textContent = 'Messages';
-      if (isMobile) {
-        var mobileActionsMsg = container.querySelector('.header-actions');
-        if (mobileActionsMsg) {
-          container.insertBefore(msgLink, mobileActionsMsg);
-        } else {
-          container.appendChild(msgLink);
-        }
+  // ── Inject dropdown CSS for the My Dashboard nav item ────────
+  function injectDropdownStyles() {
+    if (document.getElementById('nav-dash-dropdown-styles')) return;
+    var style = document.createElement('style');
+    style.id = 'nav-dash-dropdown-styles';
+    style.textContent =
+      '.nav-dash-dropdown{position:relative;display:inline-flex;align-items:center;}' +
+      '.nav-dash-dropdown-toggle::after{content:" ▾";font-size:10px;margin-left:2px;}' +
+      '.nav-dash-dropdown-menu{display:none;position:absolute;top:calc(100% + 6px);left:0;' +
+      'background:var(--card,#fff);border:1px solid var(--border,#e5e7eb);' +
+      'box-shadow:0 4px 16px rgba(0,0,0,0.10);min-width:180px;border-radius:10px;' +
+      'z-index:9999;flex-direction:column;padding:4px 0;}' +
+      '.nav-dash-dropdown:hover .nav-dash-dropdown-menu,' +
+      '.nav-dash-dropdown:focus-within .nav-dash-dropdown-menu{display:flex;}' +
+      '.nav-dash-dropdown-item{padding:9px 16px;text-decoration:none;' +
+      'color:var(--foreground,#0b2545);font-size:14px;display:flex;align-items:center;' +
+      'gap:8px;white-space:nowrap;}' +
+      '.nav-dash-dropdown-item:hover{background:var(--muted,#f1f5f9);color:var(--primary,#0b6fff);}';
+    document.head.appendChild(style);
+  }
+
+  // ── Create a dropdown wrapper for a dashboard nav link ────────
+  function createDashDropdown(dashHref, dashLabel) {
+    injectDropdownStyles();
+    var wrapper = document.createElement('div');
+    wrapper.className = 'nav-dash-dropdown';
+
+    var toggle = document.createElement('a');
+    toggle.className = 'nav-link nav-dash-dropdown-toggle';
+    toggle.href = dashHref;
+    toggle.textContent = dashLabel;
+
+    var menu = document.createElement('div');
+    menu.className = 'nav-dash-dropdown-menu';
+
+    [{ href: dashHref, text: 'Dashboard Overview' },
+     { href: 'messages.php', text: 'Messages' },
+     { href: 'documents.php', text: 'Documents' }
+    ].forEach(function (item) {
+      var a = document.createElement('a');
+      a.className = 'nav-dash-dropdown-item';
+      a.href = item.href;
+      a.textContent = item.text;
+      menu.appendChild(a);
+    });
+
+    wrapper.appendChild(toggle);
+    wrapper.appendChild(menu);
+    return wrapper;
+  }
+
+  // ── Add Messages & Documents links in the mobile menu ────────
+  function addMobileDashLinks(container) {
+    var mobileActionsEl = container.querySelector('.header-actions');
+    function insertLink(href, text) {
+      if (container.querySelector('a[href="' + href + '"]')) return;
+      var link = document.createElement('a');
+      link.className = 'nav-link';
+      link.href = href;
+      link.textContent = text;
+      if (mobileActionsEl) {
+        container.insertBefore(link, mobileActionsEl);
       } else {
-        container.appendChild(msgLink);
+        container.appendChild(link);
       }
     }
-    if (!container.querySelector('a[href="documents.php"]')) {
-      var docLink = document.createElement('a');
-      docLink.className = 'nav-link';
-      docLink.href = 'documents.php';
-      docLink.textContent = 'Documents';
-      if (isMobile) {
-        var mobileActionsDoc = container.querySelector('.header-actions');
-        if (mobileActionsDoc) {
-          container.insertBefore(docLink, mobileActionsDoc);
-        } else {
-          container.appendChild(docLink);
-        }
-      } else {
-        container.appendChild(docLink);
-      }
-    }
+    insertLink('messages.php', 'Messages');
+    insertLink('documents.php', 'Documents');
   }
 
   function updateNav() {
@@ -228,27 +263,19 @@
         var driveLink = navLinks.querySelector('a[href="driver-onboarding.php"]');
         if (driveLink) driveLink.style.display = 'none';
 
-        // Add "Admin Dashboard" link if not already present
+        // Add "Admin Dashboard" dropdown if not already present
         if (!navLinks.querySelector('a[href="admin-dashboard.php"]')) {
-          var adminDashLink = document.createElement('a');
-          adminDashLink.className = 'nav-link';
-          adminDashLink.href = 'admin-dashboard.php';
-          adminDashLink.textContent = 'Admin Dashboard';
-          navLinks.appendChild(adminDashLink);
+          navLinks.appendChild(createDashDropdown('admin-dashboard.php', 'Admin Dashboard'));
         }
       } else if (isEmployee(role)) {
         // Hide "Drive with Us" for employees who are already registered
         var driveLink2 = navLinks.querySelector('a[href="driver-onboarding.php"]');
         if (driveLink2) driveLink2.style.display = 'none';
 
-        // Add a "Dashboard" link if not already present
+        // Add a "My Dashboard" dropdown if not already present
         var dashHref = role === 'corporate_staff' ? 'staff-dashboard.php' : 'driver-dashboard.php';
         if (!navLinks.querySelector('a[href="' + dashHref + '"]')) {
-          var dashLink = document.createElement('a');
-          dashLink.className = 'nav-link';
-          dashLink.href = dashHref;
-          dashLink.textContent = 'Dashboard';
-          navLinks.appendChild(dashLink);
+          navLinks.appendChild(createDashDropdown(dashHref, 'My Dashboard'));
         }
 
         // Add "Loadboard" link for drivers / owner-operators
@@ -260,27 +287,19 @@
           navLinks.appendChild(loadboardLink);
         }
       } else if (isShipper(role)) {
-        // Add "My Dashboard" link for shippers if not already present
+        // Add "My Dashboard" dropdown for shippers if not already present
         if (!navLinks.querySelector('a[href="shipper-dashboard.php"]')) {
-          var shipperDashLink = document.createElement('a');
-          shipperDashLink.className = 'nav-link';
-          shipperDashLink.href = 'shipper-dashboard.php';
-          shipperDashLink.textContent = 'My Dashboard';
-          navLinks.appendChild(shipperDashLink);
+          navLinks.appendChild(createDashDropdown('shipper-dashboard.php', 'My Dashboard'));
         }
       } else if (isCompany(role)) {
         // Hide "Drive with Us" for company users
         var driveLinkCo = navLinks.querySelector('a[href="driver-onboarding.php"]');
         if (driveLinkCo) driveLinkCo.style.display = 'none';
 
-        // Add "My Dashboard" link for company accounts
+        // Add "My Dashboard" dropdown for company accounts
         var coDashHref = companyDashHref(role);
         if (!navLinks.querySelector('a[href="' + coDashHref + '"]')) {
-          var coDashLink = document.createElement('a');
-          coDashLink.className = 'nav-link';
-          coDashLink.href = coDashHref;
-          coDashLink.textContent = 'My Dashboard';
-          navLinks.appendChild(coDashLink);
+          navLinks.appendChild(createDashDropdown(coDashHref, 'My Dashboard'));
         }
       }
     }
@@ -364,12 +383,7 @@
       }
 
       // Add Messages & Documents for all logged-in users in mobile
-      addAuthNavLinks(mobileMenu, true);
-    }
-
-    // Add Messages & Documents for all logged-in users in desktop nav
-    if (navLinks) {
-      addAuthNavLinks(navLinks, false);
+      addMobileDashLinks(mobileMenu);
     }
 
     // ── Notification bell ────────────────────────────────────────
