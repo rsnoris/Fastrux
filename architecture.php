@@ -1625,9 +1625,6 @@ function fileCategory(string $base, array $apiFiles, array $dashFiles): string {
         <div>
           <h4 class="footer-heading">Contact</h4>
           <div class="footer-links">
-            <div class="footer-contact-item"><iconify-icon icon="lucide:map-pin"></iconify-icon> 1008 Oak Chase way, Leander, TX 78641</div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:phone"></iconify-icon><a href="tel:+12038896129">+1-203-889-6129</a></div>
-            <div class="footer-contact-item"><iconify-icon icon="lucide:mail"></iconify-icon><a href="mailto:RSNORI1@gmail.com">RSNORI1@gmail.com</a></div>
           </div>
         </div>
       </div>
