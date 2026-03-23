@@ -609,13 +609,18 @@
       }
       var adminRoles = ['admin', 'super_admin'];
       if (adminRoles.indexOf(currentUser.role) === -1) {
-        if (currentUser.role === 'corporate_staff') {
-          window.location.href = 'staff-dashboard';
-        } else if (currentUser.role === 'driver' || currentUser.role === 'owner_operator') {
-          window.location.href = 'driver-dashboard';
-        } else {
-          window.location.href = 'shipper-dashboard';
-        }
+        var dashMap = {
+          corporate_staff:   'staff-dashboard',
+          driver:            'driver-dashboard',
+          owner_operator:    'driver-dashboard',
+          shipper:           'shipper-dashboard',
+          customer:          'shipper-dashboard',
+          insurance_company: 'insurance-dashboard',
+          trucking_company:  'trucking-dashboard',
+          gas_station:       'gas-station-dashboard',
+          hotel:             'hotel-dashboard',
+        };
+        window.location.href = dashMap[currentUser.role] || 'login';
       }
     })();
 

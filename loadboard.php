@@ -457,7 +457,7 @@
           <iconify-icon icon="lucide:refresh-cw" style="font-size:15px;margin-right:6px"></iconify-icon>
           Refresh
         </button>
-        <a href="driver-dashboard" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
+        <a href="driver-dashboard" id="dashboardBtn" class="btn btn-outline" style="padding:8px 14px;font-size:13px;">
           <iconify-icon icon="lucide:layout-dashboard" style="font-size:15px;margin-right:6px"></iconify-icon>
           Dashboard
         </a>
@@ -1674,11 +1674,31 @@
   // ═══════════════════════════════════════════════════════════
   //  USER DISPLAY
   // ═══════════════════════════════════════════════════════════
+  function getDashboardUrl(role) {
+    var dashMap = {
+      shipper:           'shipper-dashboard',
+      customer:          'shipper-dashboard',
+      driver:            'driver-dashboard',
+      owner_operator:    'driver-dashboard',
+      corporate_staff:   'staff-dashboard',
+      admin:             'admin-dashboard',
+      super_admin:       'admin-dashboard',
+      insurance_company: 'insurance-dashboard',
+      trucking_company:  'trucking-dashboard',
+      gas_station:       'gas-station-dashboard',
+      hotel:             'hotel-dashboard',
+    };
+    return dashMap[role] || 'login';
+  }
+
   function initUserDisplay() {
     const user = getCurrentUser();
     if (user) {
       document.getElementById('userWelcome').style.display = '';
       document.getElementById('userNameDisplay').textContent = user.name || user.email || user.id;
+      // Set the Dashboard button href based on the logged-in user's role
+      var dashBtn = document.getElementById('dashboardBtn');
+      if (dashBtn) dashBtn.href = getDashboardUrl(user.role);
     }
   }
 
