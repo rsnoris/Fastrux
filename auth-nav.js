@@ -127,10 +127,24 @@
   function hidePublicNavLinks(container) {
     ['a[href="index.php"]', 'a[href="index"]', 'a[href="#services"]',
      'a[href="index.php#services"]', 'a[href="index#services"]',
-     'a[href="contact.php"]', 'a[href="#contact"]'].forEach(function (sel) {
+     'a[href="contact.php"]', 'a[href="contact"]', 'a[href="#contact"]'].forEach(function (sel) {
       var el = container.querySelector(sel);
       if (el) el.style.display = 'none';
     });
+  }
+
+  // ── Add Maps link for logged-in users (replaces Contact) ─────
+  function addMapsLink(container, beforeEl) {
+    if (container.querySelector('a[href="maps.php"], a[href="maps"]')) return;
+    var mapsLink = document.createElement('a');
+    mapsLink.className = 'nav-link';
+    mapsLink.href = 'maps.php';
+    mapsLink.textContent = 'Maps';
+    if (beforeEl) {
+      container.insertBefore(mapsLink, beforeEl);
+    } else {
+      container.appendChild(mapsLink);
+    }
   }
 
   // ── Inject dropdown CSS for the My Dashboard nav item ────────
@@ -258,6 +272,9 @@
       // Hide public-only links for logged-in users
       hidePublicNavLinks(navLinks);
 
+      // Add Maps link for all logged-in users (replaces Contact)
+      addMapsLink(navLinks);
+
       if (isAdmin(role)) {
         // Hide "Drive with Us" for admins
         var driveLink = navLinks.querySelector('a[href="driver-onboarding.php"]');
@@ -309,6 +326,10 @@
     if (mobileMenu) {
       // Hide public-only links for logged-in users
       hidePublicNavLinks(mobileMenu);
+
+      // Add Maps link for all logged-in users in mobile (replaces Contact)
+      var mobileMenuActions = mobileMenu.querySelector('.header-actions');
+      addMapsLink(mobileMenu, mobileMenuActions || null);
 
       // Replace any Login links in mobile menu
       mobileMenu.querySelectorAll('a[href="login.php"], a[href="login"]').forEach(function (el) {
