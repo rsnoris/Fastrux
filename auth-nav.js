@@ -272,8 +272,11 @@
       // Hide public-only links for logged-in users
       hidePublicNavLinks(navLinks);
 
-      // Add Maps link for all logged-in users (replaces Contact)
-      addMapsLink(navLinks);
+      // Add Maps link for logged-in users who can access the Maps page
+      // (not shown for company roles: insurance_company, trucking_company, gas_station, hotel)
+      if (!isCompany(role)) {
+        addMapsLink(navLinks);
+      }
 
       if (isAdmin(role)) {
         // Hide "Drive with Us" for admins
@@ -327,9 +330,12 @@
       // Hide public-only links for logged-in users
       hidePublicNavLinks(mobileMenu);
 
-      // Add Maps link for all logged-in users in mobile (replaces Contact)
+      // Add Maps link for logged-in users who can access the Maps page
+      // (not shown for company roles: insurance_company, trucking_company, gas_station, hotel)
       var mobileMenuActions = mobileMenu.querySelector('.header-actions');
-      addMapsLink(mobileMenu, mobileMenuActions || null);
+      if (!isCompany(role)) {
+        addMapsLink(mobileMenu, mobileMenuActions || null);
+      }
 
       // Replace any Login links in mobile menu
       mobileMenu.querySelectorAll('a[href="login.php"], a[href="login"]').forEach(function (el) {

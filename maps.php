@@ -5,6 +5,17 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Live Map & Nearby Places — Fastrux</title>
+  <script>
+    // ── Early auth guard — redirect to login before any content renders ──
+    (function () {
+      var user = null;
+      try { user = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
+      var allowed = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
+      if (!user || !user.id || allowed.indexOf(user.role) === -1) {
+        window.location.replace('login?redirect=' + encodeURIComponent(window.location.pathname));
+      }
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
@@ -478,17 +489,9 @@
   <div class="toast" id="toast"></div>
 
   <script>
-  // ═══════════════════════════════════════════════════════════
-  //  AUTH GUARD — shippers, drivers, owner_operators
-  // ═══════════════════════════════════════════════════════════
+  // ── Current user (already validated by the early auth guard in <head>) ──
   var currentUser = null;
-  (function () {
-    try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
-    var allowed = ['shipper', 'customer', 'driver', 'owner_operator', 'corporate_staff', 'admin', 'super_admin'];
-    if (!currentUser || !currentUser.id || allowed.indexOf(currentUser.role) === -1) {
-      window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
-    }
-  })();
+  try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
 
   // ── Populate header actions based on role ────────────────
   (function () {
