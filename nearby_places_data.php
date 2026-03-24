@@ -12,7 +12,8 @@
 
 // Suppress PHP notices/warnings that would corrupt the JSON output
 ini_set('display_errors', '0');
-error_reporting(0);
+ini_set('log_errors', '1');
+error_reporting(E_ALL);
 ob_start();  // Buffer any accidental output
 
 header('Content-Type: application/json');
@@ -334,6 +335,14 @@ function handleGetPlace(): void {
 
 // ── Geocoding / Nominatim proxy ─────────────────────────────
 
+/** Shared HTTP stream context for external API calls. */
+function npHttpContext(): mixed {
+    return stream_context_create(['http' => [
+        'timeout' => 5,
+        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
+    ]]);
+}
+
 /**
  * Forward geocode: ?action=geocode&q=query[&limit=5]
  * Proxies to Nominatim to avoid browser CORS / user-agent issues.
@@ -351,15 +360,9 @@ function handleGeocode(): void {
              'format'         => 'json',
              'addressdetails' => 1,
              'limit'          => $limit,
-             'countrycodes'   => 'us',
          ]);
 
-    $ctx = stream_context_create(['http' => [
-        'timeout' => 5,
-        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
-    ]]);
-
-    $raw = @file_get_contents($url, false, $ctx);
+    $raw = @file_get_contents($url, false, npHttpContext());
     if ($raw === false) {
         npRespond(false, 'Geocoding service unavailable.');
     }
@@ -399,12 +402,7 @@ function handleReverseGeocode(): void {
              'zoom'   => 17,
          ]);
 
-    $ctx = stream_context_create(['http' => [
-        'timeout' => 5,
-        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
-    ]]);
-
-    $raw = @file_get_contents($url, false, $ctx);
+    $raw = @file_get_contents($url, false, npHttpContext());
     if ($raw === false) {
         npRespond(false, 'Reverse geocoding service unavailable.');
     }
@@ -428,11 +426,7 @@ function handleIpLocation(): void {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     // Use ipapi.co free tier for IP geolocation
     $url = 'https://ipapi.co/' . urlencode($ip) . '/json/';
-    $ctx = stream_context_create(['http' => [
-        'timeout' => 5,
-        'header'  => "User-Agent: Fastrux-Maps/1.0\r\n",
-    ]]);
-    $raw = @file_get_contents($url, false, $ctx);
+    $raw = @file_get_contents($url, false, npHttpContext());
     if ($raw !== false) {
         $data = json_decode($raw, true);
         if (is_array($data) && isset($data['latitude'], $data['longitude'])) {
@@ -446,7 +440,7 @@ function handleIpLocation(): void {
             ]);
         }
     }
-    // Fallback to geographic centre of USA
+    // Fallback to geographic center of USA
     npRespond(true, 'OK', [
         'lat'    => 39.5,
         'lng'    => -98.35,

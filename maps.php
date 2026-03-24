@@ -1050,12 +1050,7 @@
     btn.classList.toggle('active', trafficLayerOn);
 
     if (trafficLayerOn) {
-      // Use a free traffic-style tile overlay (Esri world transportation)
-      trafficLayer = L.tileLayer(
-        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-        { opacity: 0.0, maxZoom: 19 }
-      );
-      // Simulate traffic with a semi-transparent heatmap using Carto tiles
+      // Simulate traffic with a semi-transparent voyager style overlay
       trafficLayer = L.tileLayer(
         'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
         {
@@ -1320,11 +1315,13 @@
 
         if (pendingExtra === 0) { afterExtras(); return; }
         var extraResults = new Array(pendingExtra).fill(null);
+        var resolved = 0;
         extraInputs.forEach(function(inp, i) {
           geocodeInput(inp, function(r) {
             extraResults[i] = r;
-            if (extraResults.every(function(x) { return x !== null || !extraInputs[i] || !extraInputs[i].value.trim(); })) {
-              extraResults.forEach(function(r) { if (r) waypointCoords.push([r.lng, r.lat]); });
+            resolved++;
+            if (resolved === pendingExtra) {
+              extraResults.forEach(function(res) { if (res) waypointCoords.push([res.lng, res.lat]); });
               afterExtras();
             }
           });
@@ -1775,7 +1772,7 @@
       }
       if (p.category === 'hotel')         detail = (meta.brand ? esc(meta.brand) : '') + (meta.price_range ? ' · ' + esc(meta.price_range) : '') + (meta.star_rating ? ' · ' + '★'.repeat(meta.star_rating) : '');
       if (p.category === 'restaurant')    detail = (meta.cuisine ? esc(meta.cuisine) : '') + (meta.trucker_friendly ? ' · 🚚 Trucker-friendly' : '');
-      if (p.category === 'library')       detail = (meta.wifi ? 'WiFi · ' : '') + (meta.hours ? esc(meta.hours.split(',')[0]) : '');
+      if (p.category === 'library')       detail = (meta.wifi ? 'WiFi available · ' : '') + (meta.hours ? esc(meta.hours.split(',')[0]) : '');
       if (p.category === 'movie_theater') detail = (meta.screens ? meta.screens + ' screens' : '') + (meta.accessibility ? ' · Accessible' : '');
       if (p.category === 'tms_terminal')  detail = (meta.carrier ? esc(meta.carrier) : '') + (meta.open_247 ? ' · 24/7' : '') + (meta.dock_doors ? ' · ' + meta.dock_doors + ' doors' : '');
 
