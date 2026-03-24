@@ -635,6 +635,74 @@
 
   </div><!-- /container -->
 
+  <!-- ── Complete Drive Modal ── -->
+  <div class="modal-backdrop hidden" id="completeDriveModal">
+    <div class="modal" style="max-width:480px;">
+      <div class="modal-header">
+        <h2 style="display:flex;align-items:center;gap:8px;">
+          <iconify-icon icon="lucide:flag-checkered" style="font-size:20px;color:var(--success)"></iconify-icon>
+          Complete Drive
+        </h2>
+        <button class="modal-close" id="closeCompleteDriveModal">
+          <iconify-icon icon="lucide:x" style="font-size:18px"></iconify-icon>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--muted-foreground);margin-bottom:16px;">
+          Report the actual trip details and any safety events observed during this drive.
+          These figures are recorded in your driving report.
+        </p>
+        <input type="hidden" id="completeDriveLoadId" />
+        <div class="form-row">
+          <div class="form-group">
+            <label>Distance (miles)</label>
+            <input type="number" id="cdDistanceMi" min="0" step="0.1" placeholder="e.g. 120.5" />
+          </div>
+          <div class="form-group">
+            <label>Duration (minutes)</label>
+            <input type="number" id="cdDurationMin" min="0" placeholder="e.g. 150" />
+          </div>
+        </div>
+        <div style="font-size:13px;font-weight:700;color:var(--foreground);margin:12px 0 10px;display:flex;align-items:center;gap:6px;">
+          <iconify-icon icon="lucide:shield-alert" style="font-size:15px;color:var(--destructive)"></iconify-icon>
+          Safety Events
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Speeding Events</label>
+            <input type="number" id="cdSpeeding" min="0" value="0" />
+            <p class="hint">Times speed limit was exceeded</p>
+          </div>
+          <div class="form-group">
+            <label>Distractedness</label>
+            <input type="number" id="cdDistract" min="0" value="0" />
+            <p class="hint">Phone use / distraction incidents</p>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Rapid Acceleration</label>
+            <input type="number" id="cdRapidAccel" min="0" value="0" />
+            <p class="hint">Sudden acceleration events</p>
+          </div>
+          <div class="form-group">
+            <label>Hard Braking</label>
+            <input type="number" id="cdHardBraking" min="0" value="0" />
+            <p class="hint">Sudden braking events</p>
+          </div>
+        </div>
+        <div id="completeDriveAlert" style="display:none;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;border-radius:var(--radius-md);padding:10px 14px;font-size:13px;margin-bottom:12px;"></div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px;">
+          <button class="btn btn-outline" id="cancelCompleteDriveBtn">Cancel</button>
+          <button class="btn btn-primary" id="submitCompleteDriveBtn" style="background:var(--success);border-color:var(--success);">
+            <iconify-icon icon="lucide:check-circle" style="font-size:14px;margin-right:5px"></iconify-icon>
+            Mark as Completed
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Add Load Modal ── -->
   <div class="modal-backdrop hidden" id="addLoadModal">
     <div class="modal">
@@ -1086,6 +1154,11 @@
         : (l.payment_status === 'unpaid'
           ? `<span style="font-size:10px;background:#fef9c3;color:#a16207;border-radius:3px;padding:2px 6px;font-weight:700;margin-left:4px;">Unpaid</span>`
           : '');
+      const completeDriveBtn = l.status === 'in_transit' && l.assigned_driver_id
+        ? `<button class="btn btn-primary" style="margin-top:8px;padding:6px 12px;font-size:12px;background:var(--success);border-color:var(--success);" onclick="event.stopPropagation();openCompleteDrive('${escHtml(l.id)}')">
+             <iconify-icon icon="lucide:flag-checkered" style="font-size:12px;margin-right:4px"></iconify-icon>Complete Drive
+           </button>`
+        : '';
       return `
         <div class="load-item${isActive ? ' active' : ''}" onclick="selectLoad('${escHtml(l.id)}')">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
@@ -1106,6 +1179,7 @@
             ${date ? `<span class="load-date">📅 ${date}</span>` : ''}
           </div>
           ${l.cargo_description ? `<div style="font-size:12px;color:var(--muted-foreground);margin-top:6px;">${escHtml(l.cargo_description)}</div>` : ''}
+          ${completeDriveBtn}
         </div>`;
     }).join('');
   }
@@ -1288,6 +1362,90 @@
     }
     sendOffer(driverId, selectedLoadId);
   }
+
+  // ═══════════════════════════════════════════════════════════
+  //  COMPLETE DRIVE MODAL
+  // ═══════════════════════════════════════════════════════════
+  function openCompleteDrive(loadId) {
+    document.getElementById('completeDriveLoadId').value = loadId;
+    document.getElementById('cdDistanceMi').value        = '';
+    document.getElementById('cdDurationMin').value       = '';
+    document.getElementById('cdSpeeding').value          = '0';
+    document.getElementById('cdDistract').value          = '0';
+    document.getElementById('cdRapidAccel').value        = '0';
+    document.getElementById('cdHardBraking').value       = '0';
+    document.getElementById('completeDriveAlert').style.display = 'none';
+    document.getElementById('completeDriveModal').classList.remove('hidden');
+  }
+
+  document.getElementById('closeCompleteDriveModal').addEventListener('click', () => {
+    document.getElementById('completeDriveModal').classList.add('hidden');
+  });
+  document.getElementById('cancelCompleteDriveBtn').addEventListener('click', () => {
+    document.getElementById('completeDriveModal').classList.add('hidden');
+  });
+
+  document.getElementById('submitCompleteDriveBtn').addEventListener('click', async () => {
+    const loadId      = document.getElementById('completeDriveLoadId').value;
+    const distanceMi  = parseFloat(document.getElementById('cdDistanceMi').value)  || 0;
+    const durationMin = parseInt(document.getElementById('cdDurationMin').value, 10) || 0;
+    const speeding    = Math.max(0, parseInt(document.getElementById('cdSpeeding').value,    10) || 0);
+    const distract    = Math.max(0, parseInt(document.getElementById('cdDistract').value,    10) || 0);
+    const rapidAccel  = Math.max(0, parseInt(document.getElementById('cdRapidAccel').value,  10) || 0);
+    const hardBraking = Math.max(0, parseInt(document.getElementById('cdHardBraking').value, 10) || 0);
+
+    const alertEl = document.getElementById('completeDriveAlert');
+    alertEl.style.display = 'none';
+
+    if (!distanceMi || distanceMi <= 0) {
+      alertEl.textContent   = 'Please enter the distance driven (miles).';
+      alertEl.style.display = 'block';
+      return;
+    }
+    if (!durationMin || durationMin <= 0) {
+      alertEl.textContent   = 'Please enter the drive duration (minutes).';
+      alertEl.style.display = 'block';
+      return;
+    }
+
+    const btn  = document.getElementById('submitCompleteDriveBtn');
+    const orig = btn.innerHTML;
+    btn.disabled  = true;
+    btn.innerHTML = '<iconify-icon icon="lucide:loader-circle" style="font-size:14px;margin-right:5px;animation:spin 1s linear infinite"></iconify-icon>Saving…';
+
+    try {
+      const fd = new FormData();
+      fd.append('action',              'update_load_status');
+      fd.append('load_id',             loadId);
+      fd.append('status',              'completed');
+      fd.append('distance_mi',         distanceMi);
+      fd.append('duration_min',        durationMin);
+      fd.append('speeding_events',     speeding);
+      fd.append('distractedness',      distract);
+      fd.append('rapid_accel_events',  rapidAccel);
+      fd.append('hard_braking_events', hardBraking);
+
+      const res  = await fetch('offers_tracking_data.php', { method: 'POST', body: fd });
+      const data = await res.json();
+
+      if (data.success) {
+        document.getElementById('completeDriveModal').classList.add('hidden');
+        showToast('Drive completed and logged to your driving report.', 'success');
+        await loadData();
+        renderLoadList();
+        renderDriverList();
+      } else {
+        alertEl.textContent    = 'Error: ' + data.message;
+        alertEl.style.display  = 'block';
+      }
+    } catch (err) {
+      alertEl.textContent   = 'Network error: ' + err.message;
+      alertEl.style.display = 'block';
+    } finally {
+      btn.disabled  = false;
+      btn.innerHTML = orig;
+    }
+  });
 
   // ═══════════════════════════════════════════════════════════
   //  ADD LOAD FORM (with auto-geocode)
