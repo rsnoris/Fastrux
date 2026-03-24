@@ -288,11 +288,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$loadId)               respond(false, 'load_id is required');
             if (!in_array($status, $allowed, true)) respond(false, 'Invalid status');
 
-            $loads = readJson(LOADS_JSON);
-            $found = false;
+            $loads    = readJson(LOADS_JSON);
+            $found    = false;
+            $matchedLoad = null;
             foreach ($loads as &$load) {
                 if ($load['id'] === $loadId) {
                     $load['status'] = $status;
+                    $matchedLoad    = $load;
                     $found = true;
                     break;
                 }
@@ -302,6 +304,75 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!$found) respond(false, 'Load not found');
             writeJson(LOADS_JSON, $loads);
             auditLog('load.status_changed', '', 'load', $loadId, "Load {$loadId} status changed to '{$status}'");
+
+            // When a load is completed, record a real driving log entry
+            if ($status === 'completed' && !empty($matchedLoad['assigned_driver_id'])) {
+                $driverId = $matchedLoad['assigned_driver_id'];
+
+                // Sanitize and bound-check safety metrics from POST (driver-submitted)
+                $speedingEvents    = min(999, max(0, (int) ($_POST['speeding_events']     ?? 0)));
+                $distractedness    = min(999, max(0, (int) ($_POST['distractedness']      ?? 0)));
+                $rapidAccelEvents  = min(999, max(0, (int) ($_POST['rapid_accel_events']  ?? 0)));
+                $hardBrakingEvents = min(999, max(0, (int) ($_POST['hard_braking_events'] ?? 0)));
+                $distanceMi        = min(5000.0, max(0.0, (float) ($_POST['distance_mi']  ?? 0)));
+                $durationMin       = min(72000, max(0, (int) ($_POST['duration_min']       ?? 0)));
+
+                // Use scheduled_date as the start date if no explicit timestamps are provided
+                $startedAt = $_POST['started_at'] ?? null;
+                $endedAt   = $_POST['ended_at']   ?? null;
+                if (!$startedAt) {
+                    $base      = !empty($matchedLoad['scheduled_date'])
+                                 ? strtotime($matchedLoad['scheduled_date'] . ' 08:00:00')
+                                 : time();
+                    $startedAt = date('Y-m-d H:i:s', $base);
+                    $endedAt   = $durationMin > 0
+                                 ? date('Y-m-d H:i:s', $base + $durationMin * 60)
+                                 : date('Y-m-d H:i:s', $base + 3600);
+                }
+
+                if (!is_dir(DATA_DIR)) {
+                    mkdir(DATA_DIR, 0755, true);
+                }
+                $logsFile = DATA_DIR . 'driving_logs.json';
+                $newLog = [
+                    'log_id'              => 'LOG-' . strtoupper(bin2hex(random_bytes(4))),
+                    'driver_id'           => $driverId,
+                    'load_id'             => $loadId,
+                    'started_at'          => $startedAt,
+                    'ended_at'            => $endedAt,
+                    'from_address'        => $matchedLoad['pickup_address']   ?? '',
+                    'from_lat'            => (float) ($matchedLoad['pickup_lat']  ?? 0),
+                    'from_lng'            => (float) ($matchedLoad['pickup_lng']  ?? 0),
+                    'to_address'          => $matchedLoad['delivery_address'] ?? '',
+                    'to_lat'              => (float) ($matchedLoad['delivery_lat'] ?? 0),
+                    'to_lng'              => (float) ($matchedLoad['delivery_lng'] ?? 0),
+                    'distance_mi'         => $distanceMi,
+                    'duration_min'        => $durationMin,
+                    'speeding_events'     => $speedingEvents,
+                    'distractedness'      => $distractedness,
+                    'rapid_accel_events'  => $rapidAccelEvents,
+                    'hard_braking_events' => $hardBrakingEvents,
+                ];
+                // Use file locking to prevent concurrent write corruption
+                $fp = fopen($logsFile, 'c+');
+                if ($fp && flock($fp, LOCK_EX)) {
+                    $raw     = stream_get_contents($fp);
+                    $allLogs = ($raw !== false && $raw !== '')
+                               ? (json_decode($raw, true) ?: [])
+                               : [];
+                    $allLogs[] = $newLog;
+                    ftruncate($fp, 0);
+                    rewind($fp);
+                    fwrite($fp, json_encode($allLogs, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+                    flock($fp, LOCK_UN);
+                }
+                if ($fp) {
+                    fclose($fp);
+                }
+                auditLog('drive.log_created', $driverId, 'drive_log', $newLog['log_id'],
+                    "Drive log {$newLog['log_id']} created from load {$loadId}");
+            }
+
             respond(true, 'Load status updated');
 
         // Assign a driver to a load and send Telegram notification
