@@ -495,6 +495,34 @@
       position: absolute; top: 4px; right: 8px;
       background: none; border: none; cursor: pointer; font-size: 14px; color: #666;
     }
+
+    /* ── Live Navigation HUD ── */
+    .nav-hud {
+      position: absolute; top: 57px; left: 12px;
+      background: #1d4ed8; color: #fff;
+      border-radius: var(--radius-xl); padding: 14px 16px;
+      min-width: 240px; max-width: 300px;
+      z-index: 600; box-shadow: 0 4px 24px rgba(0,0,0,.35);
+      display: none; pointer-events: auto;
+    }
+    .nav-hud.active { display: block; }
+    .nav-hud-turn { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+    .nav-hud-icon { font-size: 32px; line-height: 1; flex-shrink: 0; min-width: 34px; text-align: center; }
+    .nav-hud-instruction { font-size: 15px; font-weight: 700; line-height: 1.35; word-break: break-word; }
+    .nav-hud-step-dist { font-size: 12px; opacity: .82; margin-top: 3px; font-weight: 500; }
+    .nav-hud-remaining {
+      display: flex; justify-content: space-between; align-items: center;
+      background: rgba(255,255,255,.16); border-radius: 8px;
+      padding: 7px 12px; font-size: 13px; font-weight: 600;
+      margin-bottom: 10px; gap: 8px;
+    }
+    .nav-hud-stop {
+      width: 100%; padding: 8px; font-size: 12px; font-weight: 700;
+      background: rgba(255,255,255,.18); color: #fff;
+      border: 1.5px solid rgba(255,255,255,.35); border-radius: var(--radius-md);
+      cursor: pointer; transition: background .15s; letter-spacing: .3px;
+    }
+    .nav-hud-stop:hover { background: rgba(255,255,255,.32); }
   </style>
 </head>
 <body>
@@ -683,6 +711,13 @@
           </div>
           <!-- Alternative routes -->
           <div class="alt-route-list" id="altRouteList" style="display:none;"></div>
+          <!-- Start Navigation button — shown after route is calculated -->
+          <div id="navStartPanel" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border);flex-shrink:0;">
+            <button id="navStartBtn" class="btn-sm" onclick="startNavigation()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;font-size:13px;background:#16a34a;">
+              <iconify-icon icon="lucide:navigation-2" style="font-size:14px;vertical-align:-1px;"></iconify-icon>
+              Start Navigation
+            </button>
+          </div>
           <!-- Turn-by-turn steps -->
           <div class="driver-list" id="routeStepsList" style="flex:1;overflow-y:auto;padding:10px 12px;">
             <div class="location-prompt">
@@ -728,6 +763,22 @@
         <div class="map-info-bar" id="mapInfoBar">
           <button class="close-btn" onclick="document.getElementById('mapInfoBar').classList.remove('show')">✕</button>
           <div id="mapInfoContent" style="font-size:12px;padding-right:16px;"></div>
+        </div>
+        <!-- Live Navigation HUD overlay -->
+        <div class="nav-hud" id="navHud">
+          <div class="nav-hud-turn">
+            <div class="nav-hud-icon" id="navHudIcon">↑</div>
+            <div>
+              <div class="nav-hud-instruction" id="navHudInstruction">Follow the route</div>
+              <div class="nav-hud-step-dist" id="navHudStepDist"></div>
+            </div>
+          </div>
+          <div class="nav-hud-remaining">
+            <span id="navHudRemDist">–</span>
+            <span style="opacity:.6;">·</span>
+            <span id="navHudRemTime">–</span>
+          </div>
+          <button class="nav-hud-stop" onclick="stopNavigation()">■ Stop Navigation</button>
         </div>
         <div id="map"></div>
       </div>
@@ -794,6 +845,23 @@
   var routeLayer        = null;
   var routeLayers       = [];  // multi-route alternatives
   var activeRouteIdx    = 0;
+
+  // Navigation mode state
+  var navigationActive  = false;
+  var navWatchId        = null;
+  var navSteps          = [];
+  var navStepIndex      = 0;
+  var navDestLat        = null;
+  var navDestLng        = null;
+  var navRouteDist      = null;
+  var navRouteDuration  = null;
+  var navMarker         = null;
+  var navHeading        = 0;
+
+  // Navigation thresholds / assumptions
+  var NAV_STEP_ADVANCE_THRESHOLD_M = 50;   // advance step when within this many metres of next maneuver
+  var NAV_ARRIVAL_THRESHOLD_M      = 30;   // consider arrived when within this many metres of destination
+  var NAV_ASSUMED_SPEED_MS         = 13.4; // assumed travel speed (~30 mph) used for ETA when GPS speed unavailable
 
   // Map style
   var currentMapStyle   = 'light';
@@ -1122,6 +1190,7 @@
   // ═══════════════════════════════════════════════════════════
   function startLocationTracking() {
     if (!navigator.geolocation) return;
+    if (navigationActive) return; // Navigation mode uses its own high-accuracy watch
     userWatchId = navigator.geolocation.watchPosition(
       function (pos) {
         userLat = pos.coords.latitude;
@@ -1403,6 +1472,18 @@
 
         // Turn-by-turn steps
         var steps = primary.legs && primary.legs[0] && primary.legs[0].steps ? primary.legs[0].steps : [];
+
+        // Store navigation data for live navigation mode
+        navSteps         = steps;
+        navStepIndex     = 0;
+        navDestLat       = coords[coords.length - 1][1];
+        navDestLng       = coords[coords.length - 1][0];
+        navRouteDist     = primary.distance;
+        navRouteDuration = primary.duration;
+
+        // Show Start Navigation button
+        document.getElementById('navStartPanel').style.display = 'block';
+
         var stepsEl = document.getElementById('routeStepsList');
         if (steps.length) {
           stepsEl.innerHTML = steps.map(function(step, i) {
@@ -1476,6 +1557,7 @@
   }
 
   function clearRoute() {
+    if (navigationActive) stopNavigation();
     routeLayers.forEach(function(l) { map.removeLayer(l); });
     routeLayers = [];
     if (routeLayer) { map.removeLayer(routeLayer); routeLayer = null; }
@@ -1484,8 +1566,209 @@
     document.getElementById('routeClearBtn').style.display = 'none';
     document.getElementById('routeResultPanel').style.display = 'none';
     document.getElementById('altRouteList').style.display = 'none';
+    document.getElementById('navStartPanel').style.display = 'none';
+    navSteps = []; navDestLat = null; navDestLng = null;
     document.getElementById('routeStepsList').innerHTML = '<div class="location-prompt"><iconify-icon icon="lucide:map" style="font-size:28px;"></iconify-icon><p>Enter origin &amp; destination, then click <strong>Get Route</strong>.</p></div>';
     showToast('Route cleared.');
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  LIVE NAVIGATION
+  // ═══════════════════════════════════════════════════════════
+
+  /** Haversine distance in metres between two lat/lng points. */
+  function haversineDistM(lat1, lng1, lat2, lng2) {
+    var R = 6371000;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  /** Build a rotating directional arrow Leaflet icon. */
+  function navArrowIcon(heading) {
+    var h = (heading !== null && heading !== undefined && !isNaN(heading)) ? heading : 0;
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40">'
+      + '<circle cx="20" cy="20" r="18" fill="#1d4ed8" stroke="#fff" stroke-width="3"/>'
+      + '<polygon points="20,5 27,30 20,24 13,30" fill="#fff"/>'
+      + '</svg>';
+    return L.divIcon({
+      html: '<div style="width:40px;height:40px;transform:rotate(' + h + 'deg);transform-origin:20px 20px;">' + svg + '</div>',
+      iconSize: [40, 40], iconAnchor: [20, 20],
+      className: '',
+    });
+  }
+
+  /** Place/update the navigation arrow marker on the map. */
+  function updateNavMarker(lat, lng, heading) {
+    var h = (heading !== null && heading !== undefined && !isNaN(heading)) ? heading : navHeading;
+    if (heading !== null && heading !== undefined && !isNaN(heading)) navHeading = heading;
+    var icon = navArrowIcon(h);
+    if (!navMarker) {
+      navMarker = L.marker([lat, lng], { icon: icon, zIndexOffset: 3000 }).addTo(map);
+    } else {
+      navMarker.setLatLng([lat, lng]);
+      navMarker.setIcon(icon);
+    }
+    // Replace the regular location dot with the navigation marker
+    if (userLocMarker) { map.removeLayer(userLocMarker); userLocMarker = null; }
+    if (userLocCircle) { map.removeLayer(userLocCircle); userLocCircle = null; }
+  }
+
+  /** Advance to the next step when the user is within 50 m of the next maneuver point. */
+  function advanceNavStep(lat, lng) {
+    while (navStepIndex < navSteps.length - 1) {
+      var nextStep = navSteps[navStepIndex + 1];
+      if (!nextStep || !nextStep.maneuver || !nextStep.maneuver.location) break;
+      var stepLng = nextStep.maneuver.location[0];
+      var stepLat = nextStep.maneuver.location[1];
+      if (haversineDistM(lat, lng, stepLat, stepLng) < NAV_STEP_ADVANCE_THRESHOLD_M) {
+        navStepIndex++;
+      } else {
+        break;
+      }
+    }
+  }
+
+  /** Refresh the turn instruction shown in the HUD. */
+  function updateNavHud() {
+    if (!navSteps.length) return;
+    var step = navSteps[navStepIndex] || navSteps[navSteps.length - 1];
+    if (!step) return;
+    var maneuver = step.maneuver || {};
+    var type = maneuver.type || 'continue';
+    var mod  = maneuver.modifier || '';
+    var icon = turnIcon(type, mod);
+    var name = step.name || (type + (mod ? ' ' + mod : ''));
+    var dist = step.distance < 1000
+      ? Math.round(step.distance) + ' m'
+      : (step.distance / 1609.34).toFixed(1) + ' mi';
+    document.getElementById('navHudIcon').textContent = icon;
+    document.getElementById('navHudInstruction').textContent = name || type;
+    document.getElementById('navHudStepDist').textContent = 'in ' + dist;
+  }
+
+  /** Called on every GPS position update during active navigation. */
+  function onNavUpdate(lat, lng, accuracy, heading) {
+    // Keep map centred on user
+    map.panTo([lat, lng], { animate: true, duration: 0.5 });
+
+    // Update directional arrow marker
+    updateNavMarker(lat, lng, heading);
+
+    // Advance turn-by-turn step if close enough to next maneuver
+    advanceNavStep(lat, lng);
+
+    // Refresh HUD instruction
+    updateNavHud();
+
+    // Update remaining distance / time
+    if (navDestLat !== null && navDestLng !== null) {
+      var distToDestM = haversineDistM(lat, lng, navDestLat, navDestLng);
+      var distLabel = distToDestM >= 1609.34
+        ? (distToDestM / 1609.34).toFixed(1) + ' mi'
+        : Math.round(distToDestM) + ' m';
+      var speedMs = NAV_ASSUMED_SPEED_MS;
+      var timeSecs = distToDestM / speedMs;
+      var timeStr = timeSecs < 60
+        ? Math.round(timeSecs) + 's'
+        : timeSecs < 3600
+          ? Math.round(timeSecs / 60) + ' min'
+          : Math.floor(timeSecs / 3600) + 'h ' + Math.round((timeSecs % 3600) / 60) + 'm';
+      document.getElementById('navHudRemDist').textContent = distLabel;
+      document.getElementById('navHudRemTime').textContent = '~' + timeStr;
+
+      // Arrived (within NAV_ARRIVAL_THRESHOLD_M of destination)
+      if (distToDestM < NAV_ARRIVAL_THRESHOLD_M) {
+        document.getElementById('navHudInstruction').textContent = 'You have arrived!';
+        document.getElementById('navHudIcon').textContent = '🏁';
+        document.getElementById('navHudStepDist').textContent = '';
+        document.getElementById('navHudRemDist').textContent = '0 m';
+        document.getElementById('navHudRemTime').textContent = 'Arrived';
+        showToast('🏁 You have arrived at your destination!');
+        setTimeout(stopNavigation, 3000);
+      }
+    }
+  }
+
+  /** Start live navigation along the current route. */
+  function startNavigation() {
+    if (!navSteps || !navSteps.length) {
+      showToast('Calculate a route first, then tap Start Navigation.');
+      return;
+    }
+    if (!navigator.geolocation) {
+      showToast('Geolocation is not supported by your browser.');
+      return;
+    }
+    navigationActive = true;
+    navStepIndex = 0;
+    navHeading   = 0;
+
+    // Stop regular location watch; navigation uses its own high-accuracy watch
+    if (userWatchId !== null) {
+      navigator.geolocation.clearWatch(userWatchId);
+      userWatchId = null;
+    }
+    if (navWatchId !== null) {
+      navigator.geolocation.clearWatch(navWatchId);
+      navWatchId = null;
+    }
+
+    // Show HUD, hide start button
+    document.getElementById('navHud').classList.add('active');
+    document.getElementById('navStartPanel').style.display = 'none';
+
+    // Zoom in for navigation
+    if (userLat !== null && userLng !== null) {
+      map.setView([userLat, userLng], 17, { animate: true });
+    }
+
+    // Seed HUD with full-route remaining distance / time
+    updateNavHud();
+    if (navRouteDist !== null && navRouteDuration !== null) {
+      var distMi = (navRouteDist / 1609.34).toFixed(1) + ' mi';
+      var mins = Math.round(navRouteDuration / 60);
+      var timeStr = mins >= 60 ? Math.floor(mins / 60) + 'h ' + (mins % 60) + 'm' : mins + ' min';
+      document.getElementById('navHudRemDist').textContent = distMi;
+      document.getElementById('navHudRemTime').textContent = '~' + timeStr;
+    }
+
+    showToast('Navigation started — follow the blue route.');
+
+    navWatchId = navigator.geolocation.watchPosition(
+      function (pos) {
+        userLat = pos.coords.latitude;
+        userLng = pos.coords.longitude;
+        onNavUpdate(userLat, userLng, pos.coords.accuracy, pos.coords.heading);
+      },
+      function (err) {
+        if (err.code !== 1) showToast('GPS signal lost — check your location settings.');
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
+    );
+  }
+
+  /** Stop live navigation and return to normal map view. */
+  function stopNavigation() {
+    navigationActive = false;
+    if (navWatchId !== null) {
+      navigator.geolocation.clearWatch(navWatchId);
+      navWatchId = null;
+    }
+    // Remove the navigation arrow marker
+    if (navMarker) { map.removeLayer(navMarker); navMarker = null; }
+    // Hide HUD
+    document.getElementById('navHud').classList.remove('active');
+    // Show start button again if a route is still loaded
+    if (navSteps.length > 0) {
+      document.getElementById('navStartPanel').style.display = 'block';
+    }
+    showToast('Navigation stopped.');
+    // Resume regular location tracking
+    startLocationTracking();
   }
 
   // ── Marker icons ─────────────────────────────────────────
