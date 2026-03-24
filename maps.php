@@ -23,7 +23,7 @@
   <!-- Leaflet map -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV/XN/WLcE=" crossorigin=""></script>
-  <!-- Leaflet Routing Machine for multi-stop routes -->
+  <!-- Iconify icons -->
   <script src="https://code.iconify.design/iconify-icon/3.0.0/iconify-icon.min.js"></script>
 
   <style>
@@ -157,6 +157,7 @@
     /* ── Map ── */
     #map {
       flex: 1;
+      height: 0; /* flex-basis 0 so flex:1 governs the actual size */
       min-height: 300px;
       border-radius: 0 0 var(--radius-xl) var(--radius-xl);
       z-index: 1;
@@ -900,6 +901,9 @@
 
     startLocationTracking();
     tryIpLocationFallback();
+
+    // Ensure tiles render after the flex/grid layout has fully settled
+    setTimeout(function () { map.invalidateSize(); }, 200);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -1594,6 +1598,7 @@
   //  MAP MARKERS
   // ═══════════════════════════════════════════════════════════
   function renderMarkers() {
+    if (!map) return; // Map not initialised (Leaflet unavailable)
     // Remove old
     Object.values(driverMarkers).forEach(function (m) { map.removeLayer(m); });
     driverMarkers = {};
@@ -2049,8 +2054,42 @@
   // ═══════════════════════════════════════════════════════════
   //  INIT
   // ═══════════════════════════════════════════════════════════
+
+  /** Render a full-height error card inside the map container. */
+  function showMapError(icon, title, detail) {
+    document.getElementById('map').innerHTML =
+      '<div style="height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;'
+      + 'background:var(--muted);color:var(--muted-foreground);gap:12px;font-size:14px;padding:24px;text-align:center;">'
+      + '<iconify-icon icon="' + icon + '" style="font-size:40px;opacity:.4"></iconify-icon>'
+      + '<div><strong>' + title + '</strong><br>'
+      + '<span style="font-size:12px;">' + detail + '</span></div>'
+      + '<button onclick="location.reload()" style="margin-top:8px;background:var(--primary);color:#fff;border:none;'
+      + 'border-radius:var(--radius-md);padding:8px 18px;font-size:13px;cursor:pointer;">Retry</button>'
+      + '</div>';
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
-    initMap();
+    if (typeof L === 'undefined') {
+      // Leaflet failed to load from CDN — show a graceful fallback
+      showMapError(
+        'lucide:map-off',
+        'Map unavailable',
+        'Could not load the map library. Check your internet connection and refresh the page.'
+      );
+      document.getElementById('lastUpdated').textContent = 'Last updated: unavailable (map error)';
+    } else {
+      try {
+        initMap();
+      } catch (e) {
+        console.error('Map initialisation failed:', e);
+        showMapError(
+          'lucide:alert-triangle',
+          'Map failed to load',
+          'An error occurred while initialising the map. Please refresh the page.'
+        );
+        document.getElementById('lastUpdated').textContent = 'Last updated: unavailable (map error)';
+      }
+    }
     loadData();
     startAutoRefresh();
     // Pre-populate all category layers as visible
