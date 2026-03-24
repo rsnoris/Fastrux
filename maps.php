@@ -523,6 +523,125 @@
       cursor: pointer; transition: background .15s; letter-spacing: .3px;
     }
     .nav-hud-stop:hover { background: rgba(255,255,255,.32); }
+
+    /* ── Driving Report Section ── */
+    #drivingReportSection {
+      display: none;
+      margin-top: 24px;
+    }
+    .report-header {
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 12px;
+      margin-bottom: 16px;
+    }
+    .report-title {
+      font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 8px;
+    }
+    .report-driver-name {
+      font-size: 14px; color: var(--muted-foreground); font-weight: 500;
+    }
+    /* Period tab bar */
+    .period-tabs {
+      display: flex; gap: 4px;
+      background: var(--muted); border-radius: var(--radius-lg);
+      padding: 4px;
+    }
+    .period-tab {
+      padding: 6px 16px; font-size: 13px; font-weight: 600;
+      border: none; background: transparent; border-radius: var(--radius-md);
+      cursor: pointer; color: var(--muted-foreground);
+      transition: background .15s, color .15s;
+    }
+    .period-tab.active {
+      background: var(--card); color: var(--primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,.12);
+    }
+    /* Summary stat cards */
+    .report-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .report-stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .report-stat-icon {
+      width: 38px; height: 38px; min-width: 38px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .report-stat-icon.blue   { background: #eff6ff; color: #1d4ed8; }
+    .report-stat-icon.red    { background: #fef2f2; color: #dc2626; }
+    .report-stat-icon.amber  { background: #fffbeb; color: #d97706; }
+    .report-stat-icon.orange { background: #fff7ed; color: #ea580c; }
+    .report-stat-icon.purple { background: #faf5ff; color: #7c3aed; }
+    .report-stat-label { font-size: 11px; color: var(--muted-foreground); font-weight: 500; line-height: 1.3; }
+    .report-stat-value { font-size: 24px; font-weight: 800; line-height: 1; }
+    /* Drive log list */
+    .drive-log-list {
+      display: flex; flex-direction: column; gap: 14px;
+    }
+    .drive-log-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+    @media (max-width: 860px) {
+      .drive-log-card { grid-template-columns: 1fr; }
+    }
+    .drive-log-minimap {
+      height: 180px; min-height: 180px;
+      background: var(--muted);
+      position: relative;
+    }
+    .drive-log-minimap .leaflet-container {
+      border-radius: 0;
+    }
+    .drive-log-info {
+      padding: 14px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+    }
+    .drive-log-route {
+      font-size: 13px; font-weight: 600; display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap;
+    }
+    .drive-log-route .arrow { color: var(--primary); font-size: 11px; }
+    .drive-log-meta {
+      font-size: 12px; color: var(--muted-foreground);
+      display: flex; flex-wrap: wrap; gap: 10px;
+    }
+    .drive-log-meta span { display: flex; align-items: center; gap: 4px; }
+    .drive-log-events {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+    }
+    .event-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 8px; border-radius: 20px; font-size: 11px; font-weight: 600;
+    }
+    .event-badge.speed    { background: #fef2f2; color: #b91c1c; }
+    .event-badge.distract { background: #fffbeb; color: #b45309; }
+    .event-badge.accel    { background: #fff7ed; color: #c2410c; }
+    .event-badge.brake    { background: #faf5ff; color: #6d28d9; }
+    .event-badge.safe     { background: #f0fdf4; color: #15803d; }
+    .report-loading {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; padding: 40px;
+      color: var(--muted-foreground); font-size: 14px;
+    }
+    .report-empty {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 8px; padding: 48px;
+      color: var(--muted-foreground); font-size: 14px; text-align: center;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
@@ -786,6 +905,73 @@
     </div>
   </div>
 
+  <!-- ── Driving Report Section (shown when a driver is selected) ── -->
+  <div class="container" id="drivingReportSection" style="padding-bottom:40px;">
+
+    <!-- Report header -->
+    <div class="report-header">
+      <div>
+        <div class="report-title">
+          <iconify-icon icon="lucide:bar-chart-2" style="font-size:22px;color:var(--primary)"></iconify-icon>
+          Driving Report
+        </div>
+        <div class="report-driver-name" id="reportDriverName">—</div>
+      </div>
+      <!-- Period tabs -->
+      <div class="period-tabs">
+        <button class="period-tab"        data-period="daily"   onclick="selectPeriod('daily')">Daily</button>
+        <button class="period-tab active" data-period="weekly"  onclick="selectPeriod('weekly')">Weekly</button>
+        <button class="period-tab"        data-period="monthly" onclick="selectPeriod('monthly')">Monthly</button>
+        <button class="period-tab"        data-period="annual"  onclick="selectPeriod('annual')">Annual</button>
+      </div>
+    </div>
+
+    <!-- Summary stat cards -->
+    <div class="report-stats" id="reportStats">
+      <div class="report-stat-card">
+        <div class="report-stat-icon blue"><iconify-icon icon="lucide:route"></iconify-icon></div>
+        <div>
+          <div class="report-stat-label">Total Drives</div>
+          <div class="report-stat-value" id="statTotalDrives">—</div>
+        </div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-icon red"><iconify-icon icon="lucide:gauge"></iconify-icon></div>
+        <div>
+          <div class="report-stat-label">Speeding Events</div>
+          <div class="report-stat-value" id="statSpeeding">—</div>
+        </div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-icon amber"><iconify-icon icon="lucide:smartphone"></iconify-icon></div>
+        <div>
+          <div class="report-stat-label">Distractedness</div>
+          <div class="report-stat-value" id="statDistract">—</div>
+        </div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-icon orange"><iconify-icon icon="lucide:trending-up"></iconify-icon></div>
+        <div>
+          <div class="report-stat-label">Rapid Acceleration</div>
+          <div class="report-stat-value" id="statAccel">—</div>
+        </div>
+      </div>
+      <div class="report-stat-card">
+        <div class="report-stat-icon purple"><iconify-icon icon="lucide:activity"></iconify-icon></div>
+        <div>
+          <div class="report-stat-label">Hard Braking</div>
+          <div class="report-stat-value" id="statBraking">—</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Drive log list -->
+    <div id="driveLogList">
+      <!-- Populated by JS -->
+    </div>
+
+  </div>
+
   <!-- Toast -->
   <div class="toast" id="toast"></div>
 
@@ -829,6 +1015,11 @@
   var driverMarkers = {};
   var refreshTimer  = null;
   var REFRESH_MS    = 30000;
+
+  // Driving report state
+  var reportDriverId   = null;
+  var reportPeriod     = 'weekly';
+  var reportMiniMaps   = {};   // log_id -> Leaflet map instance (to avoid re-init)
 
   // POI state
   var poiLayers     = {};   // category -> L.LayerGroup
@@ -1876,6 +2067,8 @@
     } else {
       showToast('This driver has not shared their location yet.');
     }
+    // Load driving report for selected driver
+    loadDrivingReport(driverId);
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -2325,6 +2518,186 @@
       btn.classList.toggle('active', poiVisible[cat] !== false);
       btn.style.background = poiVisible[cat] ? c.color + '18' : 'transparent';
     }
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  //  DRIVING REPORT
+  // ═══════════════════════════════════════════════════════════
+
+  function selectPeriod(period) {
+    reportPeriod = period;
+    // Update tab UI
+    document.querySelectorAll('.period-tab').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.period === period);
+    });
+    // Reload report for current driver
+    if (reportDriverId) {
+      loadDrivingReport(reportDriverId);
+    }
+  }
+
+  function loadDrivingReport(driverId) {
+    reportDriverId = driverId;
+
+    // Show section, display loading state
+    var section = document.getElementById('drivingReportSection');
+    section.style.display = 'block';
+    section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    // Update driver name label
+    var driver = allDrivers.find(function (d) { return d.id === driverId; });
+    document.getElementById('reportDriverName').textContent = driver
+      ? (driver.name || driverId) + (driver.van_reg ? '  ·  ' + driver.van_reg : '')
+      : driverId;
+
+    // Reset stats to loading
+    ['statTotalDrives', 'statSpeeding', 'statDistract', 'statAccel', 'statBraking'].forEach(function (id) {
+      document.getElementById(id).textContent = '—';
+    });
+    document.getElementById('driveLogList').innerHTML =
+      '<div class="report-loading">'
+      + '<iconify-icon icon="lucide:loader-circle" style="font-size:22px;animation:spin 1s linear infinite"></iconify-icon>'
+      + 'Loading driving report…'
+      + '</div>';
+
+    // Destroy any existing mini-maps to avoid duplicate init
+    Object.keys(reportMiniMaps).forEach(function (k) {
+      try { reportMiniMaps[k].remove(); } catch (e) {}
+    });
+    reportMiniMaps = {};
+
+    fetch('driving_report_data.php?action=get_driving_report&driver_id=' + encodeURIComponent(driverId) + '&period=' + encodeURIComponent(reportPeriod))
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (!data.success) throw new Error(data.message || 'API error');
+        renderDrivingReport(data.summary, data.logs);
+      })
+      .catch(function (err) {
+        document.getElementById('driveLogList').innerHTML =
+          '<div class="report-empty">'
+          + '<iconify-icon icon="lucide:alert-triangle" style="font-size:28px;opacity:.4"></iconify-icon>'
+          + '<div>Could not load driving report.<br><small>' + esc(err.message) + '</small></div>'
+          + '</div>';
+      });
+  }
+
+  function renderDrivingReport(summary, logs) {
+    // Update summary cards
+    document.getElementById('statTotalDrives').textContent = summary.total_drives;
+    document.getElementById('statSpeeding').textContent    = summary.total_speeding;
+    document.getElementById('statDistract').textContent    = summary.total_distractedness;
+    document.getElementById('statAccel').textContent       = summary.total_rapid_accel;
+    document.getElementById('statBraking').textContent     = summary.total_hard_braking;
+
+    var list = document.getElementById('driveLogList');
+
+    if (!logs || !logs.length) {
+      list.innerHTML =
+        '<div class="report-empty">'
+        + '<iconify-icon icon="lucide:inbox" style="font-size:32px;opacity:.35"></iconify-icon>'
+        + '<div>No driving logs found for this period.</div>'
+        + '</div>';
+      return;
+    }
+
+    var html = '<div class="drive-log-list">';
+    logs.forEach(function (log) {
+      var startedAt = log.started_at ? new Date((log.started_at || '').replace(/^(\d{4}-\d{2}-\d{2}) /, '$1T')) : null;
+      var dateStr   = startedAt ? startedAt.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) : '—';
+      var timeStr   = startedAt ? startedAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '';
+      var durH      = Math.floor((log.duration_min || 0) / 60);
+      var durM      = (log.duration_min || 0) % 60;
+      var durStr    = durH ? durH + 'h ' + durM + 'm' : durM + 'm';
+
+      // Safety event badges
+      var badges = '';
+      if (log.speeding_events > 0) {
+        badges += '<span class="event-badge speed">🚀 ' + log.speeding_events + ' Speeding</span>';
+      }
+      if (log.distractedness > 0) {
+        badges += '<span class="event-badge distract">📱 ' + log.distractedness + ' Distracted</span>';
+      }
+      if (log.rapid_accel_events > 0) {
+        badges += '<span class="event-badge accel">⬆️ ' + log.rapid_accel_events + ' Rapid Accel</span>';
+      }
+      if (log.hard_braking_events > 0) {
+        badges += '<span class="event-badge brake">🛑 ' + log.hard_braking_events + ' Hard Braking</span>';
+      }
+      if (!badges) {
+        badges = '<span class="event-badge safe">✅ Safe Drive</span>';
+      }
+
+      html += '<div class="drive-log-card" data-logid="' + esc(log.log_id) + '">'
+        + '<div class="drive-log-minimap" id="minimap-' + esc(log.log_id) + '"></div>'
+        + '<div class="drive-log-info">'
+        + '<div class="drive-log-route">'
+        + '<span>' + esc(log.from_address) + '</span>'
+        + '<span class="arrow">→</span>'
+        + '<span>' + esc(log.to_address) + '</span>'
+        + '</div>'
+        + '<div class="drive-log-meta">'
+        + '<span>📅 ' + esc(dateStr) + ' ' + esc(timeStr) + '</span>'
+        + '<span>⏱ ' + esc(durStr) + '</span>'
+        + '<span>📏 ' + esc(log.distance_mi) + ' mi</span>'
+        + '</div>'
+        + '<div class="drive-log-events">' + badges + '</div>'
+        + '</div>'
+        + '</div>';
+    });
+    html += '</div>';
+    list.innerHTML = html;
+
+    // Initialise a mini Leaflet map for each log card (deferred so DOM is ready)
+    setTimeout(function () {
+      logs.forEach(function (log) {
+        var el = document.getElementById('minimap-' + log.log_id);
+        if (!el || typeof L === 'undefined') return;
+        // Skip if already initialised
+        if (reportMiniMaps[log.log_id]) return;
+
+        var fromLat = parseFloat(log.from_lat);
+        var fromLng = parseFloat(log.from_lng);
+        var toLat   = parseFloat(log.to_lat);
+        var toLng   = parseFloat(log.to_lng);
+        if (isNaN(fromLat) || isNaN(toLat)) return;
+
+        var mid = [(fromLat + toLat) / 2, (fromLng + toLng) / 2];
+        var m   = L.map(el, {
+          center: mid, zoom: 7,
+          zoomControl: false, attributionControl: false,
+          scrollWheelZoom: false, dragging: false, doubleClickZoom: false,
+          keyboard: false, touchZoom: false,
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 18,
+        }).addTo(m);
+
+        // Source marker (green)
+        L.circleMarker([fromLat, fromLng], {
+          radius: 7, color: '#16a34a', fillColor: '#22c55e', fillOpacity: 1, weight: 2,
+        }).addTo(m).bindTooltip('Start: ' + log.from_address, { permanent: false });
+
+        // Destination marker (red)
+        L.circleMarker([toLat, toLng], {
+          radius: 7, color: '#b91c1c', fillColor: '#ef4444', fillOpacity: 1, weight: 2,
+        }).addTo(m).bindTooltip('End: ' + log.to_address, { permanent: false });
+
+        // Dashed line from source to destination
+        L.polyline([[fromLat, fromLng], [toLat, toLng]], {
+          color: '#0b6fff', weight: 2.5, dashArray: '6 5', opacity: 0.75,
+        }).addTo(m);
+
+        // Fit bounds
+        try {
+          m.fitBounds([[fromLat, fromLng], [toLat, toLng]], { padding: [16, 16] });
+        } catch (e) {}
+
+        reportMiniMaps[log.log_id] = m;
+        // Ensure Leaflet re-checks size after render
+        setTimeout(function () { m.invalidateSize(); }, 100);
+      });
+    }, 50);
   }
 
   // ═══════════════════════════════════════════════════════════
