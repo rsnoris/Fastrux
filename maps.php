@@ -170,7 +170,8 @@
     }
     .route-info {
       font-size: 12px; color: var(--primary); font-weight: 600;
-      flex: 1; text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      max-width: 160px;
     }
     .my-location-dot {
       width: 14px; height: 14px; background: #1d4ed8;
@@ -361,9 +362,8 @@
 
     /* ── Map search bar ── */
     .map-search-wrap {
-      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
-      width: min(380px, calc(100% - 100px));
-      z-index: 500;
+      position: relative;
+      flex: 1; min-width: 160px; max-width: 380px;
     }
     .map-search-input {
       width: 100%; box-sizing: border-box;
@@ -714,13 +714,13 @@
             <iconify-icon icon="lucide:x" style="font-size:13px;vertical-align:-2px;margin-right:3px"></iconify-icon>Clear Route
           </button>
           <span id="routeInfo" class="route-info"></span>
-        </div>
-        <!-- Map search bar -->
-        <div class="map-search-wrap" id="mapSearchWrap">
-          <iconify-icon icon="lucide:search" class="map-search-icon"></iconify-icon>
-          <input type="text" class="map-search-input" id="mapSearchInput" placeholder="Search address, city, place…"
-            autocomplete="off" oninput="onMapSearchInput(this.value)" onkeydown="onMapSearchKey(event)" />
-          <div class="search-autocomplete" id="searchAC" style="display:none;"></div>
+          <!-- Map search bar (inline in toolbar) -->
+          <div class="map-search-wrap" id="mapSearchWrap">
+            <iconify-icon icon="lucide:search" class="map-search-icon"></iconify-icon>
+            <input type="text" class="map-search-input" id="mapSearchInput" placeholder="Search address, city, place…"
+              autocomplete="off" oninput="onMapSearchInput(this.value)" onkeydown="onMapSearchKey(event)" />
+            <div class="search-autocomplete" id="searchAC" style="display:none;"></div>
+          </div>
         </div>
         <!-- Reverse geocode info bar -->
         <div class="map-info-bar" id="mapInfoBar">
@@ -1682,6 +1682,98 @@
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  NEARBY PLACES — HELPERS (Overpass / OSM)
+  // ═══════════════════════════════════════════════════════════
+  function haversineDistMi(lat1, lng1, lat2, lng2) {
+    var R = 3958.8;
+    var dLat = (lat2 - lat1) * Math.PI / 180;
+    var dLng = (lng2 - lng1) * Math.PI / 180;
+    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+            Math.sin(dLng / 2) * Math.sin(dLng / 2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  }
+
+  function osmTagsToCategory(tags) {
+    if (tags.amenity === 'fuel')                                    return 'gas_station';
+    if (tags.tourism === 'hotel' || tags.tourism === 'motel' ||
+        tags.tourism === 'hostel' || tags.tourism === 'guest_house') return 'hotel';
+    if (tags.amenity === 'restaurant' || tags.amenity === 'fast_food' ||
+        tags.amenity === 'cafe' || tags.amenity === 'food_court')    return 'restaurant';
+    if (tags.amenity === 'library')                                 return 'library';
+    if (tags.amenity === 'cinema')                                  return 'movie_theater';
+    if (tags.amenity === 'freight_terminal' || tags.amenity === 'weighbridge' ||
+        tags.industrial === 'depot' || tags.amenity === 'logistics')  return 'tms_terminal';
+    return null;
+  }
+
+  function osmTagsToAddress(tags) {
+    var parts = [];
+    if (tags['addr:housenumber'] && tags['addr:street'])
+      parts.push(tags['addr:housenumber'] + ' ' + tags['addr:street']);
+    else if (tags['addr:street'])
+      parts.push(tags['addr:street']);
+    if (tags['addr:city'])  parts.push(tags['addr:city']);
+    if (tags['addr:state']) parts.push(tags['addr:state']);
+    return parts.length ? parts.join(', ') : 'Location on map';
+  }
+
+  function osmTagsToMeta(cat, tags) {
+    var meta = {};
+    if (cat === 'gas_station') {
+      meta.brand    = tags.brand || tags.operator || '';
+      meta.open_247 = tags.opening_hours === '24/7';
+      meta.truck_lanes = tags['hgv:lanes'] ? parseInt(tags['hgv:lanes'], 10) : (tags.hgv === 'yes' ? 1 : 0);
+    }
+    if (cat === 'hotel') {
+      meta.brand       = tags.brand || tags.operator || '';
+      meta.star_rating = tags.stars ? parseInt(tags.stars, 10) : 0;
+      meta.price_range = tags['price:range'] || '';
+    }
+    if (cat === 'restaurant') {
+      meta.cuisine         = (tags.cuisine || '').replace(/_/g, ' ');
+      meta.trucker_friendly = tags['truck:friendly'] === 'yes' || tags.hgv === 'yes';
+    }
+    if (cat === 'library') {
+      meta.wifi  = tags.internet_access === 'wlan' || tags.wifi === 'yes';
+      meta.hours = tags.opening_hours || '';
+    }
+    if (cat === 'movie_theater') {
+      meta.screens      = tags.screens ? parseInt(tags.screens, 10) : 0;
+      meta.accessibility = tags.wheelchair === 'yes';
+    }
+    if (cat === 'tms_terminal') {
+      meta.carrier    = tags.operator || tags.name || '';
+      meta.open_247   = tags.opening_hours === '24/7';
+      meta.dock_doors = tags['loading_bays'] ? parseInt(tags['loading_bays'], 10) : 0;
+    }
+    meta.website = tags.website || tags['contact:website'] || '';
+    return meta;
+  }
+
+  function buildOverpassQuery(lat, lng, radiusM, category) {
+    var catFilters = {
+      gas_station:   ['node[amenity=fuel]', 'way[amenity=fuel]'],
+      hotel:         ['node[tourism~"^(hotel|motel|hostel|guest_house)$"]', 'way[tourism~"^(hotel|motel|hostel|guest_house)$"]'],
+      restaurant:    ['node[amenity~"^(restaurant|fast_food|cafe|food_court)$"]', 'way[amenity~"^(restaurant|fast_food|cafe|food_court)$"]'],
+      library:       ['node[amenity=library]', 'way[amenity=library]'],
+      movie_theater: ['node[amenity=cinema]', 'way[amenity=cinema]'],
+      tms_terminal:  ['node[amenity~"^(freight_terminal|weighbridge|logistics)$"]', 'node[industrial=depot]', 'way[amenity~"^(freight_terminal|weighbridge|logistics)$"]'],
+    };
+    var around = '(around:' + Math.round(radiusM) + ',' + lat.toFixed(6) + ',' + lng.toFixed(6) + ')';
+    var lines;
+    if (category === 'all') {
+      lines = [];
+      Object.values(catFilters).forEach(function(filters) {
+        filters.forEach(function(f) { lines.push(f + around + ';'); });
+      });
+    } else {
+      lines = (catFilters[category] || []).map(function(f) { return f + around + ';'; });
+    }
+    return '[out:json][timeout:25];\n(\n  ' + lines.join('\n  ') + '\n);\nout center 100;';
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  NEARBY PLACES — LOAD
   // ═══════════════════════════════════════════════════════════
   function loadNearby(useGeolocation) {
@@ -1695,26 +1787,48 @@
     info.textContent = 'Searching…';
 
     function fetchNearby(lat, lng) {
-      var url = 'nearby_places_data.php?action=nearby'
-        + '&lat=' + lat.toFixed(6)
-        + '&lng=' + lng.toFixed(6)
-        + '&radius=' + radius
-        + '&category=' + encodeURIComponent(category)
-        + '&t=' + Date.now();
+      var radiusM = radius * 1609.34;
+      var query   = buildOverpassQuery(lat, lng, radiusM, category);
 
-      fetch(url)
+      fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'data=' + encodeURIComponent(query),
+      })
         .then(function(r) { return r.json(); })
         .then(function(data) {
-          if (!data.success) {
-            list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:alert-circle"></iconify-icon><p>' + esc(data.message) + '</p></div>';
-            info.textContent = 'Error loading places.';
-            return;
-          }
-          lastPlaces = data.places || [];
-          info.textContent = lastPlaces.length + ' place' + (lastPlaces.length !== 1 ? 's' : '') + ' within ' + radius + ' mi of ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
-          renderNearbyList(lastPlaces);
-          renderPoiMarkers(lastPlaces, lat, lng, radius);
-          renderLayerToggles(data.grouped || {});
+          var places = [];
+          (data.elements || []).forEach(function(el) {
+            var elLat = el.lat != null ? el.lat : (el.center ? el.center.lat : null);
+            var elLng = el.lon != null ? el.lon : (el.center ? el.center.lon : null);
+            if (elLat == null || elLng == null) return;
+            var tags = el.tags || {};
+            var cat  = osmTagsToCategory(tags);
+            if (!cat) return;
+            var dist = haversineDistMi(lat, lng, elLat, elLng);
+            places.push({
+              id:       'osm_' + el.type + '_' + el.id,
+              name:     tags.name || (cat.charAt(0).toUpperCase() + cat.slice(1).replace(/_/g, ' ')),
+              address:  osmTagsToAddress(tags),
+              lat:      elLat,
+              lng:      elLng,
+              category: cat,
+              distance: dist.toFixed(1),
+              phone:    tags.phone || tags['contact:phone'] || '',
+              meta:     osmTagsToMeta(cat, tags),
+            });
+          });
+          places.sort(function(a, b) { return parseFloat(a.distance) - parseFloat(b.distance); });
+          var grouped = {};
+          places.forEach(function(p) {
+            if (!grouped[p.category]) grouped[p.category] = [];
+            grouped[p.category].push(p);
+          });
+          lastPlaces = places;
+          info.textContent = places.length + ' place' + (places.length !== 1 ? 's' : '') + ' within ' + radius + ' mi of ' + lat.toFixed(4) + ', ' + lng.toFixed(4);
+          renderNearbyList(places);
+          renderPoiMarkers(places, lat, lng, radius);
+          renderLayerToggles(grouped);
         })
         .catch(function(err) {
           list.innerHTML = '<div class="empty-state"><iconify-icon icon="lucide:wifi-off"></iconify-icon><p>Network error loading places.</p></div>';
