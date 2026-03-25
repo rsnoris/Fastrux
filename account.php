@@ -277,9 +277,10 @@
           <button class="sidebar-nav-item" onclick="showTab('security', this)">
             <iconify-icon icon="lucide:lock" style="font-size:18px"></iconify-icon>Security
           </button>
-          <button class="sidebar-nav-item" onclick="showTab('wallet', this)">
+          <!-- Wallet option hidden until feature is fully developed -->
+          <!-- <button class="sidebar-nav-item" onclick="showTab('wallet', this)">
             <iconify-icon icon="lucide:wallet" style="font-size:18px"></iconify-icon>Wallet
-          </button>
+          </button> -->
           <hr style="border:none;border-top:1px solid var(--border);margin:8px 0;">
           <button class="sidebar-nav-item" onclick="logout()" style="color:var(--destructive);">
             <iconify-icon icon="lucide:log-out" style="font-size:18px"></iconify-icon>Sign Out

@@ -859,10 +859,11 @@
             <button type="button" class="pay-method-tab active" id="tabCard" onclick="switchPayMethod('card')">
               <iconify-icon icon="lucide:credit-card" style="font-size:14px;margin-right:4px;"></iconify-icon>Credit Card
             </button>
-            <button type="button" class="pay-method-tab" id="tabWallet" onclick="switchPayMethod('wallet')">
+            <!-- Wallet payment option hidden until feature is fully developed -->
+            <!-- <button type="button" class="pay-method-tab" id="tabWallet" onclick="switchPayMethod('wallet')">
               <iconify-icon icon="lucide:wallet" style="font-size:14px;margin-right:4px;"></iconify-icon>Wallet
               <span id="walletBalanceBadge" style="font-size:11px;color:var(--muted-foreground);margin-left:4px;"></span>
-            </button>
+            </button> -->
           </div>
 
           <!-- Card payment form -->
@@ -1691,9 +1692,12 @@
   }
 
   function switchPayMethod(method) {
+    // Wallet payment option is temporarily disabled
+    if (method === 'wallet') method = 'card';
     currentPayMethod = method;
     document.getElementById('tabCard').classList.toggle('active',   method === 'card');
-    document.getElementById('tabWallet').classList.toggle('active', method === 'wallet');
+    var tabWallet = document.getElementById('tabWallet');
+    if (tabWallet) tabWallet.classList.toggle('active', method === 'wallet');
     document.getElementById('cardPaySection').style.display   = method === 'card'   ? '' : 'none';
     document.getElementById('walletPaySection').style.display = method === 'wallet' ? '' : 'none';
   }

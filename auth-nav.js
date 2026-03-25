@@ -183,7 +183,6 @@
     menu.className = 'nav-dash-dropdown-menu';
 
     [{ href: dashHref, text: 'Dashboard Overview' },
-     { href: 'wallet.php', text: 'My Wallet' },
      { href: 'messages.php', text: 'Messages' },
      { href: 'documents.php', text: 'Documents' }
     ].forEach(function (item) {
@@ -216,7 +215,6 @@
     }
     insertLink('messages.php', 'Messages');
     insertLink('documents.php', 'Documents');
-    insertLink('wallet.php', 'My Wallet');
   }
 
   function updateNav() {
