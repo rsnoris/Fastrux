@@ -244,7 +244,6 @@
     <nav class="dash-nav">
       <a href="loadboard">Loadboard</a>
       <a href="marketplace">Marketplace</a>
-      <a href="wallet" class="active">Wallet</a>
       <a href="account" id="headerAccountLink">Account</a>
     </nav>
   </div>
