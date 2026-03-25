@@ -466,7 +466,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         [$expMm, $expYy] = explode('/', $cardExpiry);
         $expMm   = (int)$expMm;
         $expYy   = (int)$expYy;
-        $expYear = $expYy < 50 ? 2000 + $expYy : 2050 + ($expYy - 50);
+        $expYear = 2000 + $expYy; // credit cards use 2000-2099 range
         $nowYear = (int)date('Y');
         $nowMon  = (int)date('n');
         if ($expMm < 1 || $expMm > 12 || $expYear < $nowYear || ($expYear === $nowYear && $expMm < $nowMon)) {
