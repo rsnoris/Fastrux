@@ -90,8 +90,118 @@
       height: calc(100vh - 180px);
       min-height: 480px;
     }
+
+    /* ── Sheet handle (hidden on desktop, shown on mobile) ── */
+    .sheet-handle {
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 8px 0 4px;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .sheet-handle-bar {
+      width: 36px; height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+    }
+
+    /* ── Mobile: Google-Maps-style full-screen map layout ── */
     @media (max-width: 768px) {
-      .map-layout { grid-template-columns: 1fr; height: auto; }
+      /* Remove container padding so map is edge-to-edge */
+      #mapsMainContainer {
+        padding: 0 !important;
+      }
+      /* Hide verbose title area — saves space for the map */
+      #mapsTitleArea { display: none; }
+
+      /* Compact stats strip: horizontal-scrolling chips */
+      .stats-strip {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        padding: 6px 10px;
+        gap: 6px;
+        margin-bottom: 0;
+        background: var(--card);
+        border-bottom: 1px solid var(--border);
+      }
+      .stats-strip::-webkit-scrollbar { display: none; }
+      .stat-pill {
+        flex: 0 0 auto;
+        min-width: 0;
+        padding: 6px 10px;
+        border-radius: 20px;
+        gap: 6px;
+      }
+      .stat-pill-icon { width: 26px; height: 26px; min-width: 26px; font-size: 13px; }
+      .stat-pill-value { font-size: 15px; }
+      .stat-pill-label { font-size: 10px; }
+
+      /* Map layout: fills the viewport below header (64px) + stats bar (~52px) */
+      .map-layout {
+        grid-template-columns: 1fr !important;
+        position: relative !important;
+        height: calc(100vh - 64px - 52px) !important;
+        min-height: 300px;
+        gap: 0;
+        overflow: hidden;
+      }
+
+      /* Map panel: full-area base layer */
+      #mapPanel {
+        position: absolute !important;
+        inset: 0;
+        border-radius: 0 !important;
+        border: none !important;
+        z-index: 1;
+      }
+      #mapPanel #map {
+        min-height: 100% !important;
+        border-radius: 0 !important;
+      }
+
+      /* Nav toolbar: floating glass-morphism bar on the map */
+      #mapPanel .nav-toolbar {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        z-index: 300;
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-radius: 12px;
+        border: 1px solid rgba(220, 220, 220, 0.8);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+        padding: 6px 10px;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      /* Side panel: bottom sheet overlay */
+      #sidePanel {
+        position: absolute !important;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 400;
+        max-height: 72vh;
+        border-radius: 16px 16px 0 0;
+        border: 1px solid var(--border) !important;
+        border-bottom: none !important;
+        box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.15);
+        transform: translateY(calc(100% - 56px));
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+      }
+      #sidePanel.sheet-expanded {
+        transform: translateY(0);
+      }
+
+      /* Show the drag handle on mobile */
+      .sheet-handle { display: flex; }
     }
 
     /* ── Driver list panel ── */
@@ -660,10 +770,10 @@
   </header>
 
   <!-- ── Main ── -->
-  <div class="container" style="padding-top:24px;padding-bottom:32px;">
+  <div class="container" id="mapsMainContainer" style="padding-top:24px;padding-bottom:32px;">
 
     <!-- Title + refresh -->
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
+    <div id="mapsTitleArea" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px;">
       <div>
         <h1 style="font-size:24px;font-weight:800;margin-bottom:4px;">Live Map &amp; Nearby Places</h1>
         <p style="color:var(--muted-foreground);font-size:14px;">Real-time drivers · Gas stations · Hotels · Restaurants · Libraries · Theaters · TMS hubs</p>
@@ -715,7 +825,11 @@
     <div class="map-layout">
 
       <!-- Left: Tabbed panel (Drivers / Nearby Places / Route Planner) -->
-      <div class="panel">
+      <div class="panel" id="sidePanel">
+        <!-- Drag handle (visible on mobile — tap to expand/collapse bottom sheet) -->
+        <div class="sheet-handle" onclick="toggleBottomSheet()">
+          <span class="sheet-handle-bar"></span>
+        </div>
         <!-- Tabs -->
         <div class="panel-tabs">
           <button class="panel-tab active" id="tabDrivers" onclick="switchTab('drivers')">
@@ -849,7 +963,7 @@
       </div>
 
       <!-- Right: Map -->
-      <div class="panel" style="overflow:hidden;display:flex;flex-direction:column;position:relative;">
+      <div class="panel" id="mapPanel" style="overflow:hidden;display:flex;flex-direction:column;position:relative;">
         <!-- Navigation toolbar -->
         <div class="nav-toolbar">
           <button class="btn-sm" onclick="centerOnMyLocation()" title="Center map on your real-time location">
@@ -2111,6 +2225,25 @@
   }
 
   // ═══════════════════════════════════════════════════════════
+  //  MOBILE BOTTOM SHEET
+  // ═══════════════════════════════════════════════════════════
+  function toggleBottomSheet() {
+    var panel = document.getElementById('sidePanel');
+    if (!panel) return;
+    panel.classList.toggle('sheet-expanded');
+    // Invalidate Leaflet map size after the 350ms CSS transition completes
+    if (map) setTimeout(function() { map.invalidateSize(); }, 350);
+  }
+
+  function expandBottomSheet() {
+    var panel = document.getElementById('sidePanel');
+    if (panel && !panel.classList.contains('sheet-expanded')) {
+      panel.classList.add('sheet-expanded');
+      if (map) setTimeout(function() { map.invalidateSize(); }, 350);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════
   //  TAB SWITCHING
   // ═══════════════════════════════════════════════════════════
   function switchTab(tab) {
@@ -2122,6 +2255,8 @@
       if (btn)   btn.classList.toggle('active', active);
       if (panel) panel.style.display = active ? 'flex' : 'none';
     });
+    // On mobile, expand the bottom sheet when a tab is tapped
+    if (window.innerWidth <= 768) expandBottomSheet();
   }
 
   // ═══════════════════════════════════════════════════════════
