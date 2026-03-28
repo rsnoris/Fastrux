@@ -85,29 +85,50 @@
   // ── Notification bell ──────────────────────────────────────────
   function injectNotificationBadge(userId) {
     var headerActions = document.querySelector('.header-actions');
-    if (headerActions && !headerActions.querySelector('.nav-notif-bell')) {
-      var bell = document.createElement('a');
-      bell.href = 'messages.php';
-      bell.className = 'nav-notif-bell';
-      bell.title = 'Messages & Notifications';
-      bell.style.cssText = 'position:relative;display:inline-flex;align-items:center;' +
-        'color:var(--foreground);text-decoration:none;font-size:20px;padding:2px;';
-      bell.innerHTML = '<iconify-icon icon="lucide:bell"></iconify-icon>' +
-        '<span class="nav-notif-count" style="display:none;position:absolute;top:-4px;right:-6px;' +
-        'background:var(--destructive,#e02424);color:#fff;font-size:10px;font-weight:700;' +
-        'padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;line-height:16px;"></span>';
-      var firstChild = headerActions.firstChild;
-      headerActions.insertBefore(bell, firstChild);
+    if (headerActions) {
+      // Messages bell (links to messages.php)
+      if (!headerActions.querySelector('.nav-msg-bell')) {
+        var msgBell = document.createElement('a');
+        msgBell.href = 'messages.php';
+        msgBell.className = 'nav-msg-bell';
+        msgBell.title = 'Messages';
+        msgBell.style.cssText = 'position:relative;display:inline-flex;align-items:center;' +
+          'color:var(--foreground);text-decoration:none;font-size:20px;padding:2px;';
+        msgBell.innerHTML = '<iconify-icon icon="lucide:mail"></iconify-icon>' +
+          '<span class="nav-msg-count" style="display:none;position:absolute;top:-4px;right:-6px;' +
+          'background:var(--destructive,#e02424);color:#fff;font-size:10px;font-weight:700;' +
+          'padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;line-height:16px;"></span>';
+        headerActions.insertBefore(msgBell, headerActions.firstChild);
+      }
+
+      // Notifications bell (links to notifications.php)
+      if (!headerActions.querySelector('.nav-notif-bell')) {
+        var bell = document.createElement('a');
+        bell.href = 'notifications.php';
+        bell.className = 'nav-notif-bell';
+        bell.title = 'Notifications';
+        bell.style.cssText = 'position:relative;display:inline-flex;align-items:center;' +
+          'color:var(--foreground);text-decoration:none;font-size:20px;padding:2px;';
+        bell.innerHTML = '<iconify-icon icon="lucide:bell"></iconify-icon>' +
+          '<span class="nav-notif-count" style="display:none;position:absolute;top:-4px;right:-6px;' +
+          'background:var(--destructive,#e02424);color:#fff;font-size:10px;font-weight:700;' +
+          'padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;line-height:16px;"></span>';
+        // Insert after the messages bell
+        var msgBellEl = headerActions.querySelector('.nav-msg-bell');
+        if (msgBellEl && msgBellEl.nextSibling) {
+          headerActions.insertBefore(bell, msgBellEl.nextSibling);
+        } else {
+          headerActions.insertBefore(bell, headerActions.firstChild);
+        }
+      }
     }
 
-    function refreshCount() {
+    function refreshMsgCount() {
       fetch('messages_data.php?action=unread_count&user_id=' + encodeURIComponent(userId))
         .then(function (r) { return r.json(); })
         .then(function (data) {
           var cnt   = data.unread_count || 0;
-          var bellEl = document.querySelector('.nav-notif-bell');
-          if (!bellEl) return;
-          var badge = bellEl.querySelector('.nav-notif-count');
+          var badge = document.querySelector('.nav-msg-bell .nav-msg-count');
           if (!badge) return;
           if (cnt > 0) {
             badge.textContent = cnt > 99 ? '99+' : cnt;
@@ -119,8 +140,27 @@
         .catch(function () {});
     }
 
-    refreshCount();
-    setInterval(refreshCount, NOTIF_POLL_INTERVAL);
+    function refreshNotifCount() {
+      fetch('notifications_data.php?action=unread_count&user_id=' + encodeURIComponent(userId))
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          var cnt   = data.unread_count || 0;
+          var badge = document.querySelector('.nav-notif-bell .nav-notif-count');
+          if (!badge) return;
+          if (cnt > 0) {
+            badge.textContent = cnt > 99 ? '99+' : cnt;
+            badge.style.display = 'block';
+          } else {
+            badge.style.display = 'none';
+          }
+        })
+        .catch(function () {});
+    }
+
+    refreshMsgCount();
+    refreshNotifCount();
+    setInterval(refreshMsgCount,   NOTIF_POLL_INTERVAL);
+    setInterval(refreshNotifCount, NOTIF_POLL_INTERVAL);
   }
 
   // ── Hide public-only nav links for logged-in users ───────────
@@ -184,7 +224,9 @@
 
     [{ href: dashHref, text: 'Dashboard Overview' },
      { href: 'messages.php', text: 'Messages' },
-     { href: 'documents.php', text: 'Documents' }
+     { href: 'notifications.php', text: 'Notifications' },
+     { href: 'documents.php', text: 'Documents' },
+     { href: 'ratings.php', text: 'Ratings & Reviews' }
     ].forEach(function (item) {
       var a = document.createElement('a');
       a.className = 'nav-dash-dropdown-item';
@@ -214,7 +256,9 @@
       }
     }
     insertLink('messages.php', 'Messages');
+    insertLink('notifications.php', 'Notifications');
     insertLink('documents.php', 'Documents');
+    insertLink('ratings.php', 'Ratings & Reviews');
   }
 
   function updateNav() {
