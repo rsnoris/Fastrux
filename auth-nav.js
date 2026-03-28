@@ -10,8 +10,8 @@
   var SHIPPER_ROLES       = ['shipper', 'customer'];
   var ADMIN_ROLES         = ['admin', 'super_admin'];
   var COMPANY_ROLES       = ['insurance_company', 'trucking_company', 'gas_station', 'hotel'];
-  var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
-  var INACTIVITY_TIMEOUT  = 60000; // ms — auto-logout after 1 minute of inactivity
+  var NOTIF_POLL_INTERVAL = 60000;  // ms — how often to refresh unread message count
+  var INACTIVITY_TIMEOUT  = 1800000; // ms — auto-logout after 30 minutes of inactivity
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -75,7 +75,7 @@
       if (Date.now() - lastActivity >= INACTIVITY_TIMEOUT) {
         loggedOut = true;
         clearInterval(checker);
-        alert('You have been logged out due to 1 minute of inactivity.');
+        alert('You have been logged out due to 30 minutes of inactivity.');
         localStorage.removeItem('fx_user');
         window.location.href = 'login';
       }
@@ -86,6 +86,18 @@
   function injectNotificationBadge(userId) {
     var headerActions = document.querySelector('.header-actions');
     if (headerActions) {
+      // Search icon (links to search.php)
+      if (!headerActions.querySelector('.nav-search-icon')) {
+        var searchIcon = document.createElement('a');
+        searchIcon.href = 'search.php';
+        searchIcon.className = 'nav-search-icon';
+        searchIcon.title = 'Search';
+        searchIcon.style.cssText = 'display:inline-flex;align-items:center;' +
+          'color:var(--foreground);text-decoration:none;font-size:20px;padding:2px;';
+        searchIcon.innerHTML = '<iconify-icon icon="lucide:search"></iconify-icon>';
+        headerActions.insertBefore(searchIcon, headerActions.firstChild);
+      }
+
       // Messages bell (links to messages.php)
       if (!headerActions.querySelector('.nav-msg-bell')) {
         var msgBell = document.createElement('a');
@@ -226,7 +238,9 @@
      { href: 'messages.php', text: 'Messages' },
      { href: 'notifications.php', text: 'Notifications' },
      { href: 'documents.php', text: 'Documents' },
-     { href: 'ratings.php', text: 'Ratings & Reviews' }
+     { href: 'ratings.php', text: 'Ratings & Reviews' },
+     { href: 'search.php', text: 'Search' },
+     { href: 'gdpr.php', text: 'Privacy & Data' }
     ].forEach(function (item) {
       var a = document.createElement('a');
       a.className = 'nav-dash-dropdown-item';
@@ -259,6 +273,8 @@
     insertLink('notifications.php', 'Notifications');
     insertLink('documents.php', 'Documents');
     insertLink('ratings.php', 'Ratings & Reviews');
+    insertLink('search.php', 'Search');
+    insertLink('gdpr.php', 'Privacy & Data');
   }
 
   function updateNav() {
