@@ -1,2 +1,4 @@
 # User-submitted data (form submissions, uploaded files)
-data/
+data/*
+# Allow the seed users file (test Admin & Super-Admin accounts)
+!data/registered_users.json

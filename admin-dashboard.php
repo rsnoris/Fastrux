@@ -604,7 +604,7 @@
     (function () {
       try { currentUser = JSON.parse(localStorage.getItem('fx_user')); } catch (e) {}
       if (!currentUser || !currentUser.id) {
-        window.location.href = 'login?redirect=' + encodeURIComponent(window.location.pathname);
+        window.location.href = 'admin-login?redirect=' + encodeURIComponent(window.location.pathname);
         return;
       }
       var adminRoles = ['admin', 'super_admin'];
