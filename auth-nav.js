@@ -10,8 +10,8 @@
   var SHIPPER_ROLES       = ['shipper', 'customer'];
   var ADMIN_ROLES         = ['admin', 'super_admin'];
   var COMPANY_ROLES       = ['insurance_company', 'trucking_company', 'gas_station', 'hotel'];
-  var NOTIF_POLL_INTERVAL = 60000; // ms — how often to refresh unread message count
-  var INACTIVITY_TIMEOUT  = 60000; // ms — auto-logout after 1 minute of inactivity
+  var NOTIF_POLL_INTERVAL = 60000;   // ms — how often to refresh unread message count
+  var INACTIVITY_TIMEOUT  = 1800000; // ms — auto-logout after 30 minutes of inactivity
 
   function isEmployee(role) {
     return EMPLOYEE_ROLES.indexOf(role) !== -1;
@@ -75,7 +75,7 @@
       if (Date.now() - lastActivity >= INACTIVITY_TIMEOUT) {
         loggedOut = true;
         clearInterval(checker);
-        alert('You have been logged out due to 1 minute of inactivity.');
+        alert('You have been logged out due to 30 minutes of inactivity.');
         localStorage.removeItem('fx_user');
         window.location.href = 'login';
       }
