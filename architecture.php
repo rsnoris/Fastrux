@@ -459,6 +459,7 @@ $fileDescriptions = [
   'fastrux_logistics.php'   => 'Legacy logistics overview page',
   'insurance-login.php'     => 'Insurance company login shortcut',
   'trucking-login.php'      => 'Trucking company login shortcut',
+  'admin-login.php'         => 'Admin / Super-Admin portal login',
   'architecture.php'        => 'This page — system architecture & data flow',
 ];
 

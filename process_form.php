@@ -524,17 +524,14 @@ function handleDriverOnboard(): void
 
 function handleLogin(): void
 {
-    $email    = clean($_POST['email']    ?? '');
-    $password = clean($_POST['password'] ?? '');
+    $identifier = clean($_POST['email'] ?? '');
+    $password   = clean($_POST['password'] ?? '');
 
-    if (!$email || !$password) {
-        respond(false, 'Email and password are required.');
-    }
-    if (!validEmail($email)) {
-        respond(false, 'Please enter a valid email address.');
+    if (!$identifier || !$password) {
+        respond(false, 'Email (or username) and password are required.');
     }
 
-    // Look up email in registered users
+    // Look up by email or username in registered users
     $usersPath = DATA_DIR . 'registered_users.json';
     if (!file_exists($usersPath)) {
         respond(false, 'No account found for that email address.');
@@ -542,50 +539,73 @@ function handleLogin(): void
 
     $users = json_decode(file_get_contents($usersPath), true) ?? [];
     $user  = null;
-    foreach ($users as $u) {
-        if (isset($u['email']) && strtolower($u['email']) === strtolower($email)) {
-            $user = $u;
-            break;
+
+    if (validEmail($identifier)) {
+        // Look up by email
+        foreach ($users as $u) {
+            if (isset($u['email']) && strtolower($u['email']) === strtolower($identifier)) {
+                $user = $u;
+                break;
+            }
+        }
+    } else {
+        // Look up by username
+        foreach ($users as $u) {
+            if (isset($u['username']) && strtolower($u['username']) === strtolower($identifier)) {
+                $user = $u;
+                break;
+            }
         }
     }
 
     if (!$user) {
-        auditLog('user.login_failed', '', 'user', '', "Failed login attempt for email: {$email}");
+        auditLog('user.login_failed', '', 'user', '', "Failed login attempt for: {$identifier}");
         respond(false, 'No account found for that email address.');
     }
 
     if (!password_verify($password, $user['password_hash'] ?? '')) {
-        auditLog('user.login_failed', $user['id'] ?? '', 'user', $user['id'] ?? '', "Failed login attempt (wrong password) for {$email}");
+        auditLog('user.login_failed', $user['id'] ?? '', 'user', $user['id'] ?? '', "Failed login attempt (wrong password) for {$identifier}");
         respond(false, 'Incorrect password. Please try again.');
     }
 
     // Block accounts that are pending admin approval
     if (($user['status'] ?? 'active') === 'pending_approval') {
-        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account pending admin approval: {$email}");
+        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account pending admin approval: {$identifier}");
         respond(false, 'Your account is pending admin approval. You will be notified once it is activated.');
     }
 
     // Block rejected accounts
     if (($user['status'] ?? 'active') === 'rejected') {
-        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account rejected: {$email}");
+        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — account rejected: {$identifier}");
         respond(false, 'Your account application was not approved. Please contact support for more information.');
     }
 
-    // If the login form specifies an expected role (portal-specific logins), enforce it
+    // If the login form specifies an expected role (portal-specific logins), enforce it.
+    // The special value "admin_portal" accepts both admin and super_admin roles.
     $expectedRole = clean($_POST['expected_role'] ?? '');
-    if ($expectedRole !== '' && ($user['role'] ?? 'shipper') !== $expectedRole) {
-        $portalNames = [
-            'gas_station'      => 'Gas Station',
-            'hotel'            => 'Hotel',
-            'insurance_company'=> 'Insurance Company',
-            'trucking_company' => 'Trucking Company',
-        ];
-        $portalLabel = $portalNames[$expectedRole] ?? ucfirst(str_replace('_', ' ', $expectedRole));
-        auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — wrong portal ({$expectedRole}) for role ({$user['role']}) for {$email}");
-        respond(false, "This portal is for {$portalLabel} partners only. Please use the general login page.");
+    if ($expectedRole !== '') {
+        $userRole = $user['role'] ?? 'shipper';
+        $roleMatch = false;
+        if ($expectedRole === 'admin_portal') {
+            $roleMatch = in_array($userRole, ['admin', 'super_admin'], true);
+        } else {
+            $roleMatch = ($userRole === $expectedRole);
+        }
+        if (!$roleMatch) {
+            $portalNames = [
+                'admin_portal'     => 'Admin',
+                'gas_station'      => 'Gas Station',
+                'hotel'            => 'Hotel',
+                'insurance_company'=> 'Insurance Company',
+                'trucking_company' => 'Trucking Company',
+            ];
+            $portalLabel = $portalNames[$expectedRole] ?? ucfirst(str_replace('_', ' ', $expectedRole));
+            auditLog('user.login_blocked', $user['id'] ?? '', 'user', $user['id'] ?? '', "Login blocked — wrong portal ({$expectedRole}) for role ({$userRole}) for {$identifier}");
+            respond(false, "This portal is for {$portalLabel} partners only. Please use the general login page.");
+        }
     }
 
-    auditLog('user.login', $user['id'] ?? '', 'user', $user['id'] ?? '', "User logged in: {$email} (role: " . ($user['role'] ?? 'shipper') . ')');
+    auditLog('user.login', $user['id'] ?? '', 'user', $user['id'] ?? '', "User logged in: {$identifier} (role: " . ($user['role'] ?? 'shipper') . ')');
     respond(true, 'Login successful. Welcome back, ' . htmlspecialchars($user['first_name'], ENT_QUOTES, 'UTF-8') . '!', [
         'user' => [
             'id'         => $user['id'],

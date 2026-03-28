@@ -1,0 +1,26 @@
+[
+    {
+        "id": "USR-ADMIN001",
+        "timestamp": "2026-01-01 00:00:00",
+        "first_name": "Admin",
+        "last_name": "User",
+        "email": "admin@fastrux.com",
+        "username": "Admin",
+        "company": "",
+        "role": "admin",
+        "status": "active",
+        "password_hash": "$2y$10$8QcBG2b9LEyfNWGkxm04qOpt7jqjUqdwqWuS3LFslACXobE59\/AUm"
+    },
+    {
+        "id": "USR-SUPER001",
+        "timestamp": "2026-01-01 00:00:00",
+        "first_name": "Super-Admin",
+        "last_name": "User",
+        "email": "superadmin@fastrux.com",
+        "username": "Super-Admin",
+        "company": "",
+        "role": "super_admin",
+        "status": "active",
+        "password_hash": "$2y$10$.06yrMT8cjeFFVQdhqG.9eEGM3nG7YwHneLb7zK8va4DfuXBoIDmq"
+    }
+]
