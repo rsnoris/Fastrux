@@ -8,11 +8,13 @@
  *
  * GET  ?action=pending_staff          → list accounts with status=pending_approval (admin+)
  * GET  ?action=users                  → list all users (admin+)
+ * GET  ?action=validation_log         → last 20 data validation run records (admin+)
  * POST action=approve_staff           → approve a staff account (admin+)
  * POST action=reject_staff            → reject a staff account (admin+)
  * POST action=change_role             → change a user's role (super_admin only)
  * POST action=create_admin            → create an admin/super_admin account (super_admin only)
  * POST action=reset_all_wallets       → reset all wallet balances to $0.00 (super_admin only)
+ * POST action=trigger_validation      → run data_validation_agent in background (admin+)
  */
 
 header('Content-Type: application/json');
@@ -131,6 +133,18 @@ if ($method === 'GET') {
     if ($action === 'users') {
         $safe = array_map(fn($u) => array_diff_key($u, ['password_hash' => '']), $users);
         adminRespond(true, '', ['users' => $safe, 'total' => count($safe)]);
+    }
+
+    // ── Validation log ─────────────────────────────────────────────
+    if ($action === 'validation_log') {
+        $logFile = ADMIN_DATA_DIR . 'validation_log.json';
+        if (!file_exists($logFile)) {
+            adminRespond(true, 'No validation runs recorded yet.', ['log' => []]);
+        }
+        $log = json_decode(file_get_contents($logFile), true) ?? [];
+        // Return last 20 entries most-recent-first
+        $log = array_reverse(array_slice($log, -20));
+        adminRespond(true, '', ['log' => $log, 'total' => count($log)]);
     }
 
     adminRespond(false, 'Unknown action.');
@@ -397,6 +411,48 @@ if ($method === 'POST') {
         adminRespond(true, "All wallet balances have been reset to \$0.00.", [
             'wallets_reset'   => $count,
             'wallets_skipped' => $skipped,
+        ]);
+    }
+
+    // ── Trigger data validation agent (admin+) ─────────────────────
+    if ($action === 'trigger_validation') {
+        $actor     = requireRole($requestingUserId, 'admin');
+        $runAction = adminClean($_POST['run_action'] ?? 'full_refresh');
+        $runCat    = adminClean($_POST['run_category'] ?? 'all');
+
+        $agentScript = __DIR__ . '/data_validation_agent.php';
+        if (!file_exists($agentScript)) {
+            adminRespond(false, 'Validation agent script not found.');
+        }
+
+        // Resolve absolute PHP binary path to avoid shell injection
+        $phpBin = PHP_BINARY;
+        // Only allow alphanumeric + underscores in action/category to prevent injection
+        if (!preg_match('/^[a-z_]+$/', $runAction) || !preg_match('/^[a-z_]+$/', $runCat)) {
+            adminRespond(false, 'Invalid run_action or run_category value.');
+        }
+
+        // Run agent asynchronously — fire-and-forget
+        $logFile = ADMIN_DATA_DIR . 'agent_run_' . date('Ymd_His') . '.log';
+        $cmd = escapeshellcmd($phpBin) . ' '
+             . escapeshellarg($agentScript) . ' '
+             . '--action=' . escapeshellarg($runAction) . ' '
+             . '--category=' . escapeshellarg($runCat)
+             . ' > ' . escapeshellarg($logFile) . ' 2>&1 &';
+        exec($cmd);
+
+        auditLog(
+            'data_agent.triggered',
+            $requestingUserId,
+            'system',
+            'data_validation_agent',
+            "Data validation agent triggered by {$requestingUserId}: action={$runAction}, category={$runCat}"
+        );
+
+        adminRespond(true, 'Data validation agent triggered in the background.', [
+            'run_action'   => $runAction,
+            'run_category' => $runCat,
+            'log_file'     => basename($logFile),
         ]);
     }
 
