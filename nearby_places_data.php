@@ -3,9 +3,9 @@
  * Fastrux — Nearby Places Data API
  *
  * Provides Points of Interest (POI) data for the Maps page.
- * Sources: local JSON seed data + user-submitted marketplace listings.
+ * Sources: local JSON seed data + live Overpass/OSM cache + user-submitted marketplace listings.
  *
- * GET  ?action=nearby&lat=XX&lng=YY[&radius=50][&category=all|gas_station|hotel|restaurant|library|movie_theater|tms_terminal]
+ * GET  ?action=nearby&lat=XX&lng=YY[&radius=50][&category=all|gas_station|hotel|restaurant|library|movie_theater|tms_terminal|carrier|insurance]
  * GET  ?action=categories         — returns list of available categories with counts
  * GET  ?action=get_place&id=XXX   — returns a single place by ID
  */
@@ -28,6 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 define('NP_DATA_DIR', __DIR__ . '/data/');
 define('NP_SEED_DIR', __DIR__ . '/seed_data/');
+define('NP_LIVE_DIR', __DIR__ . '/data/live_data/');
+
+// Live-data cache TTL: 24 hours
+define('NP_LIVE_TTL', 86400);
 
 // ── Helpers ───────────────────────────────────────────────
 
@@ -51,6 +55,19 @@ function npLoadJson(string $filename): array {
 function npLoadSeed(string $filename): array {
     $path = NP_SEED_DIR . $filename;
     if (!file_exists($path)) return [];
+    $data = json_decode(file_get_contents($path), true);
+    return is_array($data) ? $data : [];
+}
+
+/**
+ * Load cached live Overpass data for a category.
+ * Returns [] if the file does not exist or is older than NP_LIVE_TTL.
+ */
+function npLoadLive(string $filename): array {
+    $path = NP_LIVE_DIR . $filename;
+    if (!file_exists($path)) return [];
+    $mtime = filemtime($path);
+    if ($mtime === false || (time() - $mtime) > NP_LIVE_TTL) return []; // stale or unreadable
     $data = json_decode(file_get_contents($path), true);
     return is_array($data) ? $data : [];
 }
@@ -142,6 +159,26 @@ function buildMeta(array $p, string $category): array {
                 'dock_doors' => $p['dock_doors'] ?? null,
                 'open_247'   => $p['open_247']   ?? false,
             ];
+        case 'carrier':
+            return [
+                'dot_number'   => $p['dot_number']   ?? '',
+                'mc_number'    => $p['mc_number']    ?? '',
+                'services'     => $p['services']     ?? [],
+                'cargo_types'  => $p['cargo_types']  ?? [],
+                'fleet_size'   => $p['fleet_size']   ?? null,
+                'contact_type' => $p['contact_type'] ?? '',
+                'website'      => $p['website']      ?? '',
+            ];
+        case 'insurance':
+            return [
+                'specialties'    => $p['specialties']    ?? [],
+                'coverage_types' => $p['coverage_types'] ?? [],
+                'min_coverage'   => $p['min_coverage']   ?? '',
+                'max_coverage'   => $p['max_coverage']   ?? '',
+                'instant_quote'  => $p['instant_quote']  ?? false,
+                'am_best_rating' => $p['am_best_rating'] ?? '',
+                'website'        => $p['website']        ?? '',
+            ];
         default:
             return [];
     }
@@ -196,12 +233,14 @@ function handleNearby(): void {
     $allPlaces = [];
 
     $categoryMap = [
-        'gas_station'   => ['gas_stations_seed.json',  'gas_station'],
-        'hotel'         => ['hotels_seed.json',         'hotel'],
-        'restaurant'    => ['restaurants.json',         'restaurant'],
-        'library'       => ['libraries.json',           'library'],
-        'movie_theater' => ['movie_theaters.json',      'movie_theater'],
-        'tms_terminal'  => ['tms_terminals.json',       'tms_terminal'],
+        'gas_station'   => ['gas_stations_seed.json',     'gas_station',   'gas_station.json'],
+        'hotel'         => ['hotels_seed.json',            'hotel',         'hotel.json'],
+        'restaurant'    => ['restaurants.json',            'restaurant',    'restaurant.json'],
+        'library'       => ['libraries.json',              'library',       null],
+        'movie_theater' => ['movie_theaters.json',         'movie_theater', null],
+        'tms_terminal'  => ['tms_terminals.json',          'tms_terminal',  null],
+        'carrier'       => ['carriers.json',               'carrier',       'carrier.json'],
+        'insurance'     => ['insurance_companies.json',    'insurance',     'insurance.json'],
     ];
 
     $categoriesToLoad = ($category === 'all')
@@ -213,8 +252,30 @@ function handleNearby(): void {
     }
 
     foreach ($categoriesToLoad as $cat) {
-        [$file, $catLabel] = $categoryMap[$cat];
+        [$file, $catLabel, $liveFile] = $categoryMap[$cat];
+
+        // Load seed entries
         $places = npLoadSeed($file);
+
+        // Merge live Overpass data when available (for supported categories)
+        $liveSeenOsmIds = [];
+        if ($liveFile !== null) {
+            $livePlaces = npLoadLive($liveFile);
+            foreach ($livePlaces as $lp) {
+                $pLat = (float)($lp['lat'] ?? 0);
+                $pLng = (float)($lp['lng'] ?? 0);
+                if ($pLat === 0.0 && $pLng === 0.0) continue;
+                $dist = haversine($lat, $lng, $pLat, $pLng);
+                if ($dist <= $radius) {
+                    $allPlaces[] = normalizePlace($lp, $catLabel, $dist);
+                    if (!empty($lp['osm_id'])) {
+                        $liveSeenOsmIds[$lp['osm_id']] = true;
+                    }
+                }
+            }
+        }
+
+        // Add seed entries (always included — they are curated/validated)
         foreach ($places as $place) {
             $pLat = (float)($place['lat'] ?? 0);
             $pLng = (float)($place['lng'] ?? 0);
@@ -281,22 +342,41 @@ function handleNearby(): void {
 }
 
 function handleCategories(): void {
-    $counts = [
+    $seedCounts = [
         'gas_station'   => count(npLoadSeed('gas_stations_seed.json')),
         'hotel'         => count(npLoadSeed('hotels_seed.json')),
         'restaurant'    => count(npLoadSeed('restaurants.json')),
         'library'       => count(npLoadSeed('libraries.json')),
         'movie_theater' => count(npLoadSeed('movie_theaters.json')),
         'tms_terminal'  => count(npLoadSeed('tms_terminals.json')),
+        'carrier'       => count(npLoadSeed('carriers.json')),
+        'insurance'     => count(npLoadSeed('insurance_companies.json')),
     ];
 
+    // Add live data counts where available
+    $liveCounts = [
+        'gas_station' => count(npLoadLive('gas_station.json')),
+        'hotel'       => count(npLoadLive('hotel.json')),
+        'restaurant'  => count(npLoadLive('restaurant.json')),
+        'carrier'     => count(npLoadLive('carrier.json')),
+        'insurance'   => count(npLoadLive('insurance.json')),
+    ];
+
+    $totalCount = function (string $cat) use ($seedCounts, $liveCounts): int {
+        $seed = $seedCounts[$cat] ?? 0;
+        $live = $liveCounts[$cat] ?? 0;
+        return $seed + $live;
+    };
+
     $categories = [
-        ['id' => 'gas_station',   'label' => 'Gas Stations',    'icon' => '⛽', 'count' => $counts['gas_station'],   'color' => '#f59e0b'],
-        ['id' => 'hotel',         'label' => 'Hotels',           'icon' => '🏨', 'count' => $counts['hotel'],         'color' => '#8b5cf6'],
-        ['id' => 'restaurant',    'label' => 'Restaurants',      'icon' => '🍽️', 'count' => $counts['restaurant'],    'color' => '#ef4444'],
-        ['id' => 'library',       'label' => 'Libraries',        'icon' => '📚', 'count' => $counts['library'],       'color' => '#3b82f6'],
-        ['id' => 'movie_theater', 'label' => 'Movie Theaters',   'icon' => '🎬', 'count' => $counts['movie_theater'], 'color' => '#ec4899'],
-        ['id' => 'tms_terminal',  'label' => 'TMS / Freight Hubs','icon'=> '🏭', 'count' => $counts['tms_terminal'],  'color' => '#10b981'],
+        ['id' => 'gas_station',   'label' => 'Gas Stations',        'icon' => '⛽', 'count' => $totalCount('gas_station'),   'color' => '#f59e0b'],
+        ['id' => 'hotel',         'label' => 'Hotels',               'icon' => '🏨', 'count' => $totalCount('hotel'),         'color' => '#8b5cf6'],
+        ['id' => 'restaurant',    'label' => 'Restaurants',          'icon' => '🍽️', 'count' => $totalCount('restaurant'),    'color' => '#ef4444'],
+        ['id' => 'carrier',       'label' => 'Carriers',             'icon' => '🚛', 'count' => $totalCount('carrier'),       'color' => '#0ea5e9'],
+        ['id' => 'insurance',     'label' => 'Insurance Companies',  'icon' => '🛡️', 'count' => $totalCount('insurance'),     'color' => '#14b8a6'],
+        ['id' => 'library',       'label' => 'Libraries',            'icon' => '📚', 'count' => $seedCounts['library'],       'color' => '#3b82f6'],
+        ['id' => 'movie_theater', 'label' => 'Movie Theaters',       'icon' => '🎬', 'count' => $seedCounts['movie_theater'], 'color' => '#ec4899'],
+        ['id' => 'tms_terminal',  'label' => 'TMS / Freight Hubs',   'icon' => '🏭', 'count' => $seedCounts['tms_terminal'],  'color' => '#10b981'],
     ];
 
     npRespond(true, 'OK', ['categories' => $categories]);
@@ -309,15 +389,38 @@ function handleGetPlace(): void {
     }
 
     $fileMap = [
-        'GAS' => ['gas_stations_seed.json', 'gas_station'],
-        'HTL' => ['hotels_seed.json',        'hotel'],
-        'RST' => ['restaurants.json',        'restaurant'],
-        'LIB' => ['libraries.json',          'library'],
-        'THR' => ['movie_theaters.json',     'movie_theater'],
-        'TMS' => ['tms_terminals.json',      'tms_terminal'],
+        'GAS' => ['gas_stations_seed.json',     'gas_station'],
+        'HTL' => ['hotels_seed.json',            'hotel'],
+        'RST' => ['restaurants.json',            'restaurant'],
+        'LIB' => ['libraries.json',              'library'],
+        'THR' => ['movie_theaters.json',         'movie_theater'],
+        'TMS' => ['tms_terminals.json',          'tms_terminal'],
+        'CAR' => ['carriers.json',               'carrier'],
+        'INS' => ['insurance_companies.json',    'insurance'],
     ];
 
     $prefix = strtoupper(substr($id, 0, 3));
+
+    // Handle OSM live-data IDs (e.g. "OSM-gas_station-12345")
+    if ($prefix === 'OSM') {
+        $liveFileMap = [
+            'gas_station' => 'gas_station.json',
+            'hotel'       => 'hotel.json',
+            'restaurant'  => 'restaurant.json',
+            'carrier'     => 'carrier.json',
+            'insurance'   => 'insurance.json',
+        ];
+        foreach ($liveFileMap as $catKey => $liveFile) {
+            $livePlaces = npLoadLive($liveFile);
+            foreach ($livePlaces as $place) {
+                if (($place['id'] ?? '') === $id) {
+                    npRespond(true, 'OK', ['place' => normalizePlace($place, $catKey, 0)]);
+                }
+            }
+        }
+        npRespond(false, 'Place not found.');
+    }
+
     if (!isset($fileMap[$prefix])) {
         npRespond(false, 'Place not found.');
     }
