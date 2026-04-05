@@ -425,21 +425,22 @@ if ($method === 'POST') {
             adminRespond(false, 'Validation agent script not found.');
         }
 
-        // Resolve absolute PHP binary path to avoid shell injection
-        $phpBin = PHP_BINARY;
         // Only allow alphanumeric + underscores in action/category to prevent injection
         if (!preg_match('/^[a-z_]+$/', $runAction) || !preg_match('/^[a-z_]+$/', $runCat)) {
             adminRespond(false, 'Invalid run_action or run_category value.');
         }
 
-        // Run agent asynchronously — fire-and-forget
-        $logFile = ADMIN_DATA_DIR . 'agent_run_' . date('Ymd_His') . '.log';
-        $cmd = escapeshellcmd($phpBin) . ' '
-             . escapeshellarg($agentScript) . ' '
-             . '--action=' . escapeshellarg($runAction) . ' '
-             . '--category=' . escapeshellarg($runCat)
-             . ' > ' . escapeshellarg($logFile) . ' 2>&1 &';
-        exec($cmd);
+        // Run agent asynchronously using proc_open with an explicit argv array
+        // to avoid any shell-injection risk.
+        $logFile  = ADMIN_DATA_DIR . 'agent_run_' . date('Ymd_His') . '.log';
+        $argv     = [PHP_BINARY, $agentScript, '--action=' . $runAction, '--category=' . $runCat];
+        $fdSpec   = [0 => ['pipe', 'r'], 1 => ['file', $logFile, 'w'], 2 => ['file', $logFile, 'a']];
+        $proc     = proc_open($argv, $fdSpec, $pipes);
+        if (is_resource($proc)) {
+            fclose($pipes[0]);
+            // Detach — do not wait for completion
+            proc_close($proc);
+        }
 
         auditLog(
             'data_agent.triggered',

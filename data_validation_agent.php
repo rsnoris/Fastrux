@@ -49,6 +49,12 @@ define('AGENT_STALE_AGE', 172800);
 // HTTP timeout for external calls (seconds)
 define('AGENT_HTTP_TIMEOUT', 30);
 
+// Nominatim rate-limit: 1.1 second sleep between requests (> 1 req/sec limit)
+define('NOMINATIM_RATE_LIMIT_DELAY', 1100000);
+
+// Maximum number of log entries to keep in validation_log.json
+define('AGENT_MAX_LOG_ENTRIES', 100);
+
 // ── Setup ──────────────────────────────────────────────────────────────────
 if (!is_dir(AGENT_LIVE_DIR)) {
     mkdir(AGENT_LIVE_DIR, 0755, true);
@@ -277,8 +283,8 @@ function validateSeedData(string $cat, array $cfg): array {
         }
 
         $rev = nominatimReverse($lat, $lng);
-        // Brief delay to respect Nominatim's 1 req/sec policy
-        usleep(1100000);
+        // Respect Nominatim's 1 request/second usage policy
+        usleep(NOMINATIM_RATE_LIMIT_DELAY);
 
         if ($rev === null) {
             $entry['validation_status'] = 'geocode_api_error';
@@ -361,7 +367,7 @@ function normalizeOverpassHotel(array $el, array $tags, string $id): ?array {
 
     return buildOsmPlace($id, $name, $el, $tags, [
         'brand'       => $tags['brand'] ?? '',
-        'chain'       => $tags['brand'] ?? '',
+        'chain'       => $tags['operator'] ?? $tags['brand'] ?? '',
         'star_rating' => $stars,
         'amenities'   => array_values(array_unique($amenities)),
         'booking_url' => $tags['website'] ?? '',
@@ -490,9 +496,9 @@ function appendValidationLog(string $action, string $category, array $results): 
         'results'  => $results,
     ];
 
-    // Keep last 100 log entries
-    if (count($logs) > 100) {
-        $logs = array_slice($logs, -100);
+    // Keep last AGENT_MAX_LOG_ENTRIES log entries
+    if (count($logs) > AGENT_MAX_LOG_ENTRIES) {
+        $logs = array_slice($logs, -AGENT_MAX_LOG_ENTRIES);
     }
 
     file_put_contents($logFile, json_encode($logs, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));

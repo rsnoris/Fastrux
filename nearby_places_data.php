@@ -66,7 +66,8 @@ function npLoadSeed(string $filename): array {
 function npLoadLive(string $filename): array {
     $path = NP_LIVE_DIR . $filename;
     if (!file_exists($path)) return [];
-    if ((time() - filemtime($path)) > NP_LIVE_TTL) return []; // stale
+    $mtime = filemtime($path);
+    if ($mtime === false || (time() - $mtime) > NP_LIVE_TTL) return []; // stale or unreadable
     $data = json_decode(file_get_contents($path), true);
     return is_array($data) ? $data : [];
 }
