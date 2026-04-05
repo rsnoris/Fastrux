@@ -783,7 +783,7 @@
       const map = {
         customer:        'Shipper',
         shipper:         'Shipper',
-        driver:          'Employee — Owner & Operator / Driver',
+        driver:          'Employee — Driver',
         owner_operator:  'Employee — Owner & Operator',
         corporate_staff: 'Employee — Corporate Staff',
       };
